@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		963774362CBDE25600FFFCBA /* FilenSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 963774352CBDE25600FFFCBA /* FilenSDK */; };
+		963774392CBDE31300FFFCBA /* FilenSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 963774382CBDE31300FFFCBA /* FilenSDK */; };
+		963774B02CBF396500FFFCBA /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = 963774AF2CBF396500FFFCBA /* SQLite */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		963774032CBD8DB000FFFCBA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +58,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				963774B02CBF396500FFFCBA /* SQLite in Frameworks */,
+				963774392CBDE31300FFFCBA /* FilenSDK in Frameworks */,
+				963774362CBDE25600FFFCBA /* FilenSDK in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +87,7 @@
 				963773F32CBD8DAF00FFFCBA /* FilenFoto */,
 				963774052CBD8DB000FFFCBA /* FilenFotoTests */,
 				9637740F2CBD8DB000FFFCBA /* FilenFotoUITests */,
+				963774282CBDDC3D00FFFCBA /* Frameworks */,
 				963773F22CBD8DAF00FFFCBA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +100,13 @@
 				9637740C2CBD8DB000FFFCBA /* FilenFotoUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		963774282CBDDC3D00FFFCBA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +129,9 @@
 			);
 			name = FilenFoto;
 			packageProductDependencies = (
+				963774352CBDE25600FFFCBA /* FilenSDK */,
+				963774382CBDE31300FFFCBA /* FilenSDK */,
+				963774AF2CBF396500FFFCBA /* SQLite */,
 			);
 			productName = FilenFoto;
 			productReference = 963773F12CBD8DAF00FFFCBA /* FilenFoto.app */;
@@ -195,6 +215,10 @@
 			);
 			mainGroup = 963773E82CBD8DAF00FFFCBA;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				963774372CBDE31300FFFCBA /* XCLocalSwiftPackageReference "../FilenSDK" */,
+				963774AE2CBF396500FFFCBA /* XCRemoteSwiftPackageReference "SQLite" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 963773F22CBD8DAF00FFFCBA /* Products */;
 			projectDirPath = "";
@@ -396,6 +420,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Syncing photos and videos to the cloud";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -406,7 +431,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -435,6 +460,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Syncing photos and videos to the cloud";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -445,7 +471,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -591,6 +617,40 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		963774372CBDE31300FFFCBA /* XCLocalSwiftPackageReference "../FilenSDK" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../FilenSDK;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		963774AE2CBF396500FFFCBA /* XCRemoteSwiftPackageReference "SQLite" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stephencelis/SQLite.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.15.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		963774352CBDE25600FFFCBA /* FilenSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FilenSDK;
+		};
+		963774382CBDE31300FFFCBA /* FilenSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FilenSDK;
+		};
+		963774AF2CBF396500FFFCBA /* SQLite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 963774AE2CBF396500FFFCBA /* XCRemoteSwiftPackageReference "SQLite" */;
+			productName = SQLite;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 963773E92CBD8DAF00FFFCBA /* Project object */;
 }
