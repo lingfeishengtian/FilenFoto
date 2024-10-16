@@ -47,6 +47,7 @@ class SyncProgressInfo : ObservableObject {
     @Published var progress: Double = 0
     @Published var currentStep: String = ""
     @Published var totalAmountOfImages: Int
+    // TODO: Implement file sync queue
     var amountOfImagesSynced: Int = 0
     
     init(totalAmountOfImages: Int) {
@@ -125,7 +126,6 @@ class PhotoVisionDatabaseManager {
             fetchOptions.includeAllBurstAssets = true
             let allPhotos = PHAsset.fetchAssets(with: fetchOptions)
             
-            var count = 0
             var completed = 0
             
             progressInfo.setAmountOfImages(allPhotos.count)
@@ -135,16 +135,13 @@ class PhotoVisionDatabaseManager {
                     stop.initialize(to: ObjCBool(true))
                     self.cancelOperation = false
                 } else {
-                    if count <= 10 {
-                        count += 1
-                        Task {
-                            try await self.fetchAndSyncAssetsFor(asset) { prog, status in
-                                if prog >= 1.0 {
-                                    completed += 1
-                                }
-                                
-                                progressInfo.updateProgress(amountOfImagesSynced: completed, step: status)
+                    Task {
+                        try await self.fetchAndSyncAssetsFor(asset) { prog, status in
+                            if prog >= 1.0 {
+                                completed += 1
                             }
+                            
+                            progressInfo.updateProgress(amountOfImagesSynced: completed, step: status)
                         }
                     }
                 }
