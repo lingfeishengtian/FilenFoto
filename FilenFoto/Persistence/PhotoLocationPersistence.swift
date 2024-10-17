@@ -10,6 +10,23 @@ import Photos
 import os
 import Vision
 import FilenSDK
+import CryptoKit
+
+func getSHA256(forFile url: URL) throws -> String {
+    let handle = try FileHandle(forReadingFrom: url)
+    var hasher = SHA256()
+    while autoreleasepool(invoking: {
+        let nextChunk = handle.readData(ofLength: SHA256.blockByteCount)
+        guard !nextChunk.isEmpty else { return false }
+        hasher.update(data: nextChunk)
+        return true
+    }) { }
+    let digest = hasher.finalize()
+//    return digest
+
+    // Here's how to convert to string form
+    return digest.map { String(format: "%02hhx", $0) }.joined()
+}
 
 var filenPhotoFolderUUID: String? {
     get {
@@ -47,21 +64,23 @@ class SyncProgressInfo : ObservableObject {
     @Published var progress: Double = 0
     @Published var currentStep: String = ""
     @Published var totalAmountOfImages: Int
+    
+    let callbackOnComplete: (() -> Void)
     // TODO: Implement file sync queue
     var amountOfImagesSynced: Int = 0
     
-    init(totalAmountOfImages: Int) {
+    init(totalAmountOfImages: Int, callbackOnComplete: @escaping () -> Void) {
         self.totalAmountOfImages = totalAmountOfImages
+        self.callbackOnComplete = callbackOnComplete
     }
     
-    func updateProgress(amountOfImagesSynced: Int, step: String) {
-        self.amountOfImagesSynced = amountOfImagesSynced
-        let progress = Double(amountOfImagesSynced) / Double(totalAmountOfImages)
+    func updateProgress(step: String, minorAmt: Double = 0.0) {
+        let progress = Double(amountOfImagesSynced) / Double(totalAmountOfImages) + (minorAmt > 1.0 ? 1.0 : minorAmt) / Double(self.totalAmountOfImages)
         DispatchQueue.main.async {
             if self.totalAmountOfImages == 0 {
                 self.progress = 0
             } else {
-                self.progress = progress
+                self.progress = (progress > 1.0) ? 1.0 : progress
             }
             self.currentStep = step
         }
@@ -78,10 +97,16 @@ class SyncProgressInfo : ObservableObject {
             }
         }
     }
+    
+    func incrementCompleted() {
+        self.amountOfImagesSynced += 1
+        callbackOnComplete()
+    }
 }
 
 class PhotoVisionDatabaseManager {
     static let shared = PhotoVisionDatabaseManager()
+    static let maxConcurrentTasks: Int = 10
     private var cancelOperation: Bool = false
     
     private init() {}
@@ -92,8 +117,8 @@ class PhotoVisionDatabaseManager {
     
     let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "PhotoVisionDatabaseManager")
     
-    public func startSync() -> SyncProgressInfo {
-        let progressInfo = SyncProgressInfo(totalAmountOfImages: 0)
+    public func startSync(onComplete: @escaping () -> Void = {}) -> SyncProgressInfo {
+        let progressInfo = SyncProgressInfo(totalAmountOfImages: 0, callbackOnComplete: onComplete)
 
         Task {
             let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
@@ -125,30 +150,55 @@ class PhotoVisionDatabaseManager {
             fetchOptions.includeHiddenAssets = true
             fetchOptions.includeAllBurstAssets = true
             let allPhotos = PHAsset.fetchAssets(with: fetchOptions)
-            
-            var completed = 0
-            
+                        
             progressInfo.setAmountOfImages(allPhotos.count)
+            var index = 0
             
-            allPhotos.enumerateObjects({ (asset, index, stop) in
-                if self.cancelOperation {
-                    stop.initialize(to: ObjCBool(true))
-                    self.cancelOperation = false
-                } else {
-                    Task {
-                        try await self.fetchAndSyncAssetsFor(asset) { prog, status in
-                            if prog >= 1.0 {
-                                completed += 1
-                            }
-                            
-                            progressInfo.updateProgress(amountOfImagesSynced: completed, step: status)
-                        }
+            await withTaskGroup(of: Void.self) { group in
+                for _ in 0 ..< PhotoVisionDatabaseManager.maxConcurrentTasks {
+                    if index >= allPhotos.count {
+                        break
+                    }
+                    let curInd = index
+                    index += 1
+                    group.addTask {
+                        await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo)
                     }
                 }
-            })
+                while let _ = await group.next() {
+                    if index >= allPhotos.count {
+                        break
+                    }
+                    if !self.cancelOperation {
+                        let curInd = index
+                        index += 1
+                        
+                        group.addTask {
+                            await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo)
+                        }
+                    } else {
+                        self.cancelOperation = false
+                    }
+                }
+            }
         }
         
         return progressInfo
+    }
+    
+    private func initiateAssetUploadAndVisionTasks(_ asset: PHAsset, progressInfo: SyncProgressInfo) async {
+        do {
+            try await self.fetchAndSyncAssetsFor(asset) { prog, status in
+                if prog >= 1.0 {
+                    progressInfo.incrementCompleted()
+                    progressInfo.updateProgress(step: "Completed asset upload")
+                }
+                
+                progressInfo.updateProgress(step: status, minorAmt: prog)
+            }
+        } catch {
+            self.logger.error("Failure while fetching and syncing asset: \(error.localizedDescription)")
+        }
     }
     
     var currentFileNames: [String] = []
@@ -170,8 +220,8 @@ class PhotoVisionDatabaseManager {
         var assetResources = PHAssetResource.assetResources(for: asset)
         var resourceTmpLoc: URL? = nil
         var resourceType: PHAssetResourceType? = nil
-        let resources = await withTaskGroup(of: (PHAssetResource, String)?.self) { group in
-            var collected = [(PHAssetResource, String)]()
+        let resources = await withTaskGroup(of: (FilenEquivelentAsset)?.self) { group in
+            var collected = [FilenEquivelentAsset]()
             var thumbnailCandidates = [(URL, PHAssetResourceType)]()
             
             for assetResource in assetResources {
@@ -195,7 +245,7 @@ class PhotoVisionDatabaseManager {
                     do {
                         try await PHAssetResourceManager.default().writeData(for: assetResource, toFile: tmpLocation, options: options)
                         let itemJSON = try await filenClient.uploadFile(url: tmpLocation.path, parent: filenPhotoFolderUUID!)
-                        return (assetResource, itemJSON.uuid)
+                        return FilenEquivelentAsset(phAssetResource: assetResource, filenUuid: itemJSON.uuid, fileHash: try getSHA256(forFile: tmpLocation))
                     } catch {
                         self.logger.error("Error occurred when retrieving asset \(assetResource.originalFilename) with error: \(error)")
                     }
@@ -270,6 +320,8 @@ class PhotoVisionDatabaseManager {
                     }
                 }
             })
+            req.automaticallyDetectsLanguage = true
+            req.recognitionLevel = .accurate
             return req
         }()
         
@@ -307,7 +359,12 @@ class PhotoVisionDatabaseManager {
     }
     
     let thumbnailsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("thumbnails", conformingTo: .folder)
-
+    
+    // TODO: Clean thumbnails not referenced in the database
+    public func cleanThumbnailsDirectory() {
+        
+    }
+    
     private func fetchAndSyncAssetsFor(_ asset: PHAsset, updateProgressOfCurrentFile: @escaping (Double, String) -> Void) async throws {
         if PhotoDatabase.shared.doesPhotoExist(asset) {
             logger.info("\(asset.localIdentifier) already exists in database. Skipping...")
@@ -365,8 +422,14 @@ class PhotoVisionDatabaseManager {
     }
 }
 
+struct FilenEquivelentAsset {
+    let phAssetResource: PHAssetResource
+    let filenUuid: String
+    let fileHash: String
+}
+
 struct PhotoAssetFilenResults {
-    let assetsToCloud: [(PHAssetResource, String)]
+    let assetsToCloud: [FilenEquivelentAsset]
     let photoOrVideoClassification: URL?
     let mediaTypeOfClassificationFile: PHAssetResourceType?
 }
