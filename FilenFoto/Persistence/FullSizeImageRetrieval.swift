@@ -14,7 +14,7 @@ class FullSizeImageCache {
     
     static let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "FullSizeImageCache")
     
-    static let maxCacheSize: Int = 1_000_000 // kb
+    static let maxCacheSize: Int = 1_000 // mb
     static let cacheDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
     
     static func doesIdExistInCache(for id: Int) -> Bool {
@@ -25,6 +25,82 @@ class FullSizeImageCache {
         return cacheDirectory.appending(path: String(id))
     }
     
+    static func getFullSizeImageOrThumbnail(for asset: DBPhotoAsset) -> URL {
+        let thumbnailURL = PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: asset.thumbnailFileName)
+        
+//        if let thumbnailCacheName = asset.thumbnailCacheName {
+//            let file = cacheDirectory.appending(path: thumbnailCacheName)
+//            if FileManager.default.fileExists(atPath: file.path) {
+//                return file
+//            }
+//        }
+        
+        var fullsize = PhotoDatabase.shared.getFilenUUID(for: asset, mediaType: .fullSizePhoto)
+        let regular = PhotoDatabase.shared.getFilenUUID(for: asset, mediaType: .photo)
+
+        fullsize.append(contentsOf: regular)
+        
+        if fullsize.count > 0 {
+            let file = getURLForIdInCache(for: Int(fullsize.first!.id)).appendingPathExtension(fullsize.first!.resourceExtension)
+            if FileManager.default.fileExists(atPath: file.path) {
+                return file
+            }
+        }
+        
+        return thumbnailURL
+    }
+    
+    static private func deleteOldestFiles(in folderPath: String, untilFolderSizeIsUnder limitMB: Int) {
+        let fileManager = FileManager.default
+        let limitBytes = Int64(limitMB) * 1024 * 1024
+        
+        do {
+            // Get all files in the folder
+            let files = try fileManager.contentsOfDirectory(atPath: folderPath)
+            
+            // Build a list of file URLs with their attributes (like creation date)
+            var fileURLs: [(url: URL, attributes: [FileAttributeKey: Any])] = []
+            for file in files {
+                let fileURL = URL(fileURLWithPath: folderPath).appendingPathComponent(file)
+                let attributes = try fileManager.attributesOfItem(atPath: fileURL.path)
+                fileURLs.append((url: fileURL, attributes: attributes))
+            }
+            
+            // Sort files by creation date, oldest first
+            fileURLs.sort { ($0.attributes[.creationDate] as! Date) < ($1.attributes[.creationDate] as! Date) }
+            
+            // Calculate total folder size
+            var folderSize: Int64 = 0
+            for file in fileURLs {
+                if let fileSize = file.attributes[.size] as? Int64 {
+                    folderSize += fileSize
+                }
+            }
+            
+            // Delete oldest files until folder size is under the limit
+            for file in fileURLs {
+                if folderSize <= limitBytes {
+                    break
+                }
+                
+                if let fileSize = file.attributes[.size] as? Int64 {
+                    do {
+                        try fileManager.removeItem(at: file.url)
+                        folderSize -= fileSize
+                        print("Deleted: \(file.url.lastPathComponent), Size: \(fileSize / 1024) KB")
+                    } catch {
+                        print("Failed to delete file: \(file.url.lastPathComponent), error: \(error)")
+                    }
+                }
+            }
+            
+            print("Folder size is now under the limit: \(Double(folderSize) / (1024 * 1024)) MB")
+        } catch {
+            print("Error accessing folder: \(error)")
+        }
+    }
+
+    
     static func downloadResourceInCache(for resource: PhotoDatabase.DBPhotoResourceResult) async -> String? {
         guard let filenClient = getFilenClientWithUserDefaultConfig() else {
             logger.error("Filen Client not initialized")
@@ -32,6 +108,7 @@ class FullSizeImageCache {
         }
         
         // TODO: Delete oldest if cache size too big
+        deleteOldestFiles(in: cacheDirectory.path, untilFolderSizeIsUnder: maxCacheSize)
         
         do {
             // TODO: Handle file doesn't exist
@@ -39,7 +116,13 @@ class FullSizeImageCache {
             
             // exists in cache?
             if FileManager.default.fileExists(atPath: downloadTo) {
-                return downloadTo
+                /// If sha of stored file is incorrect, delete it and redownload
+                if try getSHA256(forFile: URL(filePath: downloadTo)) == resource.sha256 {
+                    return downloadTo
+                } else {
+                    try FileManager.default.removeItem(atPath: downloadTo)
+                    return await downloadResourceInCache(for: resource)
+                }
             } else {
                 let (didDownload, url) = try await filenClient.downloadFile(fileGetResponse: try await filenClient.fileInfo(uuid: resource.uuid), url: downloadTo)
                 if !didDownload {
@@ -119,7 +202,6 @@ class FullSizeImageRetrieval {
     }
     
     
-    // TODO: Rename to get assetResources and support video getting
     func getImageResource(asset: DBPhotoAsset) async -> URL? {
         let imageResource: PHAssetResourceType = .photo
         let resourcesToGet: [PHAssetResourceType] = [imageResource]
@@ -132,6 +214,29 @@ class FullSizeImageRetrieval {
                 
                 if sha256 == assetURL.1 {
                     return downlaodResources[imageResource]?.first?.0
+                } else {
+                    logger.error("Hash mismatch")
+                }
+            }
+        } catch {
+            logger.error("\(error)")
+            return nil
+        }
+        
+        return nil
+    }
+    
+    func getVideoResource(asset: DBPhotoAsset) async -> URL? {
+        let resourcesToGet: [PHAssetResourceType] = [.video]
+        let downlaodResources = await downloadResources(for: asset, resourceTypes: resourcesToGet)
+        
+        do {
+            // Validate SHA256
+            if let assetURL = downlaodResources[.video]?.first {
+                let sha256 = try getSHA256(forFile: assetURL.0)
+                
+                if sha256 == assetURL.1 {
+                    return downlaodResources[.video]?.first?.0
                 } else {
                     logger.error("Hash mismatch")
                 }

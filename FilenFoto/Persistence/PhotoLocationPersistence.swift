@@ -62,45 +62,90 @@ extension PhotoSyncError: LocalizedError {
 
 class SyncProgressInfo : ObservableObject {
     @Published var progress: Double = 0
-    @Published var currentStep: String = ""
-    @Published var totalAmountOfImages: Int
+    private var imageSyncProgressQueue: [String:ImageSyncProgress] = [:]
+    private var lastChanged = [ImageSyncProgress]()
+    // variable here for speed purposes
+    private var completedImages = 0
+    let maxStatusMessages: Int = 10
+    let onComplete: () -> Void
+    private var overrideMaxImages: Int = 0
     
-    let callbackOnComplete: (() -> Void)
-    // TODO: Implement file sync queue
-    var amountOfImagesSynced: Int = 0
-    
-    init(totalAmountOfImages: Int, callbackOnComplete: @escaping () -> Void) {
-        self.totalAmountOfImages = totalAmountOfImages
-        self.callbackOnComplete = callbackOnComplete
+    init(onComplete: @escaping () -> Void) {
+        self.onComplete = onComplete
     }
     
-    func updateProgress(step: String, minorAmt: Double = 0.0) {
-        let progress = Double(amountOfImagesSynced) / Double(totalAmountOfImages) + (minorAmt > 1.0 ? 1.0 : minorAmt) / Double(self.totalAmountOfImages)
-        DispatchQueue.main.async {
-            if self.totalAmountOfImages == 0 {
-                self.progress = 0
-            } else {
-                self.progress = (progress > 1.0) ? 1.0 : progress
-            }
-            self.currentStep = step
+    struct ImageSyncProgress {
+        public var internalProgress: Double = 0.0
+        public var internalMessage: String
+        public var phAsset: PHAsset
+    }
+    
+    private func checkLastChanged() {
+        while lastChanged.count > maxStatusMessages {
+            lastChanged.removeLast()
         }
     }
     
-    func setAmountOfImages(_ amount: Int) {
+    public func reset() {
         DispatchQueue.main.async {
-            self.totalAmountOfImages = amount
-            let progress = Double(self.amountOfImagesSynced) / Double(self.totalAmountOfImages)
-            if self.totalAmountOfImages == 0 {
-                self.progress = 0
-            } else {
-                self.progress = progress
+            self.progress = 0
+            self.completedImages = 0
+            self.imageSyncProgressQueue.removeAll()
+        }
+    }
+    
+    public func setMaxImages(maxImages: Int) {
+        DispatchQueue.main.async {
+            self.overrideMaxImages = maxImages
+        }
+    }
+    
+    private func updateProgress() {
+        progress = 0
+        completedImages = 0
+        for (_, value) in imageSyncProgressQueue {
+            if value.internalProgress >= 1.0 {
+                completedImages += 1
+            }
+            progress += value.internalProgress / Double(max(imageSyncProgressQueue.count, overrideMaxImages))
+        }
+        print("Current progress: \(progress) with \(imageSyncProgressQueue.count) images")
+    }
+    
+    func addImage(phAsset: PHAsset) {
+        DispatchQueue.main.async {
+            self.imageSyncProgressQueue[phAsset.localIdentifier] = ImageSyncProgress(internalMessage: "Syncing \(phAsset.localIdentifier)...", phAsset: phAsset)
+            self.lastChanged.insert(self.imageSyncProgressQueue[phAsset.localIdentifier]!, at: 0)
+            
+            self.checkLastChanged()
+            self.updateProgress()
+        }
+    }
+    
+    func updateImageProgress(progress localProgress: Double, message: String, phAsset: PHAsset) {
+        DispatchQueue.main.async {
+            if let imageInQueue = self.imageSyncProgressQueue[phAsset.localIdentifier] {
+                if localProgress >= 1.0 && imageInQueue.internalProgress < 1.0 {
+                    self.completedImages += 1
+                    self.onComplete()
+                }
+                self.imageSyncProgressQueue[phAsset.localIdentifier]?.internalProgress = localProgress
+                self.imageSyncProgressQueue[phAsset.localIdentifier]?.internalMessage = message
+                self.lastChanged.removeAll(where: { $0.phAsset.localIdentifier == phAsset.localIdentifier })
+                self.lastChanged.insert(self.imageSyncProgressQueue[phAsset.localIdentifier]!, at: 0)
+                
+                self.checkLastChanged()
+                self.updateProgress()
             }
         }
     }
     
-    func incrementCompleted() {
-        self.amountOfImagesSynced += 1
-        callbackOnComplete()
+    func getTotalProgress() -> (completedImages: Int, totalImages: Int) {
+        return (completedImages: completedImages, max(imageSyncProgressQueue.count, overrideMaxImages))
+    }
+    
+    func getLastChanged() -> [ImageSyncProgress] {
+        return lastChanged
     }
 }
 
@@ -117,8 +162,19 @@ class PhotoVisionDatabaseManager {
     
     let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "PhotoVisionDatabaseManager")
     
-    public func startSync(onComplete: @escaping () -> Void = {}) -> SyncProgressInfo {
-        let progressInfo = SyncProgressInfo(totalAmountOfImages: 0, callbackOnComplete: onComplete)
+    func cleanTmpDirectory() {
+        do {
+            try FileManager.default.removeItem(at: FileManager.default.temporaryDirectory)
+            try FileManager.default.createDirectory(at: FileManager.default.temporaryDirectory, withIntermediateDirectories: true)
+        } catch {
+            print("Cannot remove tmp")
+        }
+    }
+    
+    public func startSync(onComplete: @escaping () -> Void = {}, existingSync: SyncProgressInfo? = nil) -> SyncProgressInfo {
+        cleanTmpDirectory()
+        let progressInfo = existingSync ?? SyncProgressInfo(onComplete: {})
+        progressInfo.reset()
 
         Task {
             let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
@@ -150,8 +206,8 @@ class PhotoVisionDatabaseManager {
             fetchOptions.includeHiddenAssets = true
             fetchOptions.includeAllBurstAssets = true
             let allPhotos = PHAsset.fetchAssets(with: fetchOptions)
-                        
-            progressInfo.setAmountOfImages(allPhotos.count)
+            progressInfo.setMaxImages(maxImages: allPhotos.count)
+            
             var index = 0
             
             await withTaskGroup(of: Void.self) { group in
@@ -188,13 +244,9 @@ class PhotoVisionDatabaseManager {
     
     private func initiateAssetUploadAndVisionTasks(_ asset: PHAsset, progressInfo: SyncProgressInfo) async {
         do {
+            progressInfo.addImage(phAsset: asset)
             try await self.fetchAndSyncAssetsFor(asset) { prog, status in
-                if prog >= 1.0 {
-                    progressInfo.incrementCompleted()
-                    progressInfo.updateProgress(step: "Completed asset upload")
-                }
-                
-                progressInfo.updateProgress(step: status, minorAmt: prog)
+                progressInfo.updateImageProgress(progress: prog, message: status, phAsset: asset)
             }
         } catch {
             self.logger.error("Failure while fetching and syncing asset: \(error.localizedDescription)")
@@ -218,12 +270,8 @@ class PhotoVisionDatabaseManager {
         }
         
         var assetResources = PHAssetResource.assetResources(for: asset)
-        var resourceTmpLoc: URL? = nil
-        var resourceType: PHAssetResourceType? = nil
         let resources = await withTaskGroup(of: (FilenEquivelentAsset)?.self) { group in
-            var collected = [FilenEquivelentAsset]()
-            var thumbnailCandidates = [(URL, PHAssetResourceType)]()
-            
+            var collected = [FilenEquivelentAsset]()            
             for assetResource in assetResources {
                 group.addTask {
                     var fileName = assetResource.originalFilename
@@ -238,14 +286,10 @@ class PhotoVisionDatabaseManager {
                         print("Could not remove temporary file: \(tmpLocation.path) \(error)")
                     }
                     
-                    defer {
-                        thumbnailCandidates.append((tmpLocation, assetResource.type))
-                    }
-                    
                     do {
                         try await PHAssetResourceManager.default().writeData(for: assetResource, toFile: tmpLocation, options: options)
                         let itemJSON = try await filenClient.uploadFile(url: tmpLocation.path, parent: filenPhotoFolderUUID!)
-                        return FilenEquivelentAsset(phAssetResource: assetResource, filenUuid: itemJSON.uuid, fileHash: try getSHA256(forFile: tmpLocation))
+                        return FilenEquivelentAsset(phAssetResource: assetResource, filenUuid: itemJSON.uuid, fileHash: try getSHA256(forFile: tmpLocation), tmpLoc: tmpLocation)
                     } catch {
                         self.logger.error("Error occurred when retrieving asset \(assetResource.originalFilename) with error: \(error)")
                     }
@@ -259,11 +303,13 @@ class PhotoVisionDatabaseManager {
                 }
             }
             
-            thumbnailCandidates = thumbnailCandidates.sorted(by: { a, b in
-                let isFilePhoto = self.photoResourceTypes.firstIndex(of: a.1)
-                let isCurrentPhoto = self.photoResourceTypes.firstIndex(of: b.1)
-                let isFileVideo = self.videoResourceTypes.firstIndex(of: a.1)
-                let isCurrentVideo = self.videoResourceTypes.firstIndex(of: b.1)
+            collected = collected.sorted(by: { first, second in
+                let a = first.phAssetResource.type
+                let b = second.phAssetResource.type
+                let isFilePhoto = self.photoResourceTypes.firstIndex(of: a)
+                let isCurrentPhoto = self.photoResourceTypes.firstIndex(of: b)
+                let isFileVideo = self.videoResourceTypes.firstIndex(of: a)
+                let isCurrentVideo = self.videoResourceTypes.firstIndex(of: b)
                 
                 if isFileVideo != nil && isCurrentVideo != nil {
                     return isFileVideo! < isCurrentVideo!
@@ -272,13 +318,10 @@ class PhotoVisionDatabaseManager {
                 }
             })
             
-            resourceTmpLoc = thumbnailCandidates.first?.0
-            resourceType = thumbnailCandidates.first?.1
-            
             return collected
         }
         
-        return PhotoAssetFilenResults(assetsToCloud: resources, photoOrVideoClassification: resourceTmpLoc, mediaTypeOfClassificationFile: resourceType)
+        return PhotoAssetFilenResults(assetsToCloud: resources)
     }
     
     private func classifyAndTextRecognize(image imageURL: URL) async -> ([VNClassificationObservation], [VNRecognizedTextObservation]) {
@@ -298,6 +341,11 @@ class PhotoVisionDatabaseManager {
         
         let imageRequest: VNClassifyImageRequest = {
             let req = VNClassifyImageRequest(completionHandler: { (retReq, err) in
+                if retReq.results == nil {
+                    print("FAILURE \(err?.localizedDescription)")
+                    return
+                }
+                print("Found \(retReq.results!.count) results")
                 for res in retReq.results! {
                     if !res.confidence.isZero && !res.confidence.isNaN && res.confidence >= 0.1, let imgClassObserver = res as? VNClassificationObservation {
                         imageClassifications.append(imgClassObserver)
@@ -312,6 +360,11 @@ class PhotoVisionDatabaseManager {
         
         let textRequest: VNRecognizeTextRequest = {
             let req = VNRecognizeTextRequest(completionHandler: { (retReq, err) in
+                if retReq.results == nil {
+                    print("FAILURE \(err?.localizedDescription)")
+                    return
+                }
+                print("Found \(retReq.results!.count) results")
                 for res in retReq.results! {
                     if !res.confidence.isZero && !res.confidence.isNaN && res.confidence >= 0.1, let recogText = res as? VNRecognizedTextObservation {
                         recognizedTextClassifications.append(recogText)
@@ -326,20 +379,18 @@ class PhotoVisionDatabaseManager {
         }()
         
         
-#if targetEnvironment(simulator)
-        imageRequest.usesCPUOnly = true
-        textRequest.usesCPUOnly = true
-#endif
-        
-        do {
-            try imageRequestHandler.perform([imageRequest, textRequest])
-        } catch {
-            self.logger.warning("Vision request failed for image with error: \(error)")
+        /// For some reason, on a real device, only the main thread works...
+        DispatchQueue.main.sync {
+            do {
+                try imageRequestHandler.perform([imageRequest, textRequest])
+            } catch {
+                self.logger.warning("Vision request failed for image with error: \(error)")
+            }
         }
         return (imageClassifications, recognizedTextClassifications)
     }
     
-    private func classifyAndTextRecognize(video videoURL: URL) async -> ([VNClassificationObservation], [VNRecognizedTextObservation]) {
+    private func classifyAndTextRecognize(video videoURL: URL) async -> VideoClassificationResults? {
         let asset = AVAsset(url: videoURL)
         let assetImgGenerate = AVAssetImageGenerator(asset: asset)
         assetImgGenerate.appliesPreferredTrackTransform = true
@@ -351,11 +402,16 @@ class PhotoVisionDatabaseManager {
         
         do {
             let img = try assetImgGenerate.copyCGImage(at: time, actualTime: nil)
-            return await classifyAndTextRecognize(image: img)
+            return VideoClassificationResults(photoRecog: await classifyAndTextRecognize(image: img), generatedCGImage: img)
         } catch {
             print(error.localizedDescription)
-            return ([], [])
+            return nil
         }
+    }
+    
+    private struct VideoClassificationResults {
+        let photoRecog: ([VNClassificationObservation], [VNRecognizedTextObservation])
+        let generatedCGImage: CGImage
     }
     
     let thumbnailsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("thumbnails", conformingTo: .folder)
@@ -374,28 +430,42 @@ class PhotoVisionDatabaseManager {
         
         print("Found asset \(asset.mediaSubtypes) with id \(asset.localIdentifier) created \(asset.creationDate ?? Date.now)")
         let retrieveAndUploadedAssets = (try await retrieveAssetResources(asset))
+        
+        defer {
+            for resource in retrieveAndUploadedAssets.assetsToCloud {
+                do {
+                    try FileManager.default.removeItem(at: resource.tmpLoc)
+                } catch {
+                    logger.info("Couldn't remove \(error)")
+                }
+            }
+        }
+        
         updateProgressOfCurrentFile(0.5, "Uploaded image to Filen...")
         var recognizedClassifyObject = ([VNClassificationObservation](), [VNRecognizedTextObservation]())
         var compressedThumbnailUrl: URL?
         
-        if let targetClassfyFileURL = retrieveAndUploadedAssets.photoOrVideoClassification, let mediaTypeOfClassificationFile = retrieveAndUploadedAssets.mediaTypeOfClassificationFile, FileManager.default.fileExists(atPath: targetClassfyFileURL.path) {
-            switch mediaTypeOfClassificationFile {
-            case .photo, .adjustmentBasePhoto, .alternatePhoto, .fullSizePhoto:
-                recognizedClassifyObject = await classifyAndTextRecognize(image: targetClassfyFileURL)
-                break
-            case .video, .adjustmentBaseVideo, .fullSizeVideo, .pairedVideo:
-                recognizedClassifyObject = await classifyAndTextRecognize(video: targetClassfyFileURL)
-                break
-            default:
-                break
-            }
-            
+        if let targetClassfyFileURL = retrieveAndUploadedAssets.assetsToCloud.first?.tmpLoc, let mediaTypeOfClassificationFile = retrieveAndUploadedAssets.assetsToCloud.first?.phAssetResource.type, FileManager.default.fileExists(atPath: targetClassfyFileURL.path) {
             do {
                 if !FileManager.default.fileExists(atPath: thumbnailsDirectory.path) {
                     try FileManager.default.createDirectory(at: thumbnailsDirectory, withIntermediateDirectories: true)
                 }
                 compressedThumbnailUrl = thumbnailsDirectory.appendingPathComponent(targetClassfyFileURL.lastPathComponent, conformingTo: .jpeg)
-                try await ImageCompressor.compressImage(from: targetClassfyFileURL, outputDestination: compressedThumbnailUrl!, compressionQuality: 0.0)
+                switch mediaTypeOfClassificationFile {
+                case .photo, .adjustmentBasePhoto, .alternatePhoto, .fullSizePhoto:
+                    recognizedClassifyObject = await classifyAndTextRecognize(image: targetClassfyFileURL)
+                    try await ImageCompressor.compressImage(from: targetClassfyFileURL, outputDestination: compressedThumbnailUrl!, compressionQuality: 0.0)
+                    break
+                case .video, .adjustmentBaseVideo, .fullSizeVideo, .pairedVideo:
+                    if let vidRecogRes = await classifyAndTextRecognize(video: targetClassfyFileURL) {
+                        recognizedClassifyObject = vidRecogRes.photoRecog
+                        try await ImageCompressor.compressImage(from: vidRecogRes.generatedCGImage, outputDestination: compressedThumbnailUrl!, compressionQuality: 0.0)
+                    }
+                    break
+                default:
+                    break
+                }
+                
                 try FileManager.default.removeItem(at: targetClassfyFileURL)
             } catch {
                 if FileManager.default.fileExists(atPath: targetClassfyFileURL.path) {
@@ -405,6 +475,8 @@ class PhotoVisionDatabaseManager {
                 logger.warning("Unable to create thumbnail remove classification file at \(targetClassfyFileURL.path)")
             }
         }
+        
+        //TODO: remove all tmp files
         
         updateProgressOfCurrentFile(0.75, "Identified image contents...")
         
@@ -426,12 +498,14 @@ struct FilenEquivelentAsset {
     let phAssetResource: PHAssetResource
     let filenUuid: String
     let fileHash: String
+    let tmpLoc: URL
 }
 
 struct PhotoAssetFilenResults {
+    // Sorted where first is thumbnail
     let assetsToCloud: [FilenEquivelentAsset]
-    let photoOrVideoClassification: URL?
-    let mediaTypeOfClassificationFile: PHAssetResourceType?
+//    let photoOrVideoClassification: URL?
+//    let mediaTypeOfClassificationFile: PHAssetResourceType?
 }
 
 extension PHAssetMediaSubtype: @retroactive CustomStringConvertible {

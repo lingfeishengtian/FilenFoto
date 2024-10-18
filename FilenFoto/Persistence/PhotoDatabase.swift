@@ -26,6 +26,7 @@ struct DBPhotoAsset : Comparable {
     
     let id: Int64
     let localIdentifier: String
+    let mediaType: PHAssetMediaType
     let mediaSubtype: PHAssetMediaSubtype
     let creationDate: Date
     let modificationDate: Date
@@ -33,6 +34,7 @@ struct DBPhotoAsset : Comparable {
     let favorited: Bool
     let hidden: Bool
     let thumbnailFileName: String
+//    let thumbnailCacheName: String?
 }
 
 
@@ -41,6 +43,7 @@ typealias Expression = SQLite.Expression
 let photoAssetTable = Table("photoAsset")
 let idColumn = Expression<Int64>("id")
 let assetColumn = Expression<String>("localIdentifier")
+let mediaTypeColumn = Expression<Int64>("mediaType")
 let mediaSubtypeColumn = Expression<Int64>("mediaSubtype")
 let creationDateColumn = Expression<Date>("creationDate")
 let modificationDateColumn = Expression<Date>("modificationDate")
@@ -51,6 +54,7 @@ let completedAnalysis = Expression<Bool>("completedAnalysis")
 let favorited = Expression<Bool>("favorited")
 let hidden = Expression<Bool>("hidden")
 let thumbnailName = Expression<String>("thumbnailLocation")
+let thumbnailCacheName = Expression<String?>("thumbnailCacheName")
 
 let photoResourcesTable = Table("photoResources")
 let uuidColumn = Expression<String>("uuid")
@@ -74,6 +78,10 @@ struct SortedArray<T: Comparable> {
     // Access to the sorted array
     var sortedArray: [T] {
         return array
+    }
+    
+    mutating func removeAll() {
+        array.removeAll()
     }
 
     // O(lg n)
@@ -122,10 +130,24 @@ class PhotoDatabaseStreamer: ObservableObject {
     private var stream: RowIterator?
     @Published var lazyArray = SortedArray<DBPhotoAsset>()
     private let pollingLimit: Int
+    private var isSearching = false
     
     internal init(pollingLimit: Int = 10) {
         self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
         self.pollingLimit = pollingLimit
+    }
+    
+    func defaultStream() {
+        isSearching = false
+        stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
+        addMoreToLazyArray()
+    }
+    
+    func searchStream(searchQuery: String) {
+        isSearching = true
+        lazyArray.removeAll()
+        stream = PhotoDatabase.shared.searchForText(textSearch: searchQuery)
+        addMoreToLazyArray()
     }
     
     func addMoreToLazyArray() {
@@ -133,10 +155,9 @@ class PhotoDatabaseStreamer: ObservableObject {
         var pollLimit = pollingLimit
         while pollLimit > 0 {
             if let asset = next() {
-                // TODO: Fix publishing changes warning, DO NOT USE dispatchQueue on main thread it will break due to it not actually changing the count of lazyArray
                 self.lazyArray.insert(asset)
                 pollLimit -= 1
-            } else if (PhotoDatabase.shared.getCountOfPhotos() > lazyArray.sortedArray.count) {
+            } else if (PhotoDatabase.shared.getCountOfPhotos() > lazyArray.sortedArray.count && !isSearching) {
                 self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
                 if let assetTryAgain = next() {
                     self.lazyArray.insert(assetTryAgain)
@@ -167,6 +188,7 @@ class PhotoDatabaseStreamer: ObservableObject {
                 return DBPhotoAsset(
                     id: try n.get(idColumn),
                     localIdentifier: try n.get(assetColumn),
+                    mediaType: PHAssetMediaType(rawValue: Int(try n.get(mediaTypeColumn))) ?? .image,
                     mediaSubtype: PHAssetMediaSubtype(rawValue: UInt(try n.get(mediaSubtypeColumn))),
                     creationDate: try n.get(creationDateColumn),
                     modificationDate: try n.get(modificationDateColumn),
@@ -174,6 +196,7 @@ class PhotoDatabaseStreamer: ObservableObject {
                     favorited: try n.get(favorited),
                     hidden: try n.get(hidden),
                     thumbnailFileName: try n.get(thumbnailName)
+//                    thumbnailCacheName: try n.get(thumbnailCacheName)
                 )
             } else {
                 return nil
@@ -200,6 +223,7 @@ class PhotoDatabase {
         let _ = try? databaseConnection?.run(photoAssetTable.create(ifNotExists: true) { t in
             t.column(idColumn, primaryKey: .autoincrement)
             t.column(assetColumn)
+            t.column(mediaTypeColumn)
             t.column(mediaSubtypeColumn)
             t.column(creationDateColumn)
             t.column(modificationDateColumn)
@@ -208,6 +232,7 @@ class PhotoDatabase {
             t.column(favorited)
             t.column(hidden)
             t.column(thumbnailName)
+//            t.column(thumbnailCacheName)
             t.column(completedAnalysis, defaultValue: false)
         })
         
@@ -271,6 +296,31 @@ class PhotoDatabase {
         return stream
     }
     
+    func searchForText(textSearch: String) -> RowIterator? {
+        let sql = """
+            SELECT *, MAX(confidence) as maxConfidence
+                FROM (
+                    SELECT assetId, objectName as object, confidence
+                    FROM identifiedObjects
+                    WHERE objectName LIKE '%' || ? || '%'
+                    UNION
+                    SELECT assetId, "text" as object, confidence
+                    FROM recognizedText 
+                    WHERE "text" LIKE '%' || ? || '%'
+                )
+                JOIN photoAsset ON assetId = photoAsset.id
+                GROUP BY assetId
+                ORDER BY maxConfidence DESC;
+        """
+        do {
+            let stream = try databaseConnection?.prepareRowIterator(sql, bindings: [textSearch, textSearch])
+            return stream
+        } catch {
+            logger.error("Failed search \(error)")
+        }
+        return nil
+    }
+    
     func insertPhoto(asset: PHAsset, resources: [FilenEquivelentAsset], imageClassificationResults: [VNClassificationObservation], textResultClassificationResults: [VNRecognizedTextObservation], thumbnailLocation: URL) -> InsertPhotoResult {
         if doesPhotoExist(asset) {
             return .exists
@@ -285,6 +335,7 @@ class PhotoDatabase {
         let locationLong = asset.location?.coordinate.longitude
         
         let insert = photoAssetTable.insert(assetColumn <- asset.localIdentifier,
+                                            mediaTypeColumn <- Int64(asset.mediaType.rawValue),
                                             mediaSubtypeColumn <- Int64(mediaSubtype),
                                             creationDateColumn <- creationDate,
                                             modificationDateColumn <- modificationDate,
@@ -302,6 +353,8 @@ class PhotoDatabase {
             var insertedTextResultClassificationCount = 0
             var insertedResourceCount = 0
             
+//            var thumbnailCacheFileName: String? = nil
+                        
             for resource in resources {
                 let insertResource = photoResourcesTable.insert(
                     assetIdColumn <- id,
@@ -312,9 +365,18 @@ class PhotoDatabase {
                 )
                 let id = try? databaseConnection?.run(insertResource)
                 if let id = id {
+//                    if thumbnailCacheFileName == nil {
+//                        let ogFilename = resource.phAssetResource.originalFilename
+//                        thumbnailCacheFileName = String(id) + "." + String(ogFilename.suffix(from: ogFilename.index(ogFilename.lastIndex(of: ".") ?? ogFilename.endIndex, offsetBy: 1)))
+//                    }
                     insertedResourceCount += 1
                 }
             }
+            
+//            if let thumbnailCacheFileName {
+//                let update = photoAssetTable.filter(idColumn == id).update(thumbnailCacheName <- thumbnailCacheFileName)
+//                let _ = try? databaseConnection?.run(update)
+//            }
 
             for result in imageClassificationResults {
                 let insert = identifiedObjectsTable.insert(objectNameColumn <- result.identifier,

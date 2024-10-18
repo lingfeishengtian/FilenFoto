@@ -82,6 +82,19 @@ class ImageCompressor {
         // Write the compressed image to the destination
         try compressedData.write(to: outputDestination)
     }
+    
+    @available(iOS 15.0, *)
+    static func compressImage(from cgImage: CGImage, outputDestination: URL, compressionQuality: CGFloat = 0.7) async throws {
+        let image = UIImage(cgImage: cgImage)
+        
+        // Compress the image
+        guard let compressedData = ImageCompressor.compressImage(image, format: .jpg, compressionQuality: compressionQuality) else {
+            throw NSError(domain: "ImageErrorDomain", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image."])
+        }
+        
+        // Write the compressed image to the destination
+        try compressedData.write(to: outputDestination)
+    }
 }
 
 extension UIImage {
