@@ -28,13 +28,6 @@ class FullSizeImageCache {
     static func getFullSizeImageOrThumbnail(for asset: DBPhotoAsset) -> URL {
         let thumbnailURL = PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: asset.thumbnailFileName)
         
-//        if let thumbnailCacheName = asset.thumbnailCacheName {
-//            let file = cacheDirectory.appending(path: thumbnailCacheName)
-//            if FileManager.default.fileExists(atPath: file.path) {
-//                return file
-//            }
-//        }
-        
         var fullsize = PhotoDatabase.shared.getFilenUUID(for: asset, mediaType: .fullSizePhoto)
         let regular = PhotoDatabase.shared.getFilenUUID(for: asset, mediaType: .photo)
 
@@ -131,7 +124,7 @@ class FullSizeImageCache {
                 return url
             }
         } catch {
-            logger.error("Encountered error")
+            logger.error("Encountered error \(error)")
             return nil
         }
     }

@@ -83,7 +83,7 @@ struct Login: View {
 extension View {
     func paddedRounded(fill: Color) -> some View {
         self.padding()
-            .background(Color.gray.opacity(0.25))
+            .background(fill)
             .cornerRadius(15)
             .padding([.leading, .trailing])
     }

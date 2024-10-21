@@ -67,10 +67,14 @@ class SyncProgressInfo : ObservableObject {
     // variable here for speed purposes
     private var completedImages = 0
     let maxStatusMessages: Int = 10
-    let onComplete: () -> Void
+    private var onComplete: () -> Void
     private var overrideMaxImages: Int = 0
     
-    init(onComplete: @escaping () -> Void) {
+    init() {
+        self.onComplete = { }
+    }
+    
+    public func setOnComplete(onComplete: @escaping () -> Void) {
         self.onComplete = onComplete
     }
     
@@ -127,7 +131,9 @@ class SyncProgressInfo : ObservableObject {
             if let imageInQueue = self.imageSyncProgressQueue[phAsset.localIdentifier] {
                 if localProgress >= 1.0 && imageInQueue.internalProgress < 1.0 {
                     self.completedImages += 1
-                    self.onComplete()
+                    if message != "Image already exists, skipping..." {
+                        self.onComplete()
+                    }
                 }
                 self.imageSyncProgressQueue[phAsset.localIdentifier]?.internalProgress = localProgress
                 self.imageSyncProgressQueue[phAsset.localIdentifier]?.internalMessage = message
@@ -173,7 +179,7 @@ class PhotoVisionDatabaseManager {
     
     public func startSync(onComplete: @escaping () -> Void = {}, existingSync: SyncProgressInfo? = nil) -> SyncProgressInfo {
         cleanTmpDirectory()
-        let progressInfo = existingSync ?? SyncProgressInfo(onComplete: {})
+        let progressInfo = existingSync ?? SyncProgressInfo()
         progressInfo.reset()
 
         Task {
@@ -378,6 +384,10 @@ class PhotoVisionDatabaseManager {
             return req
         }()
         
+#if DEBUG
+        imageRequest.usesCPUOnly = true
+        textRequest.usesCPUOnly = true
+#endif
         
         /// For some reason, on a real device, only the main thread works...
         DispatchQueue.main.sync {

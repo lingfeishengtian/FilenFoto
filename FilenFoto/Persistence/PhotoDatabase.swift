@@ -12,7 +12,7 @@ import os
 import Vision
 import InternalCollectionsUtilities
 
-struct DBPhotoAsset : Comparable {
+struct DBPhotoAsset : Comparable, Hashable {
     static func < (lhs: DBPhotoAsset, rhs: DBPhotoAsset) -> Bool {
         if lhs.creationDate == rhs.creationDate {
             return lhs.localIdentifier < rhs.localIdentifier
@@ -21,8 +21,18 @@ struct DBPhotoAsset : Comparable {
     }
     
     static func == (lhs: DBPhotoAsset, rhs: DBPhotoAsset) -> Bool {
-        lhs.localIdentifier == rhs.localIdentifier
+        lhs.hashValue == rhs.hashValue
     }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(localIdentifier)
+    }
+    
+#if DEBUG
+    func setId(_ idLocalID: String) -> DBPhotoAsset {
+        return DBPhotoAsset(id: id, localIdentifier: idLocalID, mediaType: mediaType, mediaSubtype: mediaSubtype, creationDate: Date.now - 9999999999999 - TimeInterval(Int(idLocalID) ?? 0), modificationDate: modificationDate, location: location, favorited: favorited, hidden: hidden, thumbnailFileName: thumbnailFileName)
+    }
+#endif
     
     let id: Int64
     let localIdentifier: String
@@ -83,6 +93,37 @@ struct SortedArray<T: Comparable> {
     mutating func removeAll() {
         array.removeAll()
     }
+    
+    func binSearch(_ element: T) -> Int {
+        return array.binarySearch(predicate: { $0 > element})
+    }
+    
+    func doesExist(_ element: T) -> Bool {
+        let binSearchedResult = array.binarySearch(predicate: { $0 > element})
+        if array.count > 0 && binSearchedResult < array.count && array[binSearchedResult] == element {
+            return true
+        }
+        return false
+    }
+    
+    mutating func insertAll(_ elements: [T], resetting: Bool = false) {
+        var tmpArr = resetting ? [] : array
+        
+        func insertIntoArr(_ element: T, _ arr: inout [T]) {
+            let binSearchedResult = arr.binarySearch(predicate: { $0 > element})
+            if arr.count > 0 && binSearchedResult < arr.count && arr[binSearchedResult] == element {
+                return
+            }
+            
+            arr.insert(element, at: binSearchedResult)
+        }
+        
+        for element in elements {
+            insertIntoArr(element, &tmpArr)
+        }
+        
+        array = tmpArr
+    }
 
     // O(lg n)
     // Insert new element and keep array sorted
@@ -91,6 +132,12 @@ struct SortedArray<T: Comparable> {
         if array.count > 0 && binSearchedResult < array.count && array[binSearchedResult] == element {
             return
         }
+        
+//#if DEBUG
+//        if binSearchedResult != array.count {
+//            fatalError("Not supposed to insert in between")
+//        }
+//#endif
         
 //#if DEBUG
 //        if array.contains(where: { ($0 as! DBPhotoAsset).localIdentifier == (element as! DBPhotoAsset).localIdentifier}) {
@@ -126,87 +173,81 @@ extension RandomAccessCollection {
     }
 }
 
-class PhotoDatabaseStreamer: ObservableObject {
-    private var stream: RowIterator?
-    @Published var lazyArray = SortedArray<DBPhotoAsset>()
-    private let pollingLimit: Int
-    private var isSearching = false
-    
-    internal init(pollingLimit: Int = 10) {
-        self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
-        self.pollingLimit = pollingLimit
-    }
-    
-    func defaultStream() {
-        isSearching = false
-        stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
-        addMoreToLazyArray()
-    }
-    
-    func searchStream(searchQuery: String) {
-        isSearching = true
-        lazyArray.removeAll()
-        stream = PhotoDatabase.shared.searchForText(textSearch: searchQuery)
-        addMoreToLazyArray()
-    }
-    
-    func addMoreToLazyArray() {
-        print(PhotoDatabase.shared.getCountOfPhotos(), lazyArray.sortedArray.count)
-        var pollLimit = pollingLimit
-        while pollLimit > 0 {
-            if let asset = next() {
-                self.lazyArray.insert(asset)
-                pollLimit -= 1
-            } else if (PhotoDatabase.shared.getCountOfPhotos() > lazyArray.sortedArray.count && !isSearching) {
-                self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
-                if let assetTryAgain = next() {
-                    self.lazyArray.insert(assetTryAgain)
-                    pollLimit -= 1
-                }
-            } else {
-                break
-            }
-        }
-    }
-    
-    func next() -> DBPhotoAsset? {
-        do {
-            if let n = try stream?.failableNext() {
-                let nLat = try n.get(locationLatitudeColumn)
-                let nLon = try n.get(locationLongitudeColumn)
-                var loc: CLLocation? = nil
-                if nLat != nil && nLon != nil {
-                    loc = CLLocation(latitude: nLat!, longitude: nLon!)
-                }
-                
-//#if DEBUG
-//                if ( PHAssetResourceType(rawValue: UInt(try n.get(mediaSubtypeColumn))).rawValue) {
-//                    fatalError("Something wrong")
+//class PhotoDatabaseStreamer: ObservableObject {
+//    private var stream: RowIterator?
+//    @Published var lazyArray = SortedArray<DBPhotoAsset>()
+//    private let pollingLimit: Int
+//    private var isSearching = false
+//    
+//    internal init(pollingLimit: Int = 10) {
+//        self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
+//        self.pollingLimit = pollingLimit
+//    }
+//    
+//    func defaultStream() {
+//        isSearching = false
+//        stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
+//        addMoreToLazyArray()
+//    }
+//    
+//    func searchStream(searchQuery: String) {
+//        isSearching = true
+//        lazyArray.removeAll()
+//        stream = PhotoDatabase.shared.searchForText(textSearch: searchQuery)
+//        addMoreToLazyArray()
+//    }
+//    
+//    func addMoreToLazyArray() {
+//        print(PhotoDatabase.shared.getCountOfPhotos(), lazyArray.sortedArray.count)
+//        var pollLimit = pollingLimit
+//        while pollLimit > 0 {
+//            if let asset = next() {
+//                self.lazyArray.insert(asset)
+//                pollLimit -= 1
+//            } else if (PhotoDatabase.shared.getCountOfPhotos() > lazyArray.sortedArray.count && !isSearching) {
+//                self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
+//                if let assetTryAgain = next() {
+//                    self.lazyArray.insert(assetTryAgain)
+//                    pollLimit -= 1
 //                }
-//#endif
-                
-                return DBPhotoAsset(
-                    id: try n.get(idColumn),
-                    localIdentifier: try n.get(assetColumn),
-                    mediaType: PHAssetMediaType(rawValue: Int(try n.get(mediaTypeColumn))) ?? .image,
-                    mediaSubtype: PHAssetMediaSubtype(rawValue: UInt(try n.get(mediaSubtypeColumn))),
-                    creationDate: try n.get(creationDateColumn),
-                    modificationDate: try n.get(modificationDateColumn),
-                    location: loc,
-                    favorited: try n.get(favorited),
-                    hidden: try n.get(hidden),
-                    thumbnailFileName: try n.get(thumbnailName)
-//                    thumbnailCacheName: try n.get(thumbnailCacheName)
-                )
-            } else {
-                return nil
-            }
-        } catch {
-            print(error)
-            return nil
-        }
-    }
-}
+//            } else {
+//                break
+//            }
+//        }
+//    }
+//    
+//    func next() -> DBPhotoAsset? {
+//        do {
+//            if let n = try stream?.failableNext() {
+//                let nLat = try n.get(locationLatitudeColumn)
+//                let nLon = try n.get(locationLongitudeColumn)
+//                var loc: CLLocation? = nil
+//                if nLat != nil && nLon != nil {
+//                    loc = CLLocation(latitude: nLat!, longitude: nLon!)
+//                }
+//                
+//                return DBPhotoAsset(
+//                    id: try n.get(idColumn),
+//                    localIdentifier: try n.get(assetColumn),
+//                    mediaType: PHAssetMediaType(rawValue: Int(try n.get(mediaTypeColumn))) ?? .image,
+//                    mediaSubtype: PHAssetMediaSubtype(rawValue: UInt(try n.get(mediaSubtypeColumn))),
+//                    creationDate: try n.get(creationDateColumn),
+//                    modificationDate: try n.get(modificationDateColumn),
+//                    location: loc,
+//                    favorited: try n.get(favorited),
+//                    hidden: try n.get(hidden),
+//                    thumbnailFileName: try n.get(thumbnailName)
+////                    thumbnailCacheName: try n.get(thumbnailCacheName)
+//                )
+//            } else {
+//                return nil
+//            }
+//        } catch {
+//            print(error)
+//            return nil
+//        }
+//    }
+//}
 
 class PhotoDatabase {
     static let shared = PhotoDatabase()
@@ -310,9 +351,11 @@ class PhotoDatabase {
                 )
                 JOIN photoAsset ON assetId = photoAsset.id
                 GROUP BY assetId
-                ORDER BY maxConfidence DESC;
+                ORDER BY creationDate DESC;
         """
         do {
+            let streamScalar = try databaseConnection?.scalar(sql, [textSearch, textSearch])
+            print("\(streamScalar) results found for search \(textSearch)")
             let stream = try databaseConnection?.prepareRowIterator(sql, bindings: [textSearch, textSearch])
             return stream
         } catch {
@@ -434,6 +477,29 @@ class PhotoDatabase {
             logger.log("Asset resource query for \(mediaType.rawValue) failed: \(error)")
         }
         return stringResult
+    }
+    
+    func getMostPopularObjects() -> [String] {
+        let sql = """
+            SELECT objectName, SUM(confidence) as totalConfidence
+            FROM identifiedObjects
+            GROUP BY objectName
+            ORDER BY SUM(confidence) DESC
+            LIMIT 15;
+        """
+        
+        var res = [String]()
+        do {
+            let stream = try databaseConnection?.prepareRowIterator(sql)
+            if let stream {
+                while let row = try stream.failableNext() {
+                    res.append(try row.get(objectNameColumn))
+                }
+            }
+        } catch {
+            logger.error("Failed search \(error)")
+        }
+        return res
     }
     
     struct DBPhotoResourceResult {
