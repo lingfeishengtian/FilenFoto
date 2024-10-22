@@ -18,9 +18,7 @@ struct FilenFotoApp: App {
             filenPhotoFolderUUID = nil
         }
     }
-    
-    let photoEnvironment: PhotoEnvironment = PhotoEnvironment()
-    
+        
     var body: some Scene {
         WindowGroup {
 //            for i in 0..<20000 {
@@ -41,6 +39,8 @@ struct FilenFotoApp: App {
 //                    .environmentObject(photoEnvironment)
 //            }
             if isLoggedIn && hasPhotoFolder {
+//                Meow()
+//                TestPan()
                 ContentView()
             } else if isLoggedIn {
                 SetupFolderRoot(hasPhotoFolder: $hasPhotoFolder)

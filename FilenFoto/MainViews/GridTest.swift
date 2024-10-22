@@ -297,7 +297,7 @@ struct PreviewGridView: PreviewProvider {
         return VStack {
             Text("Hello")
             GridView { asset in
-                ThumbnailView(dbPhotoAsset: asset)
+                ThumbnailView(thumbnailName: asset.thumbnailFileName)
             } onCellSelected: { asset in
                 print(asset.localIdentifier)
             }.environmentObject(photoEnvironment)

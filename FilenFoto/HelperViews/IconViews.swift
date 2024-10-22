@@ -20,11 +20,15 @@ struct IconView : View {
     var body: some View {
         Circle()
             .fill(Color.gray.opacity(0.35))
-            .frame(width: size.rawValue * 2, height: size.rawValue * 2)
+            .frame(width: size.rawValue * 2.5, height: size.rawValue * 2.5)
             .overlay(
                 Image(systemName: iconSystemName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .padding(10 + (iconSystemName == "square.and.arrow.up" ? 0 : 2))
+                    .padding([.bottom], iconSystemName == "square.and.arrow.up" ? 5 : 0)
                     .foregroundColor(.white)
-                    .font(.system(size: size.rawValue, weight: .bold))
+                    .font(.system(size: size.rawValue, weight: .heavy))
             )
     }
 }

@@ -12,18 +12,18 @@ struct PhotoCarousel: View {
     
     let geometry = (size: CGSize(width: 400, height: 1000), test: 0)
     let startDbPhotoAsset: DBPhotoAsset
-    var currentArraySlice: ArraySlice<DBPhotoAsset> {
-        if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {
-            var endIndex = photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset) + itemsToShow
-            endIndex = endIndex < photoEnvironment.lazyArray.sortedArray.count ? endIndex : photoEnvironment.lazyArray.sortedArray.count - 1
-            var startIndex = photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset) - itemsToShow
-            startIndex = startIndex >= 0 ? startIndex : 0
-            
-            print("Indexes: \(startIndex) \(endIndex)")
-            return photoEnvironment.lazyArray.sortedArray[startIndex...endIndex]
-        }
-        return photoEnvironment.lazyArray.sortedArray[0...]
-    }
+//    var currentArraySlice: ArraySlice<DBPhotoAsset> {
+//        if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {
+//            var endIndex = photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset) + itemsToShow
+//            endIndex = endIndex < photoEnvironment.lazyArray.sortedArray.count ? endIndex : photoEnvironment.lazyArray.sortedArray.count - 1
+//            var startIndex = photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset) - itemsToShow
+//            startIndex = startIndex >= 0 ? startIndex : 0
+//            
+//            print("Indexes: \(startIndex) \(endIndex)")
+//            return photoEnvironment.lazyArray.sortedArray[startIndex...endIndex]
+//        }
+//        return photoEnvironment.lazyArray.sortedArray[0...]
+//    }
     
     init(startDbPhotoAsset: DBPhotoAsset) {
         self.startDbPhotoAsset = startDbPhotoAsset
@@ -35,24 +35,36 @@ struct PhotoCarousel: View {
     
     var body: some View {
 //        GeometryReader { geometry in
-            ScrollViewReader { scrollViewProxy in
                 VStack {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(alignment: .center, spacing: spacing) {
-                            ForEach(currentArraySlice, id: \.localIdentifier) { item in
-                                ThumbnailView(dbPhotoAsset: item)
-                                    .frame(width: calculateSizeOfSingle(geometry.size))
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                                    .scaleEffect(photoEnvironment.selectedDbPhotoAsset == item ? scaleEffectSelected : 1.0)
-                                    .padding(.horizontal, photoEnvironment.selectedDbPhotoAsset == item ? selectedPadding : 0)
-                                    .animation(.spring, value: photoEnvironment.selectedDbPhotoAsset)
-                                    .id(item)
+                    ScrollViewReader { scrollViewProxy in
+                        Button {
+                            scrollViewProxy.scrollTo(photoEnvironment.lazyArray.sortedArray.last?.localIdentifier)
+                        } label: {
+                            Text("mewo")
+                        }
+                        ScrollView(.horizontal, showsIndicators: true) {
+                            LazyHStack(alignment: .center, spacing: spacing) {
+                                ForEach(photoEnvironment.lazyArray.sortedArray, id: \.localIdentifier) { item in
+                                    Image(uiImage: UIImage(contentsOfFile: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: item.thumbnailFileName).path) ?? UIImage())
+                                        .resizable()
+                                        .scaledToFit()
+                                        .aspectRatio(1, contentMode: .fit)
+                                        .clipped()
+//                                    Image(uiImage: UIImage(contentsOfFile: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: item.thumbnailFileName).path) ?? UIImage())
+//                                    .resizable()
+//                                    .scaledToFit()
+//                                    .frame(width: calculateSizeOfSingle(geometry.size))
+//                                    .background(Color.blue)
+//                                    .foregroundColor(.white)
+//                                    .cornerRadius(10)
+//                                    .scaleEffect(photoEnvironment.selectedDbPhotoAsset == item ? scaleEffectSelected : 1.0)
+//                                    .padding(.horizontal, photoEnvironment.selectedDbPhotoAsset == item ? selectedPadding : 0)
+//                                    .animation(.spring, value: photoEnvironment.selectedDbPhotoAsset)
+////                                    .id(item)
                                     .onTapGesture {
                                         withAnimation {
                                             photoEnvironment.selectedDbPhotoAsset = item
-                                            scrollViewProxy.scrollTo(item.localIdentifier, anchor: .center)
+                                            scrollViewProxy.scrollTo(item, anchor: .center)
                                         }
                                     }
 //                                    .scrollTransition(
@@ -63,32 +75,33 @@ struct PhotoCarousel: View {
 //                                        }
 //                                    )
                             }
-                        }.scrollTargetLayout()
+                        }
+                        //.scrollTargetLayout()
                     }
-                    .scrollIndicators(.hidden)
-                    .safeAreaPadding(
-                        .horizontal,
-                        geometry.size.width / 2 - calculateSizeOfSingle(geometry.size) / 2
-                        - spacing
-                    )
+                        .scrollIndicators(.visible)
+//                    .safeAreaPadding(
+//                        .horizontal,
+//                        geometry.size.width / 2 - calculateSizeOfSingle(geometry.size) / 2
+//                        - spacing
+//                    )
                     .padding(.horizontal, spacing)
 //                    .scrollTargetBehavior(.snap(step: calculateSizeOfSingle(geometry.size) + spacing))
                     .onAppear {
-//                        scrollViewProxy.scrollTo(photoEnvironment.selectedDbPhotoAsset, anchor: .center)
+//                        scrollViewProxy.scrollTo(photoEnvironment.selectedDbPhotoAsset!, anchor: .center)
                     }
-                    .scrollPosition(
-                        id: .init(
-                            get: {
-                                photoEnvironment.selectedDbPhotoAsset
-                            },
-                            set: { value, transaction in
-                                if let value {
-                                    photoEnvironment.selectedDbPhotoAsset = value
-                                    print("Set \(photoEnvironment.lazyArray.binSearch(photoEnvironment.selectedDbPhotoAsset!))")
-                                }
-                            }
-                        )
-                    )
+//                    .scrollPosition(
+//                        id: .init(
+//                            get: {
+//                                photoEnvironment.selectedDbPhotoAsset
+//                            },
+//                            set: { value, transaction in
+//                                if let value {
+//                                    photoEnvironment.selectedDbPhotoAsset = value
+////                                    print("Set \(photoEnvironment.lazyArray.binSearch(photoEnvironment.selectedDbPhotoAsset!))")
+//                                }
+//                            }
+//                        )
+//                    )
 //                    Text("Selected item: \(selectedItem)")
                 }
             }

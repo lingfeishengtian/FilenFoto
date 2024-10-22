@@ -38,17 +38,17 @@ class PhotoEnvironment: SyncProgressInfo {
         self.searchHistoryCache = searchHistory
         
         super.init()
-//#if DEBUG
-//        if (ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == nil || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "0") && lazyArray.sortedArray.count < 20000 {
-//            DispatchQueue.main.async {
-//                let dbPhoto = self.next()!
-//                for i in 0..<20000 {
-//                    self.lazyArray.insert(dbPhoto.setId(String(i)))
-//                }
-//                print("Done")
-//            }
-//        }
-//#endif
+#if DEBUG
+        if (ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == nil || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "0") && lazyArray.sortedArray.count < 50_000 {
+            DispatchQueue.main.async {
+                let dbPhoto = self.next()!
+                for i in 0..<20000 {
+                    self.lazyArray.insert(dbPhoto.setId(String(i)))
+                }
+                print("Done")
+            }
+        }
+#endif
     }
     
     func addNewSearchHistory(searchQuery: String) {

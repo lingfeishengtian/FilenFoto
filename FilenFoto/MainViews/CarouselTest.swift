@@ -17,7 +17,6 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
                 photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset) - itemsToShow
             startIndex = startIndex >= 0 ? startIndex : 0
 
-            print("Indexes: \(startIndex) \(endIndex)")
             return photoEnvironment.lazyArray.sortedArray[startIndex...endIndex]
         }
         return photoEnvironment.lazyArray.sortedArray[0...]
@@ -30,11 +29,13 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
 
     var photoEnvironment: PhotoEnvironment
     var startWithIndexPath: IndexPath?
+    let onScrollStatusChange: (Bool) -> Void
 
-    init(photoEnvironment: PhotoEnvironment, dbAssetForFirstIndex: DBPhotoAsset) {
+    init(photoEnvironment: PhotoEnvironment, dbAssetForFirstIndex: DBPhotoAsset, onScrollStatusChange: @escaping (Bool) -> Void) {
         self.photoEnvironment = photoEnvironment
         self.startWithIndexPath = .init(
             item: photoEnvironment.lazyArray.binSearch(dbAssetForFirstIndex), section: 0)
+        self.onScrollStatusChange = onScrollStatusChange
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -136,7 +137,6 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         
         if let selectedAsset = photoEnvironment.selectedDbPhotoAsset, indexPath.item == photoEnvironment.lazyArray.binSearch(selectedAsset) {
             selectedIndexPath = indexPath
-            print("Set cell \(indexPath.item)")
             cell.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
         } else {
             cell.transform = CGAffineTransform.identity
@@ -171,21 +171,32 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
 //        selectedIndexPath = indexPath
         collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
 //        print(selectedItem.localIdentifier)
-    }
+}
 
      // MARK: - UIScrollViewDelegate
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         selectCenteredItem()
+        onScrollStatusChange(false)
     }
 
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
             selectCenteredItem()
+        } else {
+            onScrollStatusChange(false)
         }
+    }
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        onScrollStatusChange(true)
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         selectCenteredItem()
+    }
+    
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        onScrollStatusChange(false)
     }
 
     private func selectCenteredItem() {
@@ -284,7 +295,7 @@ class SnappingCollectionViewLayout: UICollectionViewFlowLayout {
         if let indexPath = indexPath {
             collectionView.selectItem(
                 at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
-            let selectedItem = photoEnvironment.lazyArray.sortedArray[indexPath.item]
+//            let selectedItem = photoEnvironment.lazyArray.sortedArray[indexPath.item]
 //            photoEnvironment.selectedDbPhotoAsset = selectedItem
         }
         return targetContentOffset
@@ -368,11 +379,19 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
     @EnvironmentObject var photoEnvironment: PhotoEnvironment
     let itemsToShow: Int
     let spacing: CGFloat
+    @Binding var scrollState: Bool
 
     func makeUIViewController(context: Context) -> PhotoScrubberViewController {
         let viewController = PhotoScrubberViewController(
             photoEnvironment: photoEnvironment,
-            dbAssetForFirstIndex: photoEnvironment.selectedDbPhotoAsset!)
+            dbAssetForFirstIndex: photoEnvironment.selectedDbPhotoAsset!,
+            onScrollStatusChange: { status in
+                DispatchQueue.main.async {
+                    if scrollState != status {
+                        scrollState = status
+                    }
+                }
+            })
         return viewController
     }
 
@@ -414,7 +433,7 @@ struct PreviewPhotoCarouselUIKit: PreviewProvider {
         photoEnvironment.selectedDbPhotoAsset = photoEnvironment.lazyArray.sortedArray.last!
         return VStack {
             Text("Hello")
-            PhotoScrubberView(itemsToShow: 10, spacing: 10)
+            PhotoScrubberView(itemsToShow: 10, spacing: 10, scrollState: .constant(true))
                 .environmentObject(photoEnvironment)
         }
     }

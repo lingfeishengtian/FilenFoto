@@ -21,45 +21,20 @@ struct ViewManager: View {
     
     @Binding private var scale: CGFloat
     @Binding private var offset: CGSize
+    @Binding private var assetFileUrl: URL?
     
     let onSwipeUp: (() -> Void)
     let onSwipeDown: (() -> Void)
     
-    init(scale: Binding<CGFloat>, offset: Binding<CGSize>, onSwipeUp: @escaping () -> Void = {}, onSwipeDown: @escaping () -> Void = {}) {
-//        let imgPath = FullSizeImageCache.getFullSizeImageOrThumbnail(for: photoEnviorment.selectedDbPhotoAsset!).path
-//        
-//#if targetEnvironment(simulator)
-//        if let isPrev = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"], isPrev == "1" {
-//            self.view = AnyView(
-//                ZoomablePhoto(
-//                    scale: scale,
-//                    offset: offset,
-//                    onSwipeUp: onSwipeUp,
-//                    onSwipeDown: onSwipeDown,
-//                    image: UIImage.init(named: "IMG_3284")!)
-//                )
-//        } else {
-//            self.view = AnyView(
-//                ZoomablePhoto(
-//                    scale: scale,
-//                    offset: offset,
-//                    onSwipeUp: onSwipeUp,
-//                    onSwipeDown: onSwipeDown,
-//                    image: UIImage(contentsOfFile: imgPath) ?? UIImage()))
-//        }
-//#else
-//        self.view = AnyView(
-//            ZoomablePhoto(
-//                scale: scale,
-//                offset: offset,
-//                onSwipeUp: onSwipeUp,
-//                onSwipeDown: onSwipeDown,
-//                image: UIImage(contentsOfFile: imgPath) ?? UIImage()))
-//#endif
+    @Binding var isScrolling: Bool
+    
+    init(scale: Binding<CGFloat>, offset: Binding<CGSize>, onSwipeUp: @escaping () -> Void = {}, isScrolling: Binding<Bool>, onSwipeDown: @escaping () -> Void = {}, assetFileUrl: Binding<URL?>) {
         self._scale = scale
         self._offset = offset
         self.onSwipeUp = onSwipeUp
         self.onSwipeDown = onSwipeDown
+        self._isScrolling = isScrolling
+        self._assetFileUrl = assetFileUrl
     }
     
     func setView(_ view: some View) {
@@ -70,41 +45,74 @@ struct ViewManager: View {
         }
     }
     
+    @State var curTask: Task<Void, Never>? = nil
+    
     var body: some View {
-        
         var imgPath: String? = nil
+        var uiImage: UIImage? = nil
+        
         if let dbAsset = photoEnviorment.selectedDbPhotoAsset {
-            imgPath = FullSizeImageCache.getFullSizeImageOrThumbnail(for: dbAsset).path
+            imgPath = PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: dbAsset.thumbnailFileName).path
+            
+#if targetEnvironment(simulator)
+        if let isPrev = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"], isPrev == "1" {
+//            print("Building \(dbAsset.localIdentifier)")
+            let randomColors = [
+                UIColor.red, UIColor.green, UIColor.blue, UIColor.yellow, UIColor.orange,
+                UIColor.purple, UIColor.cyan, UIColor.magenta,
+            ]
+            uiImage = dbAsset.localIdentifier.image(withAttributes: [
+                .foregroundColor: UIColor.red,
+                .font: UIFont.systemFont(ofSize: 10.0),
+                .backgroundColor: randomColors.randomElement()!,
+            ])
+        }
+#endif
         }
         
-
         return VStack {
-            if let imgPath, photoEnviorment.selectedDbPhotoAsset!.mediaType == .image {
-                ZoomablePhoto(
-                    scale: $scale,
-                    offset: $offset,
-                    onSwipeUp: onSwipeUp,
-                    onSwipeDown: onSwipeDown,
-                    image: .constant(UIImage(contentsOfFile: imgPath) ?? UIImage()))
-                    .scaleEffect(scale)
-                    .offset(offset)
-            } else {
-                self.view
-                        .scaleEffect(scale)
-                        .offset(offset)
+            (self.view ?? AnyView(ZoomablePhoto(
+                scale: $scale,
+                offset: $offset,
+                onSwipeUp: onSwipeUp,
+                onSwipeDown: onSwipeDown,
+                image: .constant(uiImage ?? (imgPath != nil ? (UIImage(contentsOfFile: imgPath!) ?? UIImage()) : UIImage())))
+                .overlay {
+                    Color.black.opacity(0.5)
+                        .edgesIgnoringSafeArea(.all)
+                        .overlay(
+                            ProgressView().progressViewStyle(.circular)
+                                .scaleEffect(1.5)
+                        )
+                        .allowsHitTesting(false)
+                }))
+            .scaleEffect(scale)
+            .offset(offset)
+            .onChange(of: isScrolling) {
+                if !isScrolling {
+                    isScrolling = true
+                    self.view = nil
+                    self.assetFileUrl = nil
+                    curTask?.cancel()
+                    curTask = Task {
+                        await getView()
+                    }
+                }
+            }.onChange(of: photoEnviorment.selectedDbPhotoAsset) {
+                self.view = nil
+                self.assetFileUrl = nil
             }
-        }
-//        view.onAppear {
-//            Task {
-////                await getView()
 //            }
-//        }.scaleEffect(scale)
+        }
+        //        }.scaleEffect(scale)
 //        .offset(offset)
     }
     
     func getView() async {
-        let dbAsset = photoEnviorment.selectedDbPhotoAsset!
-        let imgPath = FullSizeImageCache.getFullSizeImageOrThumbnail(for: photoEnviorment.selectedDbPhotoAsset!).path
+        guard let dbAsset = photoEnviorment.selectedDbPhotoAsset else {
+            return
+        }
+//        let imgPath = FullSizeImageCache.getFullSizeImageOrThumbnail(for: photoEnviorment.selectedDbPhotoAsset!).path
 
         if dbAsset.mediaType == .image {
             if dbAsset.mediaSubtype.contains(.photoLive) {
@@ -112,6 +120,7 @@ struct ViewManager: View {
                 if livePhotoAssets != nil {
                     PHLivePhoto.request(withResourceFileURLs: [livePhotoAssets!.photoUrl, livePhotoAssets!.videoUrl], placeholderImage: nil, targetSize: CGSizeZero, contentMode: .aspectFit, resultHandler: { lPhoto, info in
 //                        self.setView(AnyView(UIKitLivePhotoView(livephoto: lPhoto)))
+                        self.assetFileUrl = livePhotoAssets?.photoUrl
                         if let lPhoto {
                             DispatchQueue.main.async {
                                 self.setView(ZoomableLivePhoto(
@@ -119,27 +128,30 @@ struct ViewManager: View {
                                     offset: self.$offset,
                                     onSwipeUp: self.onSwipeUp,
                                     onSwipeDown: self.onSwipeDown,
-                                    livePhoto: lPhoto))
+                                    livePhoto: .constant(lPhoto)))
                             }
                         }
                     })
                 }
             } else {
                 let photoAssets = await FullSizeImageRetrieval.shared.getImageResource(asset: dbAsset)
-                if let img = photoAssets, imgPath != img.path {
-//                    setView(AnyView(ZoomablePhoto(
-//                        scale: $scale,
-//                        offset: $offset,
-//                        onSwipeUp: onSwipeUp,
-//                        onSwipeDown: onSwipeDown,
-//                        image: UIImage(contentsOfFile: img.path) ?? UIImage()))
-//                    )
+                self.assetFileUrl = photoAssets
+                if let img = photoAssets {
+                    setView(AnyView(
+                        ZoomablePhoto(
+                        scale: $scale,
+                        offset: $offset,
+                        onSwipeUp: onSwipeUp,
+                        onSwipeDown: onSwipeDown,
+                        image: .constant(UIImage(contentsOfFile: img.path) ?? UIImage()))
+                    ))
                 }
             }
         } else if dbAsset.mediaType == .video {
             let videoAssets = await FullSizeImageRetrieval.shared.getVideoResource(asset: dbAsset)
+            self.assetFileUrl = videoAssets
             if let vid = videoAssets {
-                await setView(AnyView(ZoomableVideo(
+                setView(AnyView(ZoomableVideo(
                     scale: $scale,
                     offset: $offset,
                     onSwipeUp: onSwipeUp,
@@ -164,18 +176,13 @@ struct UIKitLivePhotoView: UIViewRepresentable {
 }
 
 struct ThumbnailView: View {
-    @EnvironmentObject var photoEnvironment: PhotoEnvironment
-    let dbPhotoAsset: DBPhotoAsset
-    
-    init(dbPhotoAsset: DBPhotoAsset) {
-        self.dbPhotoAsset = dbPhotoAsset
-    }
+//    @EnvironmentObject var photoEnvironment: PhotoEnvironment
+    let thumbnailName: String
     
     var body: some View {
-        var uiImage = UIImage(contentsOfFile: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: dbPhotoAsset.thumbnailFileName).path)
 //#if targetEnvironment(simulator)
 //        if let isPrev = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"], isPrev == "1" {
-//            print("Building \(dbPhotoAsset.localIdentifier)")
+////            print("Building \(dbPhotoAsset.localIdentifier)")
 //            let randomColors = [
 //                UIColor.red, UIColor.green, UIColor.blue, UIColor.yellow, UIColor.orange,
 //                UIColor.purple, UIColor.cyan, UIColor.magenta,
@@ -186,7 +193,7 @@ struct ThumbnailView: View {
 //                .backgroundColor: randomColors.randomElement()!,
 //            ])
 //        } else {
-//            print("building \(dbPhotoAsset.localIdentifier)")
+////            print("building \(dbPhotoAsset.localIdentifier)")
 //        }
 //#endif
         
@@ -194,26 +201,30 @@ struct ThumbnailView: View {
 //            .resizable()
 //            .scaledToFill()
 //        )
-        return Color.clear.background(Image(uiImage: (uiImage ?? UIImage()))
+//        return Color.clear.background(Image(uiImage: (uiImage ?? UIImage()))
+////        return Color.clear.background(AsyncImage(url: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: dbPhotoAsset.thumbnailFileName))
+//            .resizable()
+//                    .scaledToFill()
+//                )
+        return Image(uiImage: (UIImage(contentsOfFile: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: thumbnailName).path) ?? UIImage()))
 //        return Color.clear.background(AsyncImage(url: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: dbPhotoAsset.thumbnailFileName))
             .resizable()
-                    .scaledToFill()
-                )
+            .scaledToFill()
         .aspectRatio(1, contentMode: .fit)
         .clipped()
-        .contentShape(Rectangle())
-        .onAppear() {
-            Task {
-//                if dbPhotoAsset.localIdentifier == photoEnvironment.lazyArray.sortedArray.last?.localIdentifier {
-//                    await photoEnvironment.addMoreToLazyArray()
-//                }
-            }
-        }
-        .onTapGesture {
-            withAnimation {
-                photoEnvironment.firstSelected = dbPhotoAsset
-                photoEnvironment.selectedDbPhotoAsset = dbPhotoAsset
-            }
-        }
+//        .contentShape(Rectangle())
+//        .onAppear() {
+//            Task {
+////                if dbPhotoAsset.localIdentifier == photoEnvironment.lazyArray.sortedArray.last?.localIdentifier {
+////                    await photoEnvironment.addMoreToLazyArray()
+////                }
+//            }
+//        }
+//        .onTapGesture {
+//            withAnimation {
+//                photoEnvironment.firstSelected = dbPhotoAsset
+//                photoEnvironment.selectedDbPhotoAsset = dbPhotoAsset
+//            }
+//        }
     }
 }

@@ -27,30 +27,18 @@ struct ZoomablePhotoWithDBAsset : ZoomablePannableViewContent {
 
 
     func makeUIView(context: Context) -> UIView {
-        let view = UIView()
-        view.backgroundColor = .clear
-
         let imageView = UIImageView(image: UIImage(contentsOfFile: thumbnailURL.appending(path: photoEnvironment.selectedDbPhotoAsset!.thumbnailFileName).path))
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
 
-        view.addSubview(imageView)
-
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: view.topAnchor),
-            imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-        ])
-
-        assignGestures(to: view, in: context)
+        assignGestures(to: imageView, in: context)
         imageView.isUserInteractionEnabled = true
 
-        return view
+        return imageView
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {
-        guard let view = uiView.subviews.first as? UIImageView else { return }
+        guard let view = uiView as? UIImageView else { return }
         if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {
             view.image = UIImage(contentsOfFile: thumbnailURL.appending(path: selectedDbPhotoAsset.thumbnailFileName).path)
 //#if DEBUG
@@ -71,6 +59,63 @@ struct ZoomablePhotoWithDBAsset : ZoomablePannableViewContent {
         ZoomablePannableViewContentCoordinator(self)
     }
 }
+
+//struct ZoomablePhotoWithDBAsset : ZoomablePannableViewContent {
+//    @ObservedObject var photoEnvironment: PhotoEnvironment
+//    @Binding var scale: CGFloat
+//    @Binding var offset: CGSize
+//    var onSwipeUp: () -> Void
+//    var onSwipeDown: () -> Void
+//    private let thumbnailURL = PhotoVisionDatabaseManager.shared.thumbnailsDirectory
+//
+//
+//    func makeUIView(context: Context) -> UIView {
+//        let view = UIView()
+//        view.backgroundColor = .clear
+//
+//        let imageView = UIImageView(image: UIImage(contentsOfFile: thumbnailURL.appending(path: photoEnvironment.selectedDbPhotoAsset!.thumbnailFileName).path))
+//        imageView.contentMode = .scaleAspectFit
+//        imageView.translatesAutoresizingMaskIntoConstraints = false
+//
+//        view.addSubview(imageView)
+//
+//        NSLayoutConstraint.activate([
+//            imageView.topAnchor.constraint(equalTo: view.topAnchor),
+//            imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+//            imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+//            imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+//        ])
+//        
+//        
+//
+//        assignGestures(to: view, in: context)
+//        imageView.isUserInteractionEnabled = true
+//
+//        return view
+//    }
+//
+//    func updateUIView(_ uiView: UIView, context: Context) {
+//        guard let view = uiView.subviews.first as? UIImageView else { return }
+//        if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {
+//            view.image = UIImage(contentsOfFile: thumbnailURL.appending(path: selectedDbPhotoAsset.thumbnailFileName).path)
+////#if DEBUG
+////            view.image = selectedDbPhotoAsset.localIdentifier.image(withAttributes: [
+////                .foregroundColor: UIColor.red,
+////                .font: UIFont.systemFont(ofSize: 10.0),
+////                .backgroundColor: UIColor.blue,
+////            ])
+////#endif
+//        } else {
+////            for subView in view.subviews {
+////                subView.removeFromSuperview()
+////            }
+//        }
+//    }
+//
+//    func makeCoordinator() -> ZoomablePannableViewContentCoordinator {
+//        ZoomablePannableViewContentCoordinator(self)
+//    }
+//}
 
 struct ZoomablePhoto: ZoomablePannableViewContent {
     @Binding var scale: CGFloat
@@ -100,13 +145,14 @@ struct ZoomablePhoto: ZoomablePannableViewContent {
         assignGestures(to: view, in: context)
         imageView.isUserInteractionEnabled = true
 
+        view.sizeToFit()
+
         return view
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {
         guard let view = uiView.subviews.first as? UIImageView else { return }
         if image != view.image {
-            print("updating image for \(image)")
             view.image = image
         }
     }
@@ -121,7 +167,7 @@ struct ZoomableLivePhoto: ZoomablePannableViewContent {
     @Binding var offset: CGSize
     var onSwipeUp: () -> Void
     var onSwipeDown: () -> Void
-    var livePhoto: PHLivePhoto
+    @Binding var livePhoto: PHLivePhoto
 
     func makeUIView(context: Context) -> UIView {
         let view = PHLivePhotoView()
@@ -134,7 +180,9 @@ struct ZoomableLivePhoto: ZoomablePannableViewContent {
 
     func updateUIView(_ uiView: UIView, context: Context) {
         guard let view = uiView as? PHLivePhotoView else { return }
-        view.livePhoto = livePhoto
+        if livePhoto != view.livePhoto {
+            view.livePhoto = livePhoto
+        }
     }
 
     func makeCoordinator() -> ZoomablePannableViewContentCoordinator {
@@ -185,22 +233,35 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
             break
         }
     }
+    
+    private var previous: CGSize? = nil
 
     @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began, .changed:
             let translation = gesture.translation(in: gesture.view)
-            parent.offset = CGSize(width: translation.x, height: translation.y)
+            if self.parent.scale == 1.0 {
+                let height = translation.y + (previous ?? .zero).height
+                parent.offset = CGSize(width: 0, height: height < -300 ? -300 : height)
+            } else {
+                parent.offset = CGSize(width: translation.x, height: translation.y)
+            }
+//            parent.offset = .init(width: translation.x, height: parent.offset.height + translation.y)
         case .ended:
             let velocity = gesture.velocity(in: gesture.view)
+            print(velocity)
             if velocity.y > 0 {
                 parent.onSwipeDown()
             } else {
                 parent.onSwipeUp()
             }
-            withAnimation {
-                self.parent.offset = .zero
-            }
+//            withAnimation {
+//                if parent.offset.width == 0 && parent.scale == 1.0 && parent.offset.height < -10 {
+//                    previous = parent.offset
+//                } else {
+                    self.parent.offset = .zero
+//                }
+//            }
             gesture.setTranslation(.zero, in: gesture.view)
         default:
             break
