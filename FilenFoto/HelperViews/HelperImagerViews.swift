@@ -61,35 +61,47 @@ struct ViewManager: View {
                 UIColor.red, UIColor.green, UIColor.blue, UIColor.yellow, UIColor.orange,
                 UIColor.purple, UIColor.cyan, UIColor.magenta,
             ]
-            uiImage = dbAsset.localIdentifier.image(withAttributes: [
-                .foregroundColor: UIColor.red,
-                .font: UIFont.systemFont(ofSize: 10.0),
-                .backgroundColor: randomColors.randomElement()!,
-            ])
+            uiImage = UIImage(named: "IMG_3284")
+//            dbAsset.localIdentifier.image(withAttributes: [
+//                .foregroundColor: UIColor.red,
+//                .font: UIFont.systemFont(ofSize: 10.0),
+//                .backgroundColor: randomColors.randomElement()!,
+//            ])
         }
 #endif
         }
-        
-        return VStack {
-            (self.view ?? AnyView(ZoomablePhoto(
+        var scale_calculation = scale == 1.0 ? (offset.height < 0 ? (1.0 + (abs(offset.height) / 400)) : (1.0 - (abs(offset.height) / 400))) : scale
+        if scale_calculation < 0.8 {
+            scale_calculation = 0.8
+        }
+//            GeometryReader { reader in
+        return (self.view ?? AnyView(ZoomablePhoto(
                 scale: $scale,
                 offset: $offset,
                 onSwipeUp: onSwipeUp,
                 onSwipeDown: onSwipeDown,
                 image: .constant(uiImage ?? (imgPath != nil ? (UIImage(contentsOfFile: imgPath!) ?? UIImage()) : UIImage())))
-                .overlay {
-                    Color.black.opacity(0.5)
-                        .edgesIgnoringSafeArea(.all)
-                        .overlay(
-                            ProgressView().progressViewStyle(.circular)
-                                .scaleEffect(1.5)
-                        )
+//            .aspectRatio(contentMode: .fit)
+//            .scaledToFit()
+            .overlay {
+                Color.black.opacity(0.5)
+                    .edgesIgnoringSafeArea(.all)
+                    .overlay(
+                        ProgressView().progressViewStyle(.circular)
+                            .scaleEffect(1.5)
+                    )
                         .allowsHitTesting(false)
                 }))
-            .scaleEffect(scale)
+                .scaleEffect(scale_calculation)
+            //                    .scaleEffect(scale == 1.0 ?
+            //                                 1.0 + (max(reader.frame(in: .global).minY - offset.height, 0) / reader.frame(in: .global).minY) * 0.3
+            //                                 : scale, anchor: .bottom)
+            //                    .scaleEffect(scale == 1.0 ? 1.0 + (abs(offset.height) / 400) : 1.0)
+            //                .offset(.init(width: offset.width, height: offset.height < -(reader.frame(in: .global)).minY - reader.size.height * 0.4 ? -(reader.frame(in: .global)).minY - reader.size.height * 0.4 : offset.height))
             .offset(offset)
+            .clipShape(Rectangle())
             .onChange(of: isScrolling) {
-                if !isScrolling {
+                if !isScrolling && photoEnviorment.selectedDbPhotoAsset != nil {
                     isScrolling = true
                     self.view = nil
                     self.assetFileUrl = nil
@@ -98,12 +110,23 @@ struct ViewManager: View {
                         await getView()
                     }
                 }
+                //                    }
+                //                    .onAppear {
+                //                        if !isScrolling {
+                //                            isScrolling = true
+                //                            self.view = nil
+                //                            self.assetFileUrl = nil
+                //                            curTask?.cancel()
+                //                            curTask = Task {
+                //                                await getView()
+                //                            }
+                //                        }
             }.onChange(of: photoEnviorment.selectedDbPhotoAsset) {
                 self.view = nil
                 self.assetFileUrl = nil
             }
-//            }
-        }
+            //            }
+            //            }
         //        }.scaleEffect(scale)
 //        .offset(offset)
     }

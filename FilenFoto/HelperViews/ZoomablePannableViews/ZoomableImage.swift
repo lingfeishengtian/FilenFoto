@@ -3,7 +3,7 @@ import AVKit
 import SwiftUI
 import UIKit
 
-fileprivate func assignGestures(
+func assignGestures(
     to view: UIView, in context: (UIViewRepresentableContext<some ZoomablePannableViewContent>)
 ) {
     let pinchGestureRecognizer = UIPinchGestureRecognizer(
@@ -130,6 +130,13 @@ struct ZoomablePhoto: ZoomablePannableViewContent {
 
         let imageView = UIImageView(image: image)
         imageView.contentMode = .scaleAspectFit
+        imageView.clipsToBounds = true
+        
+        imageView.setContentHuggingPriority(.defaultLow, for: .vertical)
+        imageView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        imageView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+        imageView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
         imageView.translatesAutoresizingMaskIntoConstraints = false
 
         view.addSubview(imageView)
@@ -139,7 +146,7 @@ struct ZoomablePhoto: ZoomablePannableViewContent {
             imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            
+            imageView.heightAnchor.constraint(equalTo: view.heightAnchor),
         ])
 
         assignGestures(to: view, in: context)
@@ -149,9 +156,29 @@ struct ZoomablePhoto: ZoomablePannableViewContent {
 
         return view
     }
+//    func makeUIView(context: Context) -> UIView {
+//        let imageView = UIImageView(image: image)
+//        imageView.contentMode = .scaleAspectFill
+//        imageView.clipsToBounds = true
+//        
+//        imageView.setContentHuggingPriority(.defaultLow, for: .vertical)
+//        imageView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+//        imageView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+//        imageView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+//
+//        imageView.translatesAutoresizingMaskIntoConstraints = false
+//
+//        assignGestures(to: imageView, in: context)
+//        imageView.isUserInteractionEnabled = true
+//
+//        imageView.sizeToFit()
+//
+//        return imageView
+//    }
 
     func updateUIView(_ uiView: UIView, context: Context) {
         guard let view = uiView.subviews.first as? UIImageView else { return }
+//        guard let view = uiView as? UIImageView else { return }
         if image != view.image {
             view.image = image
         }
@@ -235,23 +262,32 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
     }
     
     private var previous: CGSize? = nil
+    private var isDown: Bool = false
 
     @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
-        case .began, .changed:
+        case .began:
+            isDown = gesture.velocity(in: gesture.view).y > 0
+        case .changed:
             let translation = gesture.translation(in: gesture.view)
             if self.parent.scale == 1.0 {
                 let height = translation.y + (previous ?? .zero).height
                 parent.offset = CGSize(width: 0, height: height < -300 ? -300 : height)
+//                print("adding on previous : \(previous?.height) \(translation.y)")
             } else {
                 parent.offset = CGSize(width: translation.x, height: translation.y)
             }
 //            parent.offset = .init(width: translation.x, height: parent.offset.height + translation.y)
+            break
         case .ended:
             let velocity = gesture.velocity(in: gesture.view)
             print(velocity)
             if velocity.y > 0 {
                 parent.onSwipeDown()
+                
+                withAnimation {
+                    self.parent.offset = .zero
+                }
             } else {
                 parent.onSwipeUp()
             }
@@ -259,7 +295,18 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
 //                if parent.offset.width == 0 && parent.scale == 1.0 && parent.offset.height < -10 {
 //                    previous = parent.offset
 //                } else {
+            if self.parent.scale != 1.0 || self.parent.offset.height > 0 {
+                withAnimation {
                     self.parent.offset = .zero
+                }
+            } else {
+                if self.parent.offset.height > -200 && self.parent.offset.height < 0 {
+                    withAnimation {
+                        self.parent.offset.height = -200
+                    }
+                }
+                previous = self.parent.offset
+            }
 //                }
 //            }
             gesture.setTranslation(.zero, in: gesture.view)

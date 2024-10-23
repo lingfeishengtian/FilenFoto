@@ -13,7 +13,6 @@ import CoreLocation
 struct ContentView: View {
     @Namespace var animation
     @StateObject var photoEnvironment: PhotoEnvironment = PhotoEnvironment()
-
     @State var showProgressMenu: Bool = false
     @State var inAnimation: Bool = false
     @State var searchBarShow: Bool = false
@@ -179,63 +178,30 @@ struct ContentView: View {
                                     //                                                        ThumbnailView(thumbnailName: dbPhotoAsset.thumbnailFileName)
                                     Color.clear.background(Image(uiImage: UIImage(contentsOfFile: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: dbPhotoAsset.thumbnailFileName).path) ?? UIImage())
                                         .resizable()
-                                        .scaledToFill())
-                                        .aspectRatio(1, contentMode: .fit)
+                                        .scaledToFill()
                                         .clipped()
-                                        .opacity(
-                                            (photoEnvironment.selectedDbPhotoAsset == dbPhotoAsset)
-                                            ? 0 : 1
-                                        )
-                                        .onTapGesture {
-                                            withAnimation {
-                                                photoEnvironment.selectedDbPhotoAsset = dbPhotoAsset
-                                            }
+                                    )
+                                    .contentShape(Rectangle())
+                                    .aspectRatio(1, contentMode: .fit)
+                                    .clipped()
+                                    .opacity(
+                                        (photoEnvironment.selectedDbPhotoAsset == dbPhotoAsset)
+                                        ? 0 : 1
+                                    )
+                                    .onTapGesture {
+                                        withAnimation {
+                                            photoEnvironment.selectedDbPhotoAsset = dbPhotoAsset
                                         }
+                                    }
                                         .matchedGeometryEffect(
                                             id: "thumbnailImageTransition"
                                             + dbPhotoAsset.localIdentifier, in: animation)
                                 }
-                                // test for each of 20k items
-                                //                                                                       ForEach(0..<20_000) { i in
-                                ////                                                                           if let dbAsset = photoEnvironment.lazyArray.sortedArray.first {
-                                ////                                                                               ThumbnailView(thumbnailName: dbAsset.thumbnailFileName)
-                                ////                                                                           }
-                                //                                                                           Image(uiImage: UIImage(contentsOfFile: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: photoEnvironment.lazyArray.sortedArray.first?.thumbnailFileName ?? "").path) ?? UIImage())
-                                //                                                                               .resizable()
-                                //                                                                               .scaledToFit()
-                                //                                                                               .aspectRatio(1, contentMode: .fit)
-                                //                                                                               .clipped()
-                                //                                                                       }
                             }
                             .frame(maxHeight: .infinity, alignment: .bottom)
-                            //                    GridView { dbPhotoAsset in
-                            //                        ThumbnailView(dbPhotoAsset: dbPhotoAsset)
-                            //                            .opacity(
-                            //                                (photoEnvironment.selectedDbPhotoAsset == dbPhotoAsset)
-                            //                                    ? 0 : 1
-                            //                            )
-                            //                        //                            .matchedGeometryEffect(
-                            //                        //                                id: "thumbnailImageTransition"
-                            //                        //                                + dbPhotoAsset.localIdentifier, in: animation)
-                            //                    } onCellSelected: { asset in
-                            //                        withAnimation {
-                            //                            photoEnvironment.selectedDbPhotoAsset = asset
-                            //                        }
-                            //                    }.frame(maxHeight: .infinity, alignment: .bottom)
-                            //                        .ignoresSafeArea(.all)
                         }
                     }
                 }
-
-                //                Text("")
-                //                    .paddedRounded(fill: .clear)
-                //                    .padding()
-                //                    .background(Color.black.opacity(0.5))
-                //                    .cornerRadius(8)
-                //                    .overlay(
-                //                        Rectangle()
-                //                            .fill(Color.clear)
-                //                    )
             }
             .blur(radius: (searchText.count == 0 && searchBarShow) ? 10 : 0)
             .disabled(searchText.count == 0 && searchBarShow)
@@ -288,13 +254,16 @@ struct ContentView: View {
         .environmentObject(photoEnvironment)
         .overlay {
             if photoEnvironment.selectedDbPhotoAsset != nil {
-                FullImageView(
-                    currentDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset!,
-                    animation: animation
-                )
-                .environmentObject(photoEnvironment)
+                //                ZoomablePhoto(scale: .constant(1.0), offset: .constant(.init(width: 0, height: 0)), onSwipeUp: {}, onSwipeDown: {}, image: .constant(UIImage(named: "IMG_3284")!))
+//                NavigationStack {
+                    FullImageView(
+                        currentDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset!,
+                        animation: animation
+                    )
+                    .environmentObject(photoEnvironment)
+//                }
             }
-        }
+            }
     }
 }
 

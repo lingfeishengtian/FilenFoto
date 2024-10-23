@@ -31,10 +31,14 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     var startWithIndexPath: IndexPath?
     let onScrollStatusChange: (Bool) -> Void
 
-    init(photoEnvironment: PhotoEnvironment, dbAssetForFirstIndex: DBPhotoAsset, onScrollStatusChange: @escaping (Bool) -> Void) {
+    init(photoEnvironment: PhotoEnvironment, dbAssetForFirstIndex: DBPhotoAsset?, onScrollStatusChange: @escaping (Bool) -> Void) {
         self.photoEnvironment = photoEnvironment
-        self.startWithIndexPath = .init(
-            item: photoEnvironment.lazyArray.binSearch(dbAssetForFirstIndex), section: 0)
+        if let dbAssetForFirstIndex {
+            self.startWithIndexPath = .init(
+                item: photoEnvironment.lazyArray.binSearch(dbAssetForFirstIndex), section: 0)
+        } else {
+            self.startWithIndexPath = nil
+        }
         self.onScrollStatusChange = onScrollStatusChange
         super.init(nibName: nil, bundle: nil)
     }
@@ -380,11 +384,11 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
     let itemsToShow: Int
     let spacing: CGFloat
     @Binding var scrollState: Bool
-
+    
     func makeUIViewController(context: Context) -> PhotoScrubberViewController {
         let viewController = PhotoScrubberViewController(
             photoEnvironment: photoEnvironment,
-            dbAssetForFirstIndex: photoEnvironment.selectedDbPhotoAsset!,
+            dbAssetForFirstIndex: photoEnvironment.selectedDbPhotoAsset,
             onScrollStatusChange: { status in
                 DispatchQueue.main.async {
                     if scrollState != status {
@@ -394,7 +398,7 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
             })
         return viewController
     }
-
+    
     func updateUIViewController(_ uiViewController: PhotoScrubberViewController, context: Context) {
         // Update the view controller with new data or state changes if needed
 //        uiViewController.collectionView.reloadData()

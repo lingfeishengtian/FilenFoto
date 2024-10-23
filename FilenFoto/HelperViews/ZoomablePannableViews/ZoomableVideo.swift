@@ -48,7 +48,17 @@ struct ZoomableVideo: UIViewControllerRepresentable {
         }
 
         // Allow gestures to be recognized simultaneously
-        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            return true
+        }
+
+        // Allow all gestures to pass through
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch)
+            -> Bool
+        {
             return true
         }
 
@@ -65,22 +75,55 @@ struct ZoomableVideo: UIViewControllerRepresentable {
                 break
             }
         }
+        
+        private var previous: CGSize? = nil
+        private var isDown: Bool = false
 
         @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
             switch gesture.state {
-            case .began, .changed:
+            case .began:
+                isDown = gesture.velocity(in: gesture.view).y > 0
+            case .changed:
                 let translation = gesture.translation(in: gesture.view)
-                parent.offset = CGSize(width: translation.x, height: translation.y)
+                if self.parent.scale == 1.0 {
+                    let height = translation.y + (previous ?? .zero).height
+                    parent.offset = CGSize(width: 0, height: height < -300 ? -300 : height)
+    //                print("adding on previous : \(previous?.height) \(translation.y)")
+                } else {
+                    parent.offset = CGSize(width: translation.x, height: translation.y)
+                }
+    //            parent.offset = .init(width: translation.x, height: parent.offset.height + translation.y)
+                break
             case .ended:
                 let velocity = gesture.velocity(in: gesture.view)
+                print(velocity)
                 if velocity.y > 0 {
                     parent.onSwipeDown()
+                    
+                    withAnimation {
+                        self.parent.offset = .zero
+                    }
                 } else {
                     parent.onSwipeUp()
                 }
-                withAnimation {
-                    self.parent.offset = .zero
+    //            withAnimation {
+    //                if parent.offset.width == 0 && parent.scale == 1.0 && parent.offset.height < -10 {
+    //                    previous = parent.offset
+    //                } else {
+                if self.parent.scale != 1.0 || self.parent.offset.height > 0 {
+                    withAnimation {
+                        self.parent.offset = .zero
+                    }
+                } else {
+                    if self.parent.offset.height > -200 && self.parent.offset.height < 0 {
+                        withAnimation {
+                            self.parent.offset.height = -200
+                        }
+                    }
+                    previous = self.parent.offset
                 }
+    //                }
+    //            }
                 gesture.setTranslation(.zero, in: gesture.view)
             default:
                 break
