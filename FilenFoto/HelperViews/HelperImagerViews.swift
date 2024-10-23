@@ -110,18 +110,19 @@ struct ViewManager: View {
                         await getView()
                     }
                 }
-                //                    }
-                //                    .onAppear {
-                //                        if !isScrolling {
-                //                            isScrolling = true
-                //                            self.view = nil
-                //                            self.assetFileUrl = nil
-                //                            curTask?.cancel()
-                //                            curTask = Task {
-                //                                await getView()
-                //                            }
-                //                        }
-            }.onChange(of: photoEnviorment.selectedDbPhotoAsset) {
+                                    }
+                    .onAppear {
+                        if !isScrolling {
+                            isScrolling = true
+                            self.view = nil
+                            self.assetFileUrl = nil
+                            curTask?.cancel()
+                            curTask = Task {
+                                await getView()
+                            }
+                        }
+                    }
+            .onChange(of: photoEnviorment.selectedDbPhotoAsset) {
                 self.view = nil
                 self.assetFileUrl = nil
             }

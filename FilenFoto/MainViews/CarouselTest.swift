@@ -192,7 +192,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     }
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        onScrollStatusChange(true)
+
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -200,6 +200,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     }
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        selectCenteredItem()
         onScrollStatusChange(false)
     }
 

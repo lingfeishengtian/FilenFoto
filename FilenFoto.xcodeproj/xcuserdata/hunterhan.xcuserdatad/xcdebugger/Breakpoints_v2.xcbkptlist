@@ -846,8 +846,8 @@
             filePath = "FilenFoto/HelperViews/HelperImagerViews.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "237"
-            endingLineNumber = "237"
+            startingLineNumber = "238"
+            endingLineNumber = "238"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>
@@ -1102,8 +1102,8 @@
             filePath = "FilenFoto/HelperViews/HelperImagerViews.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "142"
-            endingLineNumber = "142"
+            startingLineNumber = "143"
+            endingLineNumber = "143"
             landmarkName = "getView()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1182,8 +1182,8 @@
             filePath = "FilenFoto/MainViews/ContentView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "241"
-            endingLineNumber = "241"
+            startingLineNumber = "246"
+            endingLineNumber = "246"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>
@@ -1511,22 +1511,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "893E3FF6-814B-4FE8-9FBF-C4B7EC08ED3E"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/MainViews/ContentView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "299"
-            endingLineNumber = "299"
-            landmarkName = "unknown"
-            landmarkType = "0">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "0F5A0FF0-129B-4DEC-822A-07B272436A5B"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -1566,8 +1550,8 @@
             filePath = "FilenFoto/MainViews/CarouselTest.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "395"
-            endingLineNumber = "395"
+            startingLineNumber = "396"
+            endingLineNumber = "396"
             landmarkName = "makeUIViewController(context:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1582,8 +1566,8 @@
             filePath = "FilenFoto/HelperViews/HelperImagerViews.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "148"
-            endingLineNumber = "148"
+            startingLineNumber = "149"
+            endingLineNumber = "149"
             landmarkName = "getView()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1598,8 +1582,8 @@
             filePath = "FilenFoto/HelperViews/HelperImagerViews.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "149"
-            endingLineNumber = "149"
+            startingLineNumber = "150"
+            endingLineNumber = "150"
             landmarkName = "getView()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1630,8 +1614,8 @@
             filePath = "FilenFoto/HelperViews/HelperImagerViews.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "163"
-            endingLineNumber = "163"
+            startingLineNumber = "164"
+            endingLineNumber = "164"
             landmarkName = "getView()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1646,8 +1630,8 @@
             filePath = "FilenFoto/HelperViews/HelperImagerViews.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "162"
-            endingLineNumber = "162"
+            startingLineNumber = "163"
+            endingLineNumber = "163"
             landmarkName = "getView()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1678,8 +1662,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/ZoomableImage.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "274"
-            endingLineNumber = "274"
+            startingLineNumber = "277"
+            endingLineNumber = "277"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1694,8 +1678,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/ZoomableImage.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "278"
-            endingLineNumber = "278"
+            startingLineNumber = "281"
+            endingLineNumber = "281"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1751,52 +1735,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "2750FA71-F462-4940-A7A0-03C629FD2580"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/MainViews/FullImageView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "138"
-            endingLineNumber = "138"
-            landmarkName = "body"
-            landmarkType = "24">
-            <Locations>
-               <Location
-                  uuid = "2750FA71-F462-4940-A7A0-03C629FD2580 - b32a8c301ed31873"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #4 @Sendable (Swift.Optional&lt;FilenFoto.DBPhotoAsset&gt;, SwiftUI.Transaction) -&gt; () in closure #1 (SwiftUI.ScrollViewProxy) -&gt; &lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0 in closure #1 (SwiftUI.GeometryProxy) -&gt; SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt; in closure #2 () -&gt; SwiftUI.TupleView&lt;(SwiftUI.GeometryReader&lt;SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt;&gt;, SwiftUI.Spacer, &lt;&lt;opaque return type of SwiftUI.View.disabled(Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.opacity(Swift.Double) -&gt; some&gt;&gt;.0, SwiftUI.Spacer, SwiftUI.VStack&lt;SwiftUI.TupleView&lt;(SwiftUI.GeometryReader&lt;SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt;&gt;, SwiftUI.Spacer, &lt;&lt;opaque return type of SwiftUI.View.disabled(Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt;&gt;)&gt; in FilenFoto.FullImageView.body.getter : some"
-                  moduleName = "FilenFoto.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/hunterhan/Documents/Github/FilenFoto/FilenFoto/MainViews/FullImageView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "138"
-                  endingLineNumber = "138">
-               </Location>
-               <Location
-                  uuid = "2750FA71-F462-4940-A7A0-03C629FD2580 - b32a8c301ed31873"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #4 @Sendable (Swift.Optional&lt;FilenFoto.DBPhotoAsset&gt;, SwiftUI.Transaction) -&gt; () in closure #1 (SwiftUI.ScrollViewProxy) -&gt; &lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0 in closure #1 (SwiftUI.GeometryProxy) -&gt; SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt; in closure #2 () -&gt; SwiftUI.TupleView&lt;(SwiftUI.GeometryReader&lt;SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt;&gt;, SwiftUI.Spacer, &lt;&lt;opaque return type of SwiftUI.View.disabled(Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.opacity(Swift.Double) -&gt; some&gt;&gt;.0, SwiftUI.Spacer, SwiftUI.VStack&lt;SwiftUI.TupleView&lt;(SwiftUI.GeometryReader&lt;SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt;&gt;, SwiftUI.Spacer, &lt;&lt;opaque return type of SwiftUI.View.disabled(Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt;&gt;)&gt; in FilenFoto.FullImageView.body.getter : some"
-                  moduleName = "FilenFoto.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/hunterhan/Documents/Github/FilenFoto/FilenFoto/MainViews/FullImageView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "138"
-                  endingLineNumber = "138">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "F9052B0F-E1FA-401C-A2BA-F1AC19531B7A"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -1804,40 +1742,138 @@
             filePath = "FilenFoto/MainViews/FullImageView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "60"
-            endingLineNumber = "60"
+            startingLineNumber = "64"
+            endingLineNumber = "64"
             landmarkName = "body"
             landmarkType = "24">
-            <Locations>
-               <Location
-                  uuid = "F9052B0F-E1FA-401C-A2BA-F1AC19531B7A - 1cae440dea597137"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 () -&gt; SwiftUI.ForEach&lt;Swift.ArraySlice&lt;FilenFoto.DBPhotoAsset&gt;, FilenFoto.DBPhotoAsset, SwiftUI._ConditionalContent&lt;&lt;&lt;opaque return type of SwiftUI.View.matchedGeometryEffect&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: &#x3c4;_1_0, in: SwiftUI.Namespace.ID, properties: SwiftUI.MatchedGeometryProperties, anchor: SwiftUI.UnitPoint, isSource: Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.offset(__C.CGSize) -&gt; some&gt;&gt;.0&gt;&gt; in closure #1 () -&gt; &lt;&lt;opaque return type of SwiftUI.View.scrollTargetLayout(isEnabled: Swift.Bool) -&gt; some&gt;&gt;.0 in closure #1 (SwiftUI.ScrollViewProxy) -&gt; &lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0 in closure #1 (SwiftUI.GeometryProxy) -&gt; SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt; in closure #2 () -&gt; SwiftUI.TupleView&lt;(SwiftUI.GeometryReader&lt;SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt;&gt;, SwiftUI.Spacer, &lt;&lt;opaque return type of SwiftUI.View.disabled(Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.opacity(Swift.Double) -&gt; some&gt;&gt;.0, SwiftUI.Spacer, SwiftUI.VStack&lt;SwiftUI.TupleView&lt;(SwiftUI.GeometryReader&lt;SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt;&gt;, SwiftUI.Spacer, &lt;&lt;opaque return type of SwiftUI.View.disabled(Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt;&gt;)&gt; in FilenFoto.FullImageView.body.getter : some"
-                  moduleName = "FilenFoto.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/hunterhan/Documents/Github/FilenFoto/FilenFoto/MainViews/FullImageView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "60"
-                  endingLineNumber = "60">
-               </Location>
-               <Location
-                  uuid = "F9052B0F-E1FA-401C-A2BA-F1AC19531B7A - 8c721b685f9121cd"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 (FilenFoto.DBPhotoAsset) -&gt; SwiftUI._ConditionalContent&lt;&lt;&lt;opaque return type of SwiftUI.View.matchedGeometryEffect&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: &#x3c4;_1_0, in: SwiftUI.Namespace.ID, properties: SwiftUI.MatchedGeometryProperties, anchor: SwiftUI.UnitPoint, isSource: Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.offset(__C.CGSize) -&gt; some&gt;&gt;.0&gt; in closure #1 () -&gt; SwiftUI.ForEach&lt;Swift.ArraySlice&lt;FilenFoto.DBPhotoAsset&gt;, FilenFoto.DBPhotoAsset, SwiftUI._ConditionalContent&lt;&lt;&lt;opaque return type of SwiftUI.View.matchedGeometryEffect&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: &#x3c4;_1_0, in: SwiftUI.Namespace.ID, properties: SwiftUI.MatchedGeometryProperties, anchor: SwiftUI.UnitPoint, isSource: Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.offset(__C.CGSize) -&gt; some&gt;&gt;.0&gt;&gt; in closure #1 () -&gt; &lt;&lt;opaque return type of SwiftUI.View.scrollTargetLayout(isEnabled: Swift.Bool) -&gt; some&gt;&gt;.0 in closure #1 (SwiftUI.ScrollViewProxy) -&gt; &lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0 in closure #1 (SwiftUI.GeometryProxy) -&gt; SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt; in closure #2 () -&gt; SwiftUI.TupleView&lt;(SwiftUI.GeometryReader&lt;SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt;&gt;, SwiftUI.Spacer, &lt;&lt;opaque return type of SwiftUI.View.disabled(Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.opacity(Swift.Double) -&gt; some&gt;&gt;.0, SwiftUI.Spacer, SwiftUI.VStack&lt;SwiftUI.TupleView&lt;(SwiftUI.GeometryReader&lt;SwiftUI.ScrollViewReader&lt;&lt;&lt;opaque return type of SwiftUI.View.scrollPosition&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Swift.Hashable&gt;(id: SwiftUI.Binding&lt;Swift.Optional&lt;&#x3c4;_1_0&gt;&gt;, anchor: Swift.Optional&lt;SwiftUI.UnitPoint&gt;) -&gt; some&gt;&gt;.0&gt;&gt;, SwiftUI.Spacer, &lt;&lt;opaque return type of SwiftUI.View.disabled(Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt;&gt;)&gt; in FilenFoto.FullImageView.body.getter : some"
-                  moduleName = "FilenFoto.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/hunterhan/Documents/Github/FilenFoto/FilenFoto/MainViews/FullImageView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "60"
-                  endingLineNumber = "60">
-               </Location>
-            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8DA33EEE-5122-42D0-B027-129BEF212CBB"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/MainViews/FullImageView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "141"
+            endingLineNumber = "141"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "3CD63DCF-275C-447A-BD2C-DA0EB2DD32F7"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/MainViews/FullImageView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "67"
+            endingLineNumber = "67"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "677CEC6E-9B62-48A4-B09C-207AE59FB3CA"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/MainViews/CarouselTest.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "204"
+            endingLineNumber = "204"
+            landmarkName = "scrollViewDidEndScrollingAnimation(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "409583CF-5F5F-4541-A929-C7BBAB10957E"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/HelperViews/HelperImagerViews.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "105"
+            endingLineNumber = "105"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "93BC7D45-82B6-425A-BF17-202F24F03FED"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/MainViews/CarouselTest.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "395"
+            endingLineNumber = "395"
+            landmarkName = "makeUIViewController(context:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F1D26B60-592E-4404-81D1-601A6C6A4870"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/MainViews/FullImageView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "49"
+            endingLineNumber = "49"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "38B52700-A73C-4228-92E8-3B4A8F70CA51"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/MainViews/FullImageView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "79"
+            endingLineNumber = "79"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5A1CE361-9679-40A1-B86D-D470A9858AD1"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/MainViews/FullImageView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "75"
+            endingLineNumber = "75"
+            landmarkName = "body"
+            landmarkType = "24">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

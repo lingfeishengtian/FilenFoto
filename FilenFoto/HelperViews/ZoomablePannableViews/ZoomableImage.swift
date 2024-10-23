@@ -263,33 +263,39 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
     
     private var previous: CGSize? = nil
     private var isDown: Bool = false
+    private var gestureBegan = false
 
     @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
             isDown = gesture.velocity(in: gesture.view).y > 0
+            gestureBegan = abs(gesture.velocity(in: gesture.view).y) > 5
         case .changed:
-            let translation = gesture.translation(in: gesture.view)
-            if self.parent.scale == 1.0 {
-                let height = translation.y + (previous ?? .zero).height
-                parent.offset = CGSize(width: 0, height: height < -300 ? -300 : height)
-//                print("adding on previous : \(previous?.height) \(translation.y)")
-            } else {
-                parent.offset = CGSize(width: translation.x, height: translation.y)
+            if gestureBegan {
+                let translation = gesture.translation(in: gesture.view)
+                if self.parent.scale == 1.0 {
+                    let height = translation.y + (previous ?? .zero).height
+                    parent.offset = CGSize(width: 0, height: height < -300 ? -300 : height)
+                    //                print("adding on previous : \(previous?.height) \(translation.y)")
+                } else {
+                    parent.offset = CGSize(width: translation.x, height: translation.y)
+                }
             }
 //            parent.offset = .init(width: translation.x, height: parent.offset.height + translation.y)
             break
         case .ended:
             let velocity = gesture.velocity(in: gesture.view)
             print(velocity)
-            if velocity.y > 0 {
+            if velocity.y > 5 {
                 parent.onSwipeDown()
                 
                 withAnimation {
                     self.parent.offset = .zero
                 }
             } else {
-                parent.onSwipeUp()
+                if velocity.y < -5 {
+                    parent.onSwipeUp()
+                }
             }
 //            withAnimation {
 //                if parent.offset.width == 0 && parent.scale == 1.0 && parent.offset.height < -10 {

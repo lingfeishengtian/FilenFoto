@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftUIPager
 import CoreLocation
 import MapKit
 
@@ -18,6 +19,8 @@ struct FullImageView: View {
     @State private var showDeleteAlert: Bool = false
     @State private var showDetail: Bool = false
     
+    @State private var page: Page = .first()
+    
     let formatter = RelativeDateTimeFormatter()
     
     let animation: Namespace.ID
@@ -31,7 +34,7 @@ struct FullImageView: View {
     //TODO: Add loading icon on top
     var body: some View {
         let selectOrCurrent = photoEnvironment.selectedDbPhotoAsset ?? currentDbPhotoAsset
-
+        
         VStack {
             HStack {
                 Text(
@@ -54,95 +57,98 @@ struct FullImageView: View {
             Spacer()
             VStack {
                 GeometryReader { reader in
-                    ScrollViewReader { proxyScroll in
-                        ScrollView(.horizontal) {
-                            LazyHStack(spacing: 0) {
-                                ForEach(photoEnvironment.lazyArray.sortedArray[photoEnvironment.lazyArray.binSearch(selectOrCurrent)-1...photoEnvironment.lazyArray.binSearch(selectOrCurrent)+1], id: \.self) { dbAsset in
-                                    if dbAsset == photoEnvironment.selectedDbPhotoAsset {
-                                        ViewManager(
-                                            scale: $scale, offset: $offset, onSwipeUp: {
-                                                //                     withAnimation {
-                                                //                         offset.height = 60
-                                                //                     }
-                                            }, isScrolling: $isScrolling,
-                                            onSwipeDown: {
-                                                if showDetail || offset.height < 0 {
-                                                    withAnimation {
-                                                        showDetail = false
-                                                    }
-                                                } else {
-                                                    offset.height = dismissThreshold
-                                                    withAnimation(.snappy) {
-                                                        photoEnvironment.selectedDbPhotoAsset = nil
-                                                    }
-                                                }
-                                            }, assetFileUrl: $assetFileUrl
-                                        )
-                                        .frame(width: reader.size.width, height: reader.size.height)
-                                        .onChange(of: offset) {
-                                            if offset.height < -10 {
-                                                withAnimation {
-                                                    print("Showing Detail")
-                                                    self.showDetail = true
-                                                    sheetOffset = .zero
-                                                }
-                                            } else if offset.height > 10 {
-                                                withAnimation {
-                                                    print("hiding Detail")
-                                                    self.showDetail = false
-                                                    sheetOffset = .zero
-                                                }
-                                            }
-                                        }.matchedGeometryEffect(
-                                            id: "thumbnailImageTransition"
-                                            + currentDbPhotoAsset.localIdentifier, in: animation)
+                    //                    ScrollViewReader { proxyScroll in
+                    //                        ScrollView(.horizontal) {
+                    //                            LazyHStack(spacing: 0) {
+                    
+                    Pager(page: self.page, data: photoEnvironment.lazyArray.sortedArray, id: \.self) { dbAsset in
+                        
+                        if dbAsset == photoEnvironment.selectedDbPhotoAsset {
+                            ViewManager(
+                                scale: $scale, offset: $offset, onSwipeUp: {
+                                    //                     withAnimation {
+                                    //                         offset.height = 60
+                                    //                     }
+                                }, isScrolling: $isScrolling,
+                                onSwipeDown: {
+                                    if showDetail || offset.height < 0 {
+                                        withAnimation {
+                                            showDetail = false
+                                        }
                                     } else {
-                                        ZoomablePhoto(
-                                            scale: $scale,
-                                            offset: $offset,
-                                            onSwipeUp: {
-                                                //                     withAnimation {
-                                                //                         offset.height = 60
-                                                //                     }
-                                            },
-                                            onSwipeDown: {
-                                                if showDetail || offset.height < 0 {
-                                                    withAnimation {
-                                                        showDetail = false
-                                                    }
-                                                } else {
-                                                    offset.height = dismissThreshold
-                                                    withAnimation(.snappy) {
-                                                        photoEnvironment.selectedDbPhotoAsset = nil
-                                                    }
-                                                }
-                                            },
-                                            image: .constant(UIImage(contentsOfFile: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: dbAsset.thumbnailFileName).path) ?? UIImage()))
-                                        .frame(width: reader.size.width, height: reader.size.height)
-                                        .offset(showDetail ? .init(width: 0, height: sheetOffset.height) : .zero)
-                                    }
-                                    //                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                }
-                            }.scrollTargetLayout()
-                        }
-                            .scrollTargetBehavior(.paging)
-                            .onAppear {
-                                proxyScroll.scrollTo(currentDbPhotoAsset)
-                            }
-                            .scrollPosition(
-                                id: .init(
-                                    get: {
-                                        photoEnvironment.selectedDbPhotoAsset
-                                    },
-                                    set: { value, transaction in
-                                        if let value {
-                                            photoEnvironment.selectedDbPhotoAsset = value
-                                            //                                    print("Set \(photoEnvironment.lazyArray.binSearch(photoEnvironment.selectedDbPhotoAsset!))")
+                                        offset.height = dismissThreshold
+                                        DispatchQueue.main.async {
+                                            withAnimation(.snappy) {
+                                                photoEnvironment.selectedDbPhotoAsset = nil
+                                            }
                                         }
                                     }
-                                )
+                                }, assetFileUrl: $assetFileUrl
                             )
+                            .frame(width: reader.size.width, height: reader.size.height)
+                            .onChange(of: offset) {
+                                if offset.height < -10 {
+                                    withAnimation {
+                                        print("Showing Detail")
+                                        self.showDetail = true
+                                        sheetOffset = .zero
+                                    }
+                                } else if offset.height > 10 {
+                                    withAnimation {
+                                        print("hiding Detail")
+                                        self.showDetail = false
+                                        sheetOffset = .zero
+                                    }
+                                }
+                            }.matchedGeometryEffect(
+                                id: "thumbnailImageTransition"
+                                + dbAsset.localIdentifier, in: animation)
+                        } else {
+                            ZoomablePhoto(
+                                scale: $scale,
+                                offset: $offset,
+                                onSwipeUp: {
+                                    //                     withAnimation {
+                                    //                         offset.height = 60
+                                    //                     }
+                                },
+                                onSwipeDown: {
+                                    if showDetail || offset.height < 0 {
+                                        withAnimation {
+                                            showDetail = false
+                                        }
+                                    } else {
+                                        offset.height = dismissThreshold
+                                        withAnimation(.snappy) {
+                                            photoEnvironment.selectedDbPhotoAsset = nil
+                                        }
+                                    }
+                                },
+                                image: .constant(UIImage(contentsOfFile: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: dbAsset.thumbnailFileName).path) ?? UIImage()))
+                            .frame(width: reader.size.width, height: reader.size.height)
+                            .offset(showDetail ? .init(width: 0, height: sheetOffset.height) : .zero)
+                        //                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        //                                }
+                        //                            }.scrollTargetLayout()
+                        //                        }
+                        //                            .scrollTargetBehavior(.paging)
+                            .onAppear {
+                                //                                proxyScroll.scrollTo(currentDbPhotoAsset)
+                            }
+                        }
                     }
+                    .onPageChanged({ (newIndex) in
+                        photoEnvironment.selectedDbPhotoAsset = photoEnvironment.lazyArray.sortedArray[newIndex]
+                    })
+                    .interactive(scale: 0.8)
+                }
+                .onAppear {
+                    self.page.update(.new(index: photoEnvironment.lazyArray.binSearch(photoEnvironment.selectedDbPhotoAsset ?? currentDbPhotoAsset)))
+                    isScrolling = false
+                }
+                .onChange(of: photoEnvironment.selectedDbPhotoAsset) {
+                    self.page.update(.new(index: photoEnvironment.lazyArray.binSearch(photoEnvironment.selectedDbPhotoAsset ?? currentDbPhotoAsset)))
+                    isScrolling = false
                 }
                 //                         if !showDetail {
                 Spacer()
