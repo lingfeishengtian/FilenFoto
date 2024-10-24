@@ -29,9 +29,9 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
 
     var photoEnvironment: PhotoEnvironment
     var startWithIndexPath: IndexPath?
-    let onScrollStatusChange: (Bool) -> Void
+    let onShouldFullImageLoad: () -> Void
 
-    init(photoEnvironment: PhotoEnvironment, dbAssetForFirstIndex: DBPhotoAsset?, onScrollStatusChange: @escaping (Bool) -> Void) {
+    init(photoEnvironment: PhotoEnvironment, dbAssetForFirstIndex: DBPhotoAsset?, onShouldFullImageLoad: @escaping () -> Void) {
         self.photoEnvironment = photoEnvironment
         if let dbAssetForFirstIndex {
             self.startWithIndexPath = .init(
@@ -39,7 +39,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         } else {
             self.startWithIndexPath = nil
         }
-        self.onScrollStatusChange = onScrollStatusChange
+        self.onShouldFullImageLoad = onShouldFullImageLoad
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -180,14 +180,13 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
      // MARK: - UIScrollViewDelegate
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         selectCenteredItem()
-        onScrollStatusChange(false)
+        onShouldFullImageLoad()
     }
 
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
             selectCenteredItem()
-        } else {
-            onScrollStatusChange(false)
+            onShouldFullImageLoad()
         }
     }
     
@@ -201,7 +200,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         selectCenteredItem()
-        onScrollStatusChange(false)
+        onShouldFullImageLoad()
     }
 
     private func selectCenteredItem() {
@@ -334,7 +333,7 @@ class ThumbnailCell: UICollectionViewCell {
     }
 
     func configure(with asset: DBPhotoAsset) {
-        var uiImage = UIImage(contentsOfFile: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: asset.thumbnailFileName).path)
+        var uiImage = UIImage(contentsOfFile: asset.thumbnailURL.path)
         // imageView.image = UIImage.init(named: "IMG_3284")!
 #if targetEnvironment(simulator)
         if let isPrev = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"], isPrev == "1" {
@@ -384,19 +383,13 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
     @EnvironmentObject var photoEnvironment: PhotoEnvironment
     let itemsToShow: Int
     let spacing: CGFloat
-    @Binding var scrollState: Bool
+    let onLoadFullImage: () -> Void
     
     func makeUIViewController(context: Context) -> PhotoScrubberViewController {
         let viewController = PhotoScrubberViewController(
             photoEnvironment: photoEnvironment,
             dbAssetForFirstIndex: photoEnvironment.selectedDbPhotoAsset,
-            onScrollStatusChange: { status in
-                DispatchQueue.main.async {
-                    if scrollState != status {
-                        scrollState = status
-                    }
-                }
-            })
+            onShouldFullImageLoad: onLoadFullImage)
         return viewController
     }
     
@@ -421,25 +414,25 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
     }
 }
 
-struct PreviewPhotoCarouselUIKit: PreviewProvider {
-    static var previews: some View {
-        let photoEnvironment: PhotoEnvironment = PhotoEnvironment()
-        for i in 0..<200 {
-            let dbPhotoAsset: DBPhotoAsset = .init(
-                id: -1, localIdentifier: String(i), mediaType: .image, mediaSubtype: .photoHDR,
-                creationDate: Date.now - 1_000_000, modificationDate: Date.now,
-                location: CLLocation(latitude: 0, longitude: 0), favorited: false, hidden: false,
-                thumbnailFileName: "meow.jpg")
-            photoEnvironment.lazyArray.insert(
-                dbPhotoAsset
-            )
-        }
-
-        photoEnvironment.selectedDbPhotoAsset = photoEnvironment.lazyArray.sortedArray.last!
-        return VStack {
-            Text("Hello")
-            PhotoScrubberView(itemsToShow: 10, spacing: 10, scrollState: .constant(true))
-                .environmentObject(photoEnvironment)
-        }
-    }
-}
+//struct PreviewPhotoCarouselUIKit: PreviewProvider {
+//    static var previews: some View {
+//        let photoEnvironment: PhotoEnvironment = PhotoEnvironment()
+//        for i in 0..<200 {
+//            let dbPhotoAsset: DBPhotoAsset = .init(
+//                id: -1, localIdentifier: String(i), mediaType: .image, mediaSubtype: .photoHDR,
+//                creationDate: Date.now - 1_000_000, modificationDate: Date.now,
+//                location: CLLocation(latitude: 0, longitude: 0), favorited: false, hidden: false,
+//                thumbnailFileName: "meow.jpg")
+//            photoEnvironment.lazyArray.insert(
+//                dbPhotoAsset
+//            )
+//        }
+//
+//        photoEnvironment.selectedDbPhotoAsset = photoEnvironment.lazyArray.sortedArray.last!
+//        return VStack {
+//            Text("Hello")
+//            PhotoScrubberView(itemsToShow: 10, spacing: 10, scrollState: .constant(true))
+//                .environmentObject(photoEnvironment)
+//        }
+//    }
+//}

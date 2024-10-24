@@ -28,6 +28,10 @@ struct DBPhotoAsset : Comparable, Hashable {
         hasher.combine(localIdentifier)
     }
     
+    var thumbnailURL: URL {
+        PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: thumbnailFileName)
+    }
+    
 #if DEBUG
     func setId(_ idLocalID: String) -> DBPhotoAsset {
         return DBPhotoAsset(id: id, localIdentifier: idLocalID, mediaType: mediaType, mediaSubtype: mediaSubtype, creationDate: Date.now - 9999999999999 - TimeInterval(Int(idLocalID) ?? 0), modificationDate: modificationDate, location: location, favorited: favorited, hidden: hidden, thumbnailFileName: thumbnailFileName)

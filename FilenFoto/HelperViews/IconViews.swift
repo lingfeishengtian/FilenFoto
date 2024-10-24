@@ -28,7 +28,7 @@ struct IconView : View {
                     .padding(10 + (iconSystemName == "square.and.arrow.up" ? 0 : 2))
                     .padding([.bottom], iconSystemName == "square.and.arrow.up" ? 5 : 0)
                     .foregroundColor(.white)
-                    .font(.system(size: size.rawValue, weight: .heavy))
+                    .font(.system(size: size.rawValue, weight: .bold))
             )
     }
 }

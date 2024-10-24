@@ -176,7 +176,7 @@ struct ContentView: View {
                                     photoEnvironment.lazyArray.sortedArray, id: \.localIdentifier
                                 ) { dbPhotoAsset in
                                     //                                                        ThumbnailView(thumbnailName: dbPhotoAsset.thumbnailFileName)
-                                    Color.clear.background(Image(uiImage: UIImage(contentsOfFile: PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: dbPhotoAsset.thumbnailFileName).path) ?? UIImage())
+                                    Color.clear.background(Image(uiImage: UIImage(contentsOfFile: dbPhotoAsset.thumbnailURL.path) ?? UIImage())
                                         .resizable()
                                         .scaledToFill()
                                         .clipped()
@@ -185,17 +185,25 @@ struct ContentView: View {
                                     .aspectRatio(1, contentMode: .fit)
                                     .clipped()
                                     .opacity(
-                                        (photoEnvironment.selectedDbPhotoAsset == dbPhotoAsset)
+                                        (photoEnvironment.selectedDbPhotoAsset == dbPhotoAsset && photoEnvironment.shouldShowFullImageView == true)
                                         ? 0 : 1
                                     )
                                     .onTapGesture {
                                         withAnimation {
                                             photoEnvironment.selectedDbPhotoAsset = dbPhotoAsset
+                                            photoEnvironment.shouldShowFullImageView = true
                                         }
                                     }
                                     .matchedGeometryEffect(
                                         id: "thumbnailImageTransition"
                                         + dbPhotoAsset.localIdentifier, in: animation)
+                                    .onAppear {
+                                        if dbPhotoAsset.localIdentifier == photoEnvironment.lazyArray.sortedArray.last?.localIdentifier {
+                                            Task {
+                                                await photoEnvironment.addMoreToLazyArray()
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             .frame(maxHeight: .infinity, alignment: .bottom)
@@ -258,7 +266,7 @@ struct ContentView: View {
         }
         .environmentObject(photoEnvironment)
         .overlay {
-            if photoEnvironment.selectedDbPhotoAsset != nil {
+            if photoEnvironment.shouldShowFullImageView {
                 //                ZoomablePhoto(scale: .constant(1.0), offset: .constant(.init(width: 0, height: 0)), onSwipeUp: {}, onSwipeDown: {}, image: .constant(UIImage(named: "IMG_3284")!))
                 //                NavigationStack {
                 FullImageView(

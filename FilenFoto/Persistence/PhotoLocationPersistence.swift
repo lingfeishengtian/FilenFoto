@@ -520,6 +520,12 @@ struct PhotoAssetFilenResults {
 
 extension PHAssetMediaSubtype: @retroactive CustomStringConvertible {
     public var description: String {
+        let options = self.includedTypes.map({ $0.1 })
+        let result = options.joined(separator: ", ")
+        return "PHAssetMediaSubtype([\(result)])"
+    }
+    
+    public var includedTypes: [(Self, String)] {
         var debugDescriptions: [(Self, String)] = [
             // Photo subtypes
             (.photoPanorama, ".photoPanorama"),
@@ -541,8 +547,6 @@ extension PHAssetMediaSubtype: @retroactive CustomStringConvertible {
             debugDescriptions.append((.spatialMedia, ".spatialMedia"))
         }
         
-        let options = debugDescriptions.filter { contains($0.0) }.map { $0.1 }
-        let result = options.joined(separator: ", ")
-        return "PHAssetMediaSubtype([\(result)])"
+        return debugDescriptions.filter { contains($0.0) }
     }
 }

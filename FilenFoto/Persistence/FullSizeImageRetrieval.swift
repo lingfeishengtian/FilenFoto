@@ -26,7 +26,7 @@ class FullSizeImageCache {
     }
     
     static func getFullSizeImageOrThumbnail(for asset: DBPhotoAsset) -> URL {
-        let thumbnailURL = PhotoVisionDatabaseManager.shared.thumbnailsDirectory.appending(path: asset.thumbnailFileName)
+        let thumbnailURL = asset.thumbnailURL
         
         var fullsize = PhotoDatabase.shared.getFilenUUID(for: asset, mediaType: .fullSizePhoto)
         let regular = PhotoDatabase.shared.getFilenUUID(for: asset, mediaType: .photo)
