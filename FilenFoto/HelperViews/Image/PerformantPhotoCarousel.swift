@@ -31,7 +31,10 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     var startWithIndexPath: IndexPath?
     let onShouldFullImageLoad: () -> Void
 
-    init(photoEnvironment: PhotoEnvironment, dbAssetForFirstIndex: DBPhotoAsset?, onShouldFullImageLoad: @escaping () -> Void) {
+    init(
+        photoEnvironment: PhotoEnvironment, dbAssetForFirstIndex: DBPhotoAsset?,
+        onShouldFullImageLoad: @escaping () -> Void
+    ) {
         self.photoEnvironment = photoEnvironment
         if let dbAssetForFirstIndex {
             self.startWithIndexPath = .init(
@@ -55,7 +58,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         if let startWithIndexPath = startWithIndexPath {
             //           if collectionView.isValidIndexPath(indexpath: startWithIndexPath) {
             self.collectionView.scrollToItem(at: startWithIndexPath, at: .left, animated: false)
-//            self.scrollToSelected()
+            //            self.scrollToSelected()
             //           }
             self.startWithIndexPath = nil
         }
@@ -113,12 +116,15 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     }
 
     func scrollToSelected() {
-        if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset, startWithIndexPath != nil {
+        if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset,
+            startWithIndexPath != nil
+        {
             let index = photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset)
             let indexPath = IndexPath(item: index, section: 0)
             if index != selectedIndexPath?.item {
-                collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
-//                startWithIndexPath = nil
+                collectionView.scrollToItem(
+                    at: indexPath, at: .centeredHorizontally, animated: true)
+                //                startWithIndexPath = nil
             }
         }
     }
@@ -138,8 +144,10 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
             as! ThumbnailCell
         let item = photoEnvironment.lazyArray.sortedArray[indexPath.item]
         cell.configure(with: item)
-        
-        if let selectedAsset = photoEnvironment.selectedDbPhotoAsset, indexPath.item == photoEnvironment.lazyArray.binSearch(selectedAsset) {
+
+        if let selectedAsset = photoEnvironment.selectedDbPhotoAsset,
+            indexPath.item == photoEnvironment.lazyArray.binSearch(selectedAsset)
+        {
             selectedIndexPath = indexPath
             cell.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
         } else {
@@ -150,34 +158,17 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
 
         return cell
     }
-    
 
     var selectedIndexPath: IndexPath?
-    
+
     // MARK: - UICollectionViewDelegate
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let selectedItem = photoEnvironment.lazyArray.sortedArray[indexPath.item]
         photoEnvironment.selectedDbPhotoAsset = selectedItem
-//
-//        // Animate the selection
-//        if let previousIndexPath = selectedIndexPath, let previousCell = collectionView.cellForItem(at: previousIndexPath) {
-//            UIView.animate(withDuration: 0.3) {
-//                previousCell.transform = CGAffineTransform.identity
-//            }
-//        }
-//
-//        if let selectedCell = collectionView.cellForItem(at: indexPath) {
-//            UIView.animate(withDuration: 0.3) {
-//                selectedCell.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
-//            }
-//        }
-//
-//        selectedIndexPath = indexPath
         collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
-//        print(selectedItem.localIdentifier)
-}
+    }
 
-     // MARK: - UIScrollViewDelegate
+    // MARK: - UIScrollViewDelegate
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         selectCenteredItem()
         onShouldFullImageLoad()
@@ -189,7 +180,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
             onShouldFullImageLoad()
         }
     }
-    
+
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
 
     }
@@ -197,7 +188,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         selectCenteredItem()
     }
-    
+
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         selectCenteredItem()
         onShouldFullImageLoad()
@@ -205,13 +196,17 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
 
     private func selectCenteredItem() {
         let centerPoint = view.convert(collectionView.center, to: collectionView)
-        if let indexPath = collectionView.indexPathForItem(at: centerPoint), indexPath != selectedIndexPath {
-//            collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
+        if let indexPath = collectionView.indexPathForItem(at: centerPoint),
+            indexPath != selectedIndexPath
+        {
+            //            collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
             let selectedItem = photoEnvironment.lazyArray.sortedArray[indexPath.item]
             photoEnvironment.selectedDbPhotoAsset = selectedItem
 
             // Animate the selection
-            if let previousIndexPath = selectedIndexPath, let previousCell = collectionView.cellForItem(at: previousIndexPath) {
+            if let previousIndexPath = selectedIndexPath,
+                let previousCell = collectionView.cellForItem(at: previousIndexPath)
+            {
                 UIView.animate(withDuration: 0.3) {
                     previousCell.transform = CGAffineTransform.identity
                 }
@@ -244,12 +239,12 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
 
 class SnappingCollectionViewLayout: UICollectionViewFlowLayout {
     let photoEnvironment: PhotoEnvironment
-    
+
     init(photoEnviornment: PhotoEnvironment) {
         self.photoEnvironment = photoEnviornment
         super.init()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -299,8 +294,8 @@ class SnappingCollectionViewLayout: UICollectionViewFlowLayout {
         if let indexPath = indexPath {
             collectionView.selectItem(
                 at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
-//            let selectedItem = photoEnvironment.lazyArray.sortedArray[indexPath.item]
-//            photoEnvironment.selectedDbPhotoAsset = selectedItem
+            //            let selectedItem = photoEnvironment.lazyArray.sortedArray[indexPath.item]
+            //            photoEnvironment.selectedDbPhotoAsset = selectedItem
         }
         return targetContentOffset
     }
@@ -322,6 +317,11 @@ class ThumbnailCell: UICollectionViewCell {
     func setupImageView() {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.backgroundColor = .clear
+        imageView.contentMode = .scaleAspectFit
+        imageView.clipsToBounds = true
+
+        // rounded corners
+        imageView.layer.cornerRadius = 20
         contentView.addSubview(imageView)
 
         NSLayoutConstraint.activate([
@@ -335,21 +335,23 @@ class ThumbnailCell: UICollectionViewCell {
     func configure(with asset: DBPhotoAsset) {
         var uiImage = UIImage(contentsOfFile: asset.thumbnailURL.path)
         // imageView.image = UIImage.init(named: "IMG_3284")!
-#if targetEnvironment(simulator)
-        if let isPrev = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"], isPrev == "1" {
-            let randomColors = [
-                UIColor.red, UIColor.green, UIColor.blue, UIColor.yellow, UIColor.orange,
-                UIColor.purple, UIColor.cyan, UIColor.magenta,
-            ]
-            
-            // generate uiimage with text from asset.id
-            uiImage = asset.localIdentifier.image(withAttributes: [
-                .foregroundColor: UIColor.red,
-                .font: UIFont.systemFont(ofSize: 10.0),
-                .backgroundColor: randomColors.randomElement()!,
-            ])
-        }
-#endif
+        #if targetEnvironment(simulator)
+            if let isPrev = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"],
+                isPrev == "1"
+            {
+                let randomColors = [
+                    UIColor.red, UIColor.green, UIColor.blue, UIColor.yellow, UIColor.orange,
+                    UIColor.purple, UIColor.cyan, UIColor.magenta,
+                ]
+
+                // generate uiimage with text from asset.id
+                uiImage = asset.localIdentifier.image(withAttributes: [
+                    .foregroundColor: UIColor.red,
+                    .font: UIFont.systemFont(ofSize: 10.0),
+                    .backgroundColor: randomColors.randomElement()!,
+                ])
+            }
+        #endif
         imageView.image = uiImage
         //        print("configuring aset with \(asset.localIdentifier)")
     }
@@ -384,7 +386,7 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
     let itemsToShow: Int
     let spacing: CGFloat
     let onLoadFullImage: () -> Void
-    
+
     func makeUIViewController(context: Context) -> PhotoScrubberViewController {
         let viewController = PhotoScrubberViewController(
             photoEnvironment: photoEnvironment,
@@ -392,10 +394,10 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
             onShouldFullImageLoad: onLoadFullImage)
         return viewController
     }
-    
+
     func updateUIViewController(_ uiViewController: PhotoScrubberViewController, context: Context) {
         // Update the view controller with new data or state changes if needed
-//        uiViewController.collectionView.reloadData()
+        //        uiViewController.collectionView.reloadData()
         // Check the selected item and scroll to it
         uiViewController.scrollToSelected()
     }

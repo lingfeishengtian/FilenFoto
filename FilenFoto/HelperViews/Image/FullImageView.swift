@@ -20,7 +20,7 @@ struct FullImageView: View {
         {
             // if height is greater than width
             if uiImage.size.height > uiImage.size.width {
-                return 1.2
+                return 1.3
             } else {
                 return 1.6
             }
@@ -35,7 +35,7 @@ struct FullImageView: View {
         {
             // if height is greater than width
             if uiImage.size.height > uiImage.size.width {
-                return -height / 14
+                return -height / 12
             } else {
                 return -height / 7
             }
@@ -49,6 +49,8 @@ struct FullImageView: View {
         //        let selectOrCurrent = photoEnvironment.selectedDbPhotoAsset ?? currentDbPhotoAsset
         VStack {
             FullImageViewTopBar()
+                .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
+                .opacity(fullImageState.shouldHideBars ? 0 : 1)
             Spacer()
             GeometryReader { reader in
                 PagedImageView(animation: animation)
@@ -67,10 +69,14 @@ struct FullImageView: View {
             }
             .frame(height: 60)
             .opacity(
-                fullImageState.showDetail ? 0 : 1
+                fullImageState.shouldHideBars ? 0 : 1
             )
-            .disabled(fullImageState.showDetail)
+            .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
+            .opacity(fullImageState.shouldHideBars ? 0 : 1)
+            .disabled(fullImageState.shouldHideBars)
             FullImageViewQuickActions()
+                .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
+                .opacity(fullImageState.shouldHideBars ? 0 : 1)
             //                         }
             //                 }
             //                 .ignoresSafeArea(.all)
@@ -84,7 +90,7 @@ struct FullImageView: View {
             .ignoresSafeArea(.all)
             .allowsHitTesting(photoEnvironment.shouldShowFullImageView)
         }
-        .ignoresSafeArea(fullImageState.showDetail ? .all : .keyboard)
+        .ignoresSafeArea(fullImageState.shouldHideBars ? .all : .keyboard)
         .sheet(
             isPresented: .constant(fullImageState.showDetail),
             onDismiss: {
@@ -93,24 +99,9 @@ struct FullImageView: View {
                 }
             }
         ) {
-            //            if fullImageState.showDetail {
             GeometryReader { reader in
                 VStack {
                     PhotoDetails(animation: animation)
-                        .gesture(
-                            DragGesture().onChanged { value in
-                                //                                 sheetOffset = value.translation
-                                //                            print("Sheet offset \(value.translation)")
-                                //                            print(" offset \(offset)")
-                                //                                 if sheetOffset.height + offset.height > 0 {
-                                //                                     print("Detail stopped ", sheetOffset.height, offset.height)
-                                //                                     self.showDetail = false
-                                //                                     sheetOffset = .zero
-                                //                                 }
-                            })
-                    //                }
-                    //                .offset(.init(width: 0, height: reader.size.height + (fullImageState.offset.height > -150 ? fullImageState.offset.height * 2 : fullImageState.offset.height - 150))) // TODO: Change to carousel height
-                    //                     .frame(maxWidth: reader.size.width, maxHeight: showDetail ? .infinity : 0)
                 }.environmentObject(fullImageState)
 
             }.presentationDetents([.medium])
@@ -246,14 +237,13 @@ struct MapView: View {
     }
 
     var body: some View {
-        Map(coordinateRegion: $region, annotationItems: [location]) { location in
+        Map(coordinateRegion: $region, interactionModes: .pitch, annotationItems: [location]) { location in
             MapAnnotation(coordinate: location.coordinate) {
                 Image(systemName: "mappin.circle.fill")
                     .foregroundColor(.red)
                     .font(.title)
             }
         }
-        .disabled(true)
         .edgesIgnoringSafeArea(.all)
         .onTapGesture {
             if let url = URL(string: "http://maps.apple.com/?ll=\(location.coordinate.latitude),\(location.coordinate.longitude)") {
@@ -299,16 +289,60 @@ private let formatter: RelativeDateTimeFormatter = {
 struct FullImageViewTopBar: View {
     @EnvironmentObject var photoEnvironment: PhotoEnvironment
     @EnvironmentObject var fullImageState: FullImageViewState
+    
+    func formatDate(_ date: Date) -> String {
+        let calendar = Calendar.current
+        let now = Date.now
+        let startOfToday = calendar.startOfDay(for: now)
+        let startOfDayOnDate = calendar.startOfDay(for: date)
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ja_JP")
+        
+        let daysFromToday = calendar.dateComponents([.day], from: startOfToday, to: startOfDayOnDate).day!
+        
+        if abs(daysFromToday) <= 1 {
+            // Yesterday, today or tomorrow
+            formatter.dateStyle = .full
+            formatter.doesRelativeDateFormatting = true
+        }
+        else if calendar.component(.year, from: date) == calendar.component(.year, from: now) {
+            // Another date this year
+            formatter.setLocalizedDateFormatFromTemplate("EEEEdMMMM")
+        }
+        else {
+            // Another date in another year
+            formatter.setLocalizedDateFormatFromTemplate("EEEEdMMMMyyyy")
+        }
+        return formatter.string(from: date)
+    }
+    
+    func formatTime(_ date: Date) -> String {
+        let timeFormatter = DateFormatter()
+        timeFormatter.locale = Locale.current // Adapts to the user's locale
+        timeFormatter.dateStyle = .none
+        timeFormatter.timeStyle = .medium
+        
+        return timeFormatter.string(from: date)
+    }
 
     var body: some View {
         HStack {
-            Text(
-                formatter.localizedString(
-                    for: photoEnvironment.selectedDbPhotoAsset?.creationDate ?? .now,
-                    relativeTo: Date.now)
-            )
-            .font(.largeTitle)
-            .foregroundStyle(.white)
+            VStack {
+                Text(
+                    formatDate(photoEnvironment.selectedDbPhotoAsset?.creationDate ?? .now)
+                )
+                .font(.title3)
+                .bold()
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Text(
+                    formatTime(photoEnvironment.selectedDbPhotoAsset?.creationDate ?? .now)
+                )
+                .font(.caption)
+                .bold()
+                .foregroundStyle(.gray)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
             Spacer()
             Button {
                 withAnimation {
@@ -318,8 +352,6 @@ struct FullImageViewTopBar: View {
                 IconView(size: .small, iconSystemName: "xmark")
             }
         }.padding([.leading, .trailing], 30)
-            .frame(maxHeight: fullImageState.showDetail ? 0 : nil)
-            .opacity(fullImageState.showDetail ? 0 : 1)
     }
 }
 
@@ -330,30 +362,80 @@ struct FullImageViewQuickActions: View {
     @State private var showDeleteAlert: Bool = false
 
     var body: some View {
+//        HStack {
+//            if let assetFileUrl = fullImageState.assetFileUrl {
+//                ShareLink(item: assetFileUrl) {
+//                    IconView(size: .medium, iconSystemName: "square.and.arrow.up")
+//                }
+//            } else {
+//                IconView(size: .medium, iconSystemName: "square.and.arrow.up")
+//                    .disabled(fullImageState.assetFileUrl == nil)
+//            }
+//            Spacer()
+//            Button {
+//                withAnimation {
+//                    fullImageState.showDetail = true
+//                }
+//            } label: {
+//                IconView(size: .medium, iconSystemName: "info.circle")
+//            }
+//            Spacer()
+//            Button {
+//                showDeleteAlert = true
+//            } label: {
+//                IconView(size: .medium, iconSystemName: "trash")
+//            }
+//        }
         HStack {
             if let assetFileUrl = fullImageState.assetFileUrl {
                 ShareLink(item: assetFileUrl) {
-                    IconView(size: .medium, iconSystemName: "square.and.arrow.up")
+                    Image(systemName: "square.and.arrow.up")
+                        .padding(10)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
                 }
             } else {
-                IconView(size: .medium, iconSystemName: "square.and.arrow.up")
+                Image(systemName: "square.and.arrow.up")
+                    .padding(10)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
                     .disabled(fullImageState.assetFileUrl == nil)
             }
+            
             Spacer()
-            Button {
-                withAnimation {
-                    fullImageState.showDetail = true
+            HStack {
+                Button {
+                    withAnimation {
+                        //                        fullImageState.showDetail = true
+                    }
+                } label: {
+                    Image(systemName: "heart")
                 }
-            } label: {
-                IconView(size: .medium, iconSystemName: "info.circle")
+                .padding([.trailing])
+                
+                Button {
+                    withAnimation {
+                        fullImageState.showDetail = true
+                    }
+                } label: {
+                    Image(systemName: "info.circle")
+                }
+                //                            .padding(.horizontal)
+                //                        Image(systemName: "slider.horizontal.3")
             }
+            .padding(10)
+            .padding(.horizontal, 5)
+            .background(.ultraThinMaterial)
+            .clipShape(Capsule())
+            
             Spacer()
-            Button {
-                showDeleteAlert = true
-            } label: {
-                IconView(size: .medium, iconSystemName: "trash")
-            }
-        }.padding()
+            
+            Image(systemName: "trash")
+                .padding(10)
+                .background(.ultraThinMaterial)
+                .clipShape(Circle())
+        }
+        .padding()
             .padding(.horizontal, 10)
             .confirmationDialog("Trash Item", isPresented: $showDeleteAlert) {
                 Button("Confirm (this does nothing rn)", role: .destructive) {

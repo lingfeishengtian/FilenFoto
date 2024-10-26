@@ -7,6 +7,7 @@
 
 import UIKit
 import UniformTypeIdentifiers
+import SwiftUI
 
 enum ImageFormat {
     case png
@@ -14,7 +15,49 @@ enum ImageFormat {
     case heic
 }
 
+enum CompressionLevels: String, CaseIterable, Identifiable {
+    case none = "None"
+    case low = "Low"
+    case medium = "Medium"
+    case high = "High"
+    case extreme = "Extreme"
+    
+    var id: String { self.rawValue }
+}
+
+fileprivate func resizeLevel(for compressionLevel: CompressionLevels) -> CGSize? {
+    switch compressionLevel {
+    case .none:
+        return nil
+    case .low:
+        return nil
+    case .medium:
+        return nil
+    case .high:
+        return CGSizeMake(2000, 2000)
+    case .extreme:
+        return CGSizeMake(500, 500)
+    }
+}
+
+fileprivate func compressionQuality(for compressionLevel: CompressionLevels) -> CGFloat? {
+    switch compressionLevel {
+    case .none:
+        return nil
+    case .low:
+        return 0.5
+    case .medium:
+        return 0.0
+    case .high:
+        return 0.0
+    case .extreme:
+        return 0.0
+    }
+}
+
 class ImageCompressor {
+    @AppStorage("compressionLevel") static var compressionLevel: CompressionLevels?
+    
     private static func getImageFormat(from url: URL) -> ImageFormat? {
         guard let data = try? Data(contentsOf: url), let imageSource = CGImageSourceCreateWithData(data as CFData, nil) else {
             return nil
@@ -33,8 +76,17 @@ class ImageCompressor {
         }
     }
     
-    private static func compressImage(_ provImage: UIImage, format: ImageFormat, compressionQuality: CGFloat) -> Data? {
-        let image = provImage.resizeImage(image: provImage, targetSize: CGSizeMake(500.0, 500.0)) ?? provImage
+    private static func compressImage(_ provImage: UIImage, format: ImageFormat) -> Data? {
+        var image = provImage
+        
+        guard let compressionQuality = compressionQuality(for: compressionLevel ?? .high) else {
+            return nil
+        }
+        
+        if let compressionResize = resizeLevel(for: compressionLevel ?? .high) {
+            image = image.resizeImage(image: provImage, targetSize: compressionResize)
+        }
+        
         switch format {
         case .png, .jpg:
             return image.jpegData(compressionQuality: compressionQuality)
@@ -62,7 +114,7 @@ class ImageCompressor {
     }
     
     @available(iOS 15.0, *)
-    static func compressImage(from url: URL, outputDestination: URL, compressionQuality: CGFloat = 0.7) async throws {
+    static func compressImage(from url: URL, outputDestination: URL) async throws {
         // Load image from URL
         let data = try Data(contentsOf: url)
         guard let image = UIImage(data: data) else {
@@ -75,25 +127,26 @@ class ImageCompressor {
         }
         
         // Compress the image
-        guard let compressedData = ImageCompressor.compressImage(image, format: format, compressionQuality: compressionQuality) else {
-            throw NSError(domain: "ImageErrorDomain", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image."])
+        if let compressedData = ImageCompressor.compressImage(image, format: format) {
+            // Write the compressed image to the destination
+            try compressedData.write(to: outputDestination)
+        } else {
+            try image.jpegData(compressionQuality: 1.0)?.write(to: outputDestination)
         }
         
-        // Write the compressed image to the destination
-        try compressedData.write(to: outputDestination)
     }
     
     @available(iOS 15.0, *)
-    static func compressImage(from cgImage: CGImage, outputDestination: URL, compressionQuality: CGFloat = 0.7) async throws {
+    static func compressImage(from cgImage: CGImage, outputDestination: URL) async throws {
         let image = UIImage(cgImage: cgImage)
         
         // Compress the image
-        guard let compressedData = ImageCompressor.compressImage(image, format: .jpg, compressionQuality: compressionQuality) else {
-            throw NSError(domain: "ImageErrorDomain", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image."])
+        if let compressedData = ImageCompressor.compressImage(image, format: .jpg) {
+            // Write the compressed image to the destination
+            try compressedData.write(to: outputDestination)
+        } else {
+            try image.jpegData(compressionQuality: 1.0)?.write(to: outputDestination)
         }
-        
-        // Write the compressed image to the destination
-        try compressedData.write(to: outputDestination)
     }
 }
 

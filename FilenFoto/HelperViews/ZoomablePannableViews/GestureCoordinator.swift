@@ -11,6 +11,7 @@ import UIKit
 protocol ZoomablePannable {
     var scale: CGFloat { get set }
     var offset: CGSize { get set }
+    var scrolling: Bool { get set }
     var onSwipeUp: () -> Void { get }
     var onSwipeDown: () -> Void { get }
     var associatedView: UIView { get set }
@@ -31,6 +32,26 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
         self.parent = parent
     }
 
+    static func assignGestures(
+        to view: UIView, in coordinator: ZoomablePannableViewContentCoordinator
+    ) {
+        let pinchGestureRecognizer = UIPinchGestureRecognizer(
+            target: coordinator, action: #selector(coordinator.handlePinch(_:)))
+        let panGestureRecognizer = UIPanGestureRecognizer(
+            target: coordinator, action: #selector(coordinator.handlePan(_:)))
+        let doubleTapGestureRecognizer = UITapGestureRecognizer(
+            target: coordinator, action: #selector(coordinator.handDoubleTap(_:)))
+
+        panGestureRecognizer.delegate = coordinator
+        pinchGestureRecognizer.delegate = coordinator
+        doubleTapGestureRecognizer.numberOfTapsRequired = 2
+        doubleTapGestureRecognizer.delegate = coordinator
+
+        view.addGestureRecognizer(pinchGestureRecognizer)
+        view.addGestureRecognizer(panGestureRecognizer)
+        view.addGestureRecognizer(doubleTapGestureRecognizer)
+    }
+
     // Allow gestures to be recognized simultaneously
     func gestureRecognizer(
         _ gestureRecognizer: UIGestureRecognizer,
@@ -46,6 +67,30 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
         return true
     }
 
+    @objc func handDoubleTap(_ gesture: UITapGestureRecognizer) {
+        let view = parent.associatedView
+
+        if !isPinching {
+            withAnimation {
+                parent.scale = 2.0
+            }
+            isPinching = true
+            UIView.animate(withDuration: 0.3) {
+                view.transform = view.transform.scaledBy(x: 2.0, y: 2.0)
+            }
+        } else {
+            isPinching = false
+            
+            withAnimation {
+                parent.scale = 1.0
+            }
+            UIView.animate(withDuration: 0.3) {
+                view.transform = CGAffineTransform.identity
+            }
+        }
+    }
+
+    private var isPinching: Bool = false
     @objc func handlePinch(_ gesture: UIPinchGestureRecognizer) {
         //        switch gesture.state {
         //        case .began, .changed:
@@ -62,7 +107,10 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
 
         switch gesture.state {
         case .began:
-            parent.scale = 2.0
+            isPinching = true
+            withAnimation {
+                parent.scale = 2.0
+            }
         case .changed:
             view.transform = view.transform.scaledBy(x: gesture.scale, y: gesture.scale)
             gesture.scale = 1.0
@@ -72,7 +120,11 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
             {
                 UIView.animate(withDuration: 0.3) {
                     view.transform = CGAffineTransform.identity
-                } completion: { _ in
+                }
+                
+                isPinching = false
+                
+                withAnimation {
                     self.parent.scale = 1.0
                 }
             }
@@ -81,9 +133,15 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
         }
     }
 
-    private var previous: CGSize? = nil
-    private var isDown: Bool = false
+    enum ScrollState {
+        case scrollDown
+        case scrollUp
+        case normalPan
+        case cancelScroll
+    }
+    private var scrollState: ScrollState = .normalPan
     private var gestureBegan = false
+    private let minVelocity: CGFloat = 250
 
     var previousTranslation: CGSize = .zero
 
@@ -91,32 +149,140 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
         let view = parent.associatedView
 
         switch gesture.state {
-        case .began, .changed:
+        case .began:
+            let velocity = gesture.velocity(in: gesture.view)
+
+            if !isPinching {
+                // call swipeup or swipedown
+                if abs(velocity.x) > abs(velocity.y) {
+                    scrollState = .cancelScroll
+                    return
+                }
+                if velocity.y > minVelocity {
+                    scrollState = .scrollDown
+
+                    withAnimation {
+                        self.parent.scale = 0.5
+                        self.parent.scrolling = true
+                    }
+
+                    UIView.animate(withDuration: 0.3) {
+                        view.transform = view.transform.scaledBy(x: 0.5, y: 0.5)
+                    }
+                } else if velocity.y < -minVelocity {
+                    scrollState = .scrollUp
+
+                    withAnimation {
+                        self.parent.scrolling = true
+                    }
+                } else {
+                    scrollState = .cancelScroll
+                }
+            } else {
+                scrollState = .normalPan
+
+                withAnimation {
+                    self.parent.scrolling = true
+                }
+            }
+        case .changed:
+            if scrollState == .cancelScroll {
+                return
+            }
             var translation = gesture.translation(in: gesture.view)
 
-            // if translation is out of bounds, reduce it until it can be moved
-            if view.frame.origin.x + translation.x > 0 {
-                translation.x = -view.frame.origin.x
-            }
-            if view.frame.maxX + translation.x < view.superview!.frame.width {
-                translation.x = view.superview!.frame.width - view.frame.maxX
+            if scrollState == .normalPan {
+                // if translation is out of bounds, reduce it until it can be moved
+                if view.frame.origin.x + translation.x > 0 {
+                    translation.x = -view.frame.origin.x
+                }
+                if view.frame.maxX + translation.x < view.superview!.frame.width {
+                    translation.x = view.superview!.frame.width - view.frame.maxX
+                }
+
+                if view.frame.origin.y + translation.y > 0 {
+                    translation.y = -view.frame.origin.y
+                }
+
+                if view.frame.maxY + translation.y < view.superview!.frame.height {
+                    translation.y = view.superview!.frame.height - view.frame.maxY
+                }
+
+                view.transform = view.transform.translatedBy(x: translation.x, y: translation.y)
+                gesture.setTranslation(.zero, in: gesture.view)
+            } else if scrollState == .scrollDown {
+                // center of user touch
+                let center = CGPoint(
+                    x: view.frame.origin.x - view.frame.width / 4,  // scaled by 0.5
+                    y: view.frame.origin.y - view.frame.height / 4)  // scaled by 0.5
+
+                // TODO: FIX doesn't always snap back to top
+                if view.frame.midY < (view.superview?.frame.midY ?? 900) / 3 {
+                    scrollState = .scrollUp
+
+                    self.parent.scale = 1.0
+                    self.parent.offset = .zero
+
+                    UIView.animate(withDuration: 0.3) {
+                        view.transform = CGAffineTransform.identity
+                        view.transform = view.transform.translatedBy(
+                            x: 0, y: translation.y - center.y)
+                    }
+                } else {
+                    UIView.animate(withDuration: 0.3) {
+                        // transform the view to the center of the user touch
+                        view.transform = view.transform.translatedBy(
+                            x: translation.x - center.x, y: translation.y - center.y)
+                        self.parent.offset = .init(
+                            width: 0, height: view.frame.origin.y + translation.y)
+                    }
+                }
+            } else if scrollState == .scrollUp {
+                // slowly scale up to 1.5 and slowly offset x (should depend on distance from 0)
+                let maximumNegation = -view.frame.height / 3
+                let maximumScaleMagnitude = 0.3
+                var translationY = translation.y
+
+                if view.frame.minY + translation.y < maximumNegation {
+                    translationY = maximumNegation
+                }
+
+                if view.frame.minY + translation.y > 0 {
+                    scrollState = .scrollDown
+
+                    DispatchQueue.main.async {
+                        self.parent.scale = 0.5
+                    }
+
+                    UIView.animate(withDuration: 0.3) {
+                        view.transform = view.transform.scaledBy(x: 0.5, y: 0.5)
+                        view.transform = view.transform.translatedBy(x: 0, y: translationY)
+                    }
+                } else {
+                    UIView.animate(withDuration: 0.3) {
+                        view.transform = CGAffineTransform.identity
+                        //                    view.transform = view.transform.scaledBy(x: 1 + (translationY / maximumNegation) * maximumScaleMagnitude, y: 1 + (translationY / maximumNegation) * maximumScaleMagnitude)
+                        view.transform = view.transform.translatedBy(x: 0, y: translationY)
+                    }
+                }
             }
 
-            if view.frame.origin.y + translation.y > 0 {
-                translation.y = -view.frame.origin.y
-            }
-
-            if view.frame.maxY + translation.y < view.superview!.frame.height {
-                translation.y = view.superview!.frame.height - view.frame.maxY
-            }
-
-            view.transform = view.transform.translatedBy(x: translation.x, y: translation.y)
-            gesture.setTranslation(.zero, in: gesture.view)
         default:
+            withAnimation {
+                self.parent.scrolling = false
+                self.parent.offset = .zero
+                if !isPinching {
+                    self.parent.scale = 1.0
+                }
+            }
+            if scrollState == .cancelScroll {
+                return
+            }
             print(
                 view.frame.maxX, view.frame.origin.y, view.frame.width, view.superview!.frame.width,
                 view.superview!.frame.origin.x)
 
+            let oldFrame = view.frame
             var newViewFrame = view.frame
 
             if view.frame.origin.x > 0 {
@@ -126,7 +292,7 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
                 newViewFrame.origin.x = view.superview!.frame.width - view.frame.width
             }
 
-            if view.frame.origin.y > 0 {
+            if view.frame.origin.y > 0 && scrollState != .scrollUp {
                 newViewFrame.origin.y = 0
             }
 
@@ -134,81 +300,41 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
                 newViewFrame.origin.y = view.superview!.frame.height - view.frame.height
             }
 
-            UIView.animate(withDuration: 0.3) {
-                view.frame = newViewFrame
+            let velocity = gesture.velocity(in: gesture.view)
 
-                print(
-                    "after", view.frame.maxX, view.frame.origin.y, view.frame.width,
-                    view.superview!.frame.width, view.superview!.frame.origin.x)
+            if scrollState == .scrollDown {
+                UIView.animate(withDuration: 0.3) {
+                    view.transform = CGAffineTransform.identity
+                }
+            } else if scrollState == .scrollUp {
+                UIView.animate(withDuration: 0.3) {
+                    view.transform = CGAffineTransform.identity
+                    self.parent.onSwipeUp()
+                }
             }
 
-            if parent.scale == 1.0 {
+            if self.parent.scale == 1.0 || scrollState == .scrollDown {
                 // call swipeup or swipedown
-                let velocity = gesture.velocity(in: gesture.view)
                 if abs(velocity.x) > abs(velocity.y) {
                     return
                 }
-                if velocity.y > 250 {
-                    parent.onSwipeDown()
-                } else if velocity.y < -250 {
-                    parent.onSwipeUp()
+                if velocity.y > 250 && scrollState == .scrollDown && oldFrame.midY > 50 {
+                    self.parent.onSwipeDown()
+                }
+                //                else if velocity.y < -250 && scrollState != .scrollDown {
+                //                    view.frame = newViewFrame
+                //
+                //                    self.parent.onSwipeUp()
+                //                }
+            } else {
+                UIView.animate(withDuration: 0.3) {
+                    view.frame = newViewFrame
+                    print(
+                        "after", view.frame.maxX, view.frame.origin.y, view.frame.width,
+                        view.superview!.frame.width, view.superview!.frame.origin.x)
                 }
             }
-
             break
         }
-        //        switch gesture.state {
-        //        case .began:
-        //            isDown = gesture.velocity(in: gesture.view).y > 0
-        //            gestureBegan = abs(gesture.velocity(in: gesture.view).y) > 5
-        //        case .changed:
-        //            if gestureBegan {
-        //                let translation = gesture.translation(in: gesture.view)
-        //                if self.parent.scale == 1.0 {
-        //                    let height = translation.y + (previous ?? .zero).height
-        //                    parent.offset = CGSize(width: 0, height: height < -300 ? -300 : height)
-        //                    //                print("adding on previous : \(previous?.height) \(translation.y)")
-        //                } else {
-        //                    parent.offset = CGSize(width: translation.x, height: translation.y)
-        //                }
-        //            }
-        //            //            parent.offset = .init(width: translation.x, height: parent.offset.height + translation.y)
-        //            break
-        //        case .ended:
-        //            let velocity = gesture.velocity(in: gesture.view)
-        //            print(velocity)
-        //            if velocity.y > 5 {
-        //                parent.onSwipeDown()
-        //
-        //                withAnimation {
-        //                    self.parent.offset = .zero
-        //                }
-        //            } else {
-        //                if velocity.y < -5 {
-        //                    parent.onSwipeUp()
-        //                }
-        //            }
-        //            //            withAnimation {
-        //            //                if parent.offset.width == 0 && parent.scale == 1.0 && parent.offset.height < -10 {
-        //            //                    previous = parent.offset
-        //            //                } else {
-        //            if self.parent.scale != 1.0 || self.parent.offset.height > 0 {
-        //                withAnimation {
-        //                    self.parent.offset = .zero
-        //                }
-        //            } else {
-        //                if self.parent.offset.height > -200 && self.parent.offset.height < 0 {
-        //                    withAnimation {
-        //                        self.parent.offset.height = -200
-        //                    }
-        //                }
-        //                previous = self.parent.offset
-        //            }
-        //            //                }
-        //            //            }
-        //            gesture.setTranslation(.zero, in: gesture.view)
-        //        default:
-        //            break
-        //        }
     }
 }

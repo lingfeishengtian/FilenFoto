@@ -29,7 +29,18 @@ struct ImageViewGenerationData {
         storedAssetView != nil && dbPhotoAsset != nil && assetId == dbPhotoAsset?.id
     }
     
-    func generateView(dbPhotoAsset: DBPhotoAsset?, scale: Binding<CGFloat>, offset: Binding<CGSize>, onSwipeUp: @escaping () -> Void, onSwipeDown: @escaping () -> Void) -> AnyView {
+    func generateView(dbPhotoAsset: DBPhotoAsset?, scale: Binding<CGFloat>, offset: Binding<CGSize>, scrolling: Binding<Bool>, onSwipeUp: @escaping () -> Void, onSwipeDown: @escaping () -> Void) -> AnyView {
+#if targetEnvironment(simulator)
+        if let isPrev = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"], isPrev == "1" {
+            return AnyView(ZoomablePhoto(
+                scale: scale,
+                offset: offset,
+                scrolling: scrolling,
+                onSwipeUp: onSwipeUp,
+                onSwipeDown: onSwipeDown,
+                image: .constant(UIImage(named: "IMG_3284")!)))
+        }
+#endif
         var asset = storedAssetView
         if assetId != dbPhotoAsset?.id {
             asset = nil
@@ -40,6 +51,7 @@ struct ImageViewGenerationData {
                 ZoomablePhoto(
                     scale: scale,
                     offset: offset,
+                    scrolling: scrolling,
                     onSwipeUp: onSwipeUp,
                     onSwipeDown: onSwipeDown,
                     image: .constant(uiImage)))
@@ -48,6 +60,7 @@ struct ImageViewGenerationData {
                 ZoomableLivePhoto(
                     scale: scale,
                     offset: offset,
+                    scrolling: scrolling,
                     onSwipeUp: onSwipeUp,
                     onSwipeDown: onSwipeDown,
                     livePhoto: .constant(livePhoto)))
@@ -55,6 +68,7 @@ struct ImageViewGenerationData {
             return AnyView(ZoomableVideo(
                 scale: scale,
                 offset: offset,
+                scrolling: scrolling,
                 onSwipeUp: onSwipeUp,
                 onSwipeDown: onSwipeDown,
                 video: avPlayer))
@@ -70,6 +84,7 @@ struct ImageViewGenerationData {
                 ZoomablePhoto(
                     scale: scale,
                     offset: offset,
+                    scrolling: scrolling,
                     onSwipeUp: onSwipeUp,
                     onSwipeDown: onSwipeDown,
                     image: .constant(uiImage)))
@@ -80,10 +95,10 @@ struct ImageViewGenerationData {
 class FullImageViewState: ObservableObject {
     @Published var scale: CGFloat = 1.0
     @Published var offset: CGSize = .zero
+    @Published var scrolling: Bool = false
     //    @Published var sheetOffset: CGSize = .zero
     @Published private var isDragging = false
-    let dismissThreshold: CGFloat = 200
-    @Published private var isScrolling = true
+    let dismissThreshold: CGFloat = 600
     
     @Published var showDetail: Bool = false
     @Published var imageViewGeneration: ImageViewGenerationData = .init()
@@ -91,7 +106,11 @@ class FullImageViewState: ObservableObject {
     var assetFileUrl: URL?
     
     var hasUserStoppedScrolling: Bool {
-        !isScrolling
+        !scrolling
+    }
+    
+    var shouldHideBars: Bool {
+        scrolling || showDetail || scale != 1.0
     }
     
     var adjustedScale: CGFloat {

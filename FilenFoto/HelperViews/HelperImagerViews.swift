@@ -27,6 +27,7 @@ struct ViewManager: View {
                 dbPhotoAsset: photoEnviorment.selectedDbPhotoAsset,
                 scale: $fullImageState.scale,
                 offset: $fullImageState.offset,
+                scrolling: $fullImageState.scrolling,
                 onSwipeUp: onSwipeUp,
                 onSwipeDown: onSwipeDown
             )

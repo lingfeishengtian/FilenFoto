@@ -3,23 +3,10 @@ import AVKit
 import SwiftUI
 import UIKit
 
-func assignGestures(
-    to view: UIView, in context: (UIViewRepresentableContext<some ZoomablePannableViewContent>)
-) {
-    let pinchGestureRecognizer = UIPinchGestureRecognizer(
-        target: context.coordinator, action: #selector(context.coordinator.handlePinch(_:)))
-    let panGestureRecognizer = UIPanGestureRecognizer(
-        target: context.coordinator, action: #selector(context.coordinator.handlePan(_:)))
-
-    panGestureRecognizer.delegate = context.coordinator
-
-    view.addGestureRecognizer(pinchGestureRecognizer)
-    view.addGestureRecognizer(panGestureRecognizer)
-}
-
 struct ZoomablePhoto: ZoomablePannableViewContent {
     @Binding var scale: CGFloat
     @Binding var offset: CGSize
+    @Binding var scrolling: Bool
     var onSwipeUp: () -> Void
     var onSwipeDown: () -> Void
     @Binding var image: UIImage
@@ -50,7 +37,7 @@ struct ZoomablePhoto: ZoomablePannableViewContent {
             imageView.heightAnchor.constraint(equalTo: view.heightAnchor),
         ])
 
-        assignGestures(to: view, in: context)
+        ZoomablePannableViewContentCoordinator.assignGestures(to: view, in: context.coordinator)
         imageView.isUserInteractionEnabled = true
 
         view.sizeToFit()
@@ -78,6 +65,7 @@ struct ZoomablePhoto: ZoomablePannableViewContent {
 struct ZoomableLivePhoto: ZoomablePannableViewContent {
     @Binding var scale: CGFloat
     @Binding var offset: CGSize
+    @Binding var scrolling: Bool
     var onSwipeUp: () -> Void
     var onSwipeDown: () -> Void
     // TODO: Can this not be binding?
@@ -111,7 +99,7 @@ struct ZoomableLivePhoto: ZoomablePannableViewContent {
             livePhotoView.heightAnchor.constraint(equalTo: view.heightAnchor),
         ])
 
-        assignGestures(to: view, in: context)
+        ZoomablePannableViewContentCoordinator.assignGestures(to: view, in: context.coordinator)
 
         view.sizeToFit()
 

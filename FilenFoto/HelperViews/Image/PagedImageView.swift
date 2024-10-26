@@ -46,6 +46,8 @@ struct PagedImageView: View {
         }
     }
     
+    @State private var location: CGPoint = .zero
+    
     var body: some View {
         let _ = print(fullImageState.scale)
         GeometryReader { reader in
@@ -57,7 +59,7 @@ struct PagedImageView: View {
                         id: "thumbnailImageTransition"
                         + dbAsset.localIdentifier, in: animation)
                     .frame(width: reader.size.width, height: reader.size.height)
-                    .onChange(of: fullImageState.offset) {
+//                    .onChange(of: fullImageState.offset) {
 //                        if fullImageState.offset.height < -10 {
 //                            withAnimation {
 //                                fullImageState.showDetail = true
@@ -69,11 +71,16 @@ struct PagedImageView: View {
 ////                                fullImageState.sheetOffset = .zero
 //                            }
 //                        }
-                    }
+//                    }
+//                    .position(location)
+//                    .gesture(DragGesture().onChanged({ value in
+//                        location = value.location
+//                    }))
                 } else {
                     ZoomablePhoto(
                         scale: $fullImageState.scale,
                         offset: $fullImageState.offset,
+                        scrolling: $fullImageState.scrolling,
                         onSwipeUp: swipeUpOnImage,
                         onSwipeDown: swipeDownOnImage,
                         image: .constant(UIImage(contentsOfFile: dbAsset.thumbnailURL.path) ?? UIImage()))
@@ -88,7 +95,8 @@ struct PagedImageView: View {
                 }
             })
             .interactive(scale: 0.8)
-            .allowsDragging(!fullImageState.showDetail && fullImageState.scale == 1.0)
+//            .allowsDragging(!fullImageState.showDetail && fullImageState.scale == 1.0)
+            .allowsDragging(!fullImageState.shouldHideBars)
         }
         .onAppear {
             if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {

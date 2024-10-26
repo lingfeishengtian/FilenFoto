@@ -4,6 +4,7 @@ import AVKit
 struct ZoomableVideo: ZoomablePannableViewControllerContent {
     @Binding var scale: CGFloat
     @Binding var offset: CGSize
+    @Binding var scrolling: Bool
     var onSwipeUp: () -> Void
     var onSwipeDown: () -> Void
     var video: AVPlayer
@@ -34,16 +35,7 @@ struct ZoomableVideo: ZoomablePannableViewControllerContent {
             self.associatedView = playerViewController.view
         }
         
-        let pinchGestureRecognizer = UIPinchGestureRecognizer(
-            target: context.coordinator, action: #selector(context.coordinator.handlePinch(_:)))
-        let panGestureRecognizer = UIPanGestureRecognizer(
-            target: context.coordinator, action: #selector(context.coordinator.handlePan(_:)))
-
-        panGestureRecognizer.delegate = context.coordinator
-        pinchGestureRecognizer.delegate = context.coordinator
-
-        playerViewController.view.addGestureRecognizer(pinchGestureRecognizer)
-        playerViewController.view.addGestureRecognizer(panGestureRecognizer)
+        ZoomablePannableViewContentCoordinator.assignGestures(to: playerViewController.view, in: context.coordinator)
         
         playerViewController.view.isUserInteractionEnabled = true
 

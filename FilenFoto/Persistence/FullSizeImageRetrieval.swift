@@ -8,13 +8,14 @@
 import Foundation
 import Photos
 import os
+import SwiftUI
 
 class FullSizeImageCache {
     static let shared = FullSizeImageCache()
     
     static let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "FullSizeImageCache")
     
-    static let maxCacheSize: Int = 1_000 // mb
+    @AppStorage("maxCacheSize") var maxCacheSize: CacheSizeValues = .一GB
     static let cacheDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
     
     static func doesIdExistInCache(for id: Int) -> Bool {
@@ -43,7 +44,15 @@ class FullSizeImageCache {
         return thumbnailURL
     }
     
+    static func deleteOldestFilesInCache(untilFolderSizeIsUnder limitMB: Int) {
+        deleteOldestFiles(in: cacheDirectory.path, untilFolderSizeIsUnder: limitMB)
+    }
+    
     static private func deleteOldestFiles(in folderPath: String, untilFolderSizeIsUnder limitMB: Int) {
+        if limitMB < 0 {
+            return
+        }
+        
         let fileManager = FileManager.default
         let limitBytes = Int64(limitMB) * 1024 * 1024
         
@@ -100,8 +109,7 @@ class FullSizeImageCache {
             return nil
         }
         
-        // TODO: Delete oldest if cache size too big
-        deleteOldestFiles(in: cacheDirectory.path, untilFolderSizeIsUnder: maxCacheSize)
+        deleteOldestFiles(in: cacheDirectory.path, untilFolderSizeIsUnder: FullSizeImageCache.shared.maxCacheSize.rawValue)
         
         do {
             // TODO: Handle file doesn't exist

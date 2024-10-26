@@ -63,15 +63,16 @@ let creationDateColumn = Expression<Date>("creationDate")
 let modificationDateColumn = Expression<Date>("modificationDate")
 let locationLongitudeColumn = Expression<Double?>("locationLongitude")
 let locationLatitudeColumn = Expression<Double?>("locationLatitude")
-let hashColumn = Expression<String>("hash")
 let completedAnalysis = Expression<Bool>("completedAnalysis")
 let favorited = Expression<Bool>("favorited")
 let hidden = Expression<Bool>("hidden")
+let isBurst = Expression<Bool>("isBurst")
 let thumbnailName = Expression<String>("thumbnailLocation")
-let thumbnailCacheName = Expression<String?>("thumbnailCacheName")
+let thumbnailCacheId = Expression<Int64?>("thumbnailCacheId")
 
 let photoResourcesTable = Table("photoResources")
 let uuidColumn = Expression<String>("uuid")
+let hashColumn = Expression<String>("hash")
 let resourceType = Expression<Int64>("resourceType")
 let resourceName = Expression<String>("resourceName")
 
@@ -177,85 +178,9 @@ extension RandomAccessCollection {
     }
 }
 
-//class PhotoDatabaseStreamer: ObservableObject {
-//    private var stream: RowIterator?
-//    @Published var lazyArray = SortedArray<DBPhotoAsset>()
-//    private let pollingLimit: Int
-//    private var isSearching = false
-//    
-//    internal init(pollingLimit: Int = 10) {
-//        self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
-//        self.pollingLimit = pollingLimit
-//    }
-//    
-//    func defaultStream() {
-//        isSearching = false
-//        stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
-//        addMoreToLazyArray()
-//    }
-//    
-//    func searchStream(searchQuery: String) {
-//        isSearching = true
-//        lazyArray.removeAll()
-//        stream = PhotoDatabase.shared.searchForText(textSearch: searchQuery)
-//        addMoreToLazyArray()
-//    }
-//    
-//    func addMoreToLazyArray() {
-//        print(PhotoDatabase.shared.getCountOfPhotos(), lazyArray.sortedArray.count)
-//        var pollLimit = pollingLimit
-//        while pollLimit > 0 {
-//            if let asset = next() {
-//                self.lazyArray.insert(asset)
-//                pollLimit -= 1
-//            } else if (PhotoDatabase.shared.getCountOfPhotos() > lazyArray.sortedArray.count && !isSearching) {
-//                self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
-//                if let assetTryAgain = next() {
-//                    self.lazyArray.insert(assetTryAgain)
-//                    pollLimit -= 1
-//                }
-//            } else {
-//                break
-//            }
-//        }
-//    }
-//    
-//    func next() -> DBPhotoAsset? {
-//        do {
-//            if let n = try stream?.failableNext() {
-//                let nLat = try n.get(locationLatitudeColumn)
-//                let nLon = try n.get(locationLongitudeColumn)
-//                var loc: CLLocation? = nil
-//                if nLat != nil && nLon != nil {
-//                    loc = CLLocation(latitude: nLat!, longitude: nLon!)
-//                }
-//                
-//                return DBPhotoAsset(
-//                    id: try n.get(idColumn),
-//                    localIdentifier: try n.get(assetColumn),
-//                    mediaType: PHAssetMediaType(rawValue: Int(try n.get(mediaTypeColumn))) ?? .image,
-//                    mediaSubtype: PHAssetMediaSubtype(rawValue: UInt(try n.get(mediaSubtypeColumn))),
-//                    creationDate: try n.get(creationDateColumn),
-//                    modificationDate: try n.get(modificationDateColumn),
-//                    location: loc,
-//                    favorited: try n.get(favorited),
-//                    hidden: try n.get(hidden),
-//                    thumbnailFileName: try n.get(thumbnailName)
-////                    thumbnailCacheName: try n.get(thumbnailCacheName)
-//                )
-//            } else {
-//                return nil
-//            }
-//        } catch {
-//            print(error)
-//            return nil
-//        }
-//    }
-//}
-
 class PhotoDatabase {
     static let shared = PhotoDatabase()
-    private static let databaseName = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("PhotoDatabase.db", conformingTo: .database)
+    static let databaseName = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("PhotoDatabase.db", conformingTo: .database)
     private let databaseConnection: Connection?
     
     private init() {
@@ -276,9 +201,12 @@ class PhotoDatabase {
             t.column(locationLatitudeColumn)
             t.column(favorited)
             t.column(hidden)
+            t.column(isBurst)
             t.column(thumbnailName)
+            t.column(thumbnailCacheId)
 //            t.column(thumbnailCacheName)
             t.column(completedAnalysis, defaultValue: false)
+            t.foreignKey(thumbnailCacheId, references: photoResourcesTable, idColumn)
         })
         
         let _ = try? databaseConnection?.run(photoResourcesTable.create(ifNotExists: true) { t in
@@ -358,9 +286,12 @@ class PhotoDatabase {
                 ORDER BY creationDate DESC;
         """
         do {
-            let streamScalar = try databaseConnection?.scalar(sql, [textSearch, textSearch])
+            let modifiedTextSearch = textSearch.replacingOccurrences(of: " ", with: "_")
+#if DEBUG
+            let streamScalar = try databaseConnection?.scalar(sql, [modifiedTextSearch, modifiedTextSearch])
             print("\(streamScalar) results found for search \(textSearch)")
-            let stream = try databaseConnection?.prepareRowIterator(sql, bindings: [textSearch, textSearch])
+#endif
+            let stream = try databaseConnection?.prepareRowIterator(sql, bindings: [modifiedTextSearch, modifiedTextSearch])
             return stream
         } catch {
             logger.error("Failed search \(error)")
@@ -390,6 +321,7 @@ class PhotoDatabase {
                                             locationLatitudeColumn <- locationLat,
                                             favorited <- asset.isFavorite,
                                             hidden <- asset.isHidden,
+                                            isBurst <- asset.representsBurst,
                                             thumbnailName <- thumbnailLocation.lastPathComponent)
         
         let id = try? databaseConnection?.run(insert)
@@ -400,7 +332,7 @@ class PhotoDatabase {
             var insertedTextResultClassificationCount = 0
             var insertedResourceCount = 0
             
-//            var thumbnailCacheFileName: String? = nil
+            var storedThumbnailCacheId: Int64? = nil
                         
             for resource in resources {
                 let insertResource = photoResourcesTable.insert(
@@ -412,10 +344,9 @@ class PhotoDatabase {
                 )
                 let id = try? databaseConnection?.run(insertResource)
                 if let id = id {
-//                    if thumbnailCacheFileName == nil {
-//                        let ogFilename = resource.phAssetResource.originalFilename
-//                        thumbnailCacheFileName = String(id) + "." + String(ogFilename.suffix(from: ogFilename.index(ogFilename.lastIndex(of: ".") ?? ogFilename.endIndex, offsetBy: 1)))
-//                    }
+                    if storedThumbnailCacheId == nil {
+                        storedThumbnailCacheId = id
+                    }
                     insertedResourceCount += 1
                 }
             }
@@ -450,7 +381,7 @@ class PhotoDatabase {
             self.logger.info("Inserted \(insertedResourceCount) resources \(insertedImageClassificationCount) image classification results and \(insertedTextResultClassificationCount) text classification results")
 
             let query = photoAssetTable.filter(idColumn == id)
-            let update = query.update(completedAnalysis <- true)
+            let update = query.update(completedAnalysis <- true, thumbnailCacheId <- storedThumbnailCacheId)
             let _ = try? databaseConnection?.run(update)
 
             return .success

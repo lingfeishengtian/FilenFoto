@@ -177,6 +177,14 @@ class PhotoVisionDatabaseManager {
         }
     }
     
+    public func getTotalNumberOfPhotos() -> Int {
+        let fetchOptions = PHFetchOptions()
+        fetchOptions.includeHiddenAssets = true
+        fetchOptions.includeAllBurstAssets = true
+        let allPhotos = PHAsset.fetchAssets(with: fetchOptions)
+        return allPhotos.count
+    }
+    
     public func startSync(onComplete: @escaping () -> Void = {}, existingSync: SyncProgressInfo? = nil) -> SyncProgressInfo {
         cleanTmpDirectory()
         let progressInfo = existingSync ?? SyncProgressInfo()
@@ -464,12 +472,12 @@ class PhotoVisionDatabaseManager {
                 switch mediaTypeOfClassificationFile {
                 case .photo, .adjustmentBasePhoto, .alternatePhoto, .fullSizePhoto:
                     recognizedClassifyObject = await classifyAndTextRecognize(image: targetClassfyFileURL)
-                    try await ImageCompressor.compressImage(from: targetClassfyFileURL, outputDestination: compressedThumbnailUrl!, compressionQuality: 0.0)
+                    try await ImageCompressor.compressImage(from: targetClassfyFileURL, outputDestination: compressedThumbnailUrl!)
                     break
                 case .video, .adjustmentBaseVideo, .fullSizeVideo, .pairedVideo:
                     if let vidRecogRes = await classifyAndTextRecognize(video: targetClassfyFileURL) {
                         recognizedClassifyObject = vidRecogRes.photoRecog
-                        try await ImageCompressor.compressImage(from: vidRecogRes.generatedCGImage, outputDestination: compressedThumbnailUrl!, compressionQuality: 0.0)
+                        try await ImageCompressor.compressImage(from: vidRecogRes.generatedCGImage, outputDestination: compressedThumbnailUrl!)
                     }
                     break
                 default:
