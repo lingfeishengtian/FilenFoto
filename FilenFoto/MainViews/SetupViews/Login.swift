@@ -47,11 +47,14 @@ struct Login: View {
                 }
                 TextField("E-Mail", text: $username)
                     .paddedRounded(fill: Color.gray.opacity(0.25))
+                    .textContentType(.emailAddress)
                 SecureField("Password", text: $password)
                     .paddedRounded(fill: Color.gray.opacity(0.25))
+                    .textContentType(.password)
                 if (shouldShowTwoFactor) {
                     TextField("Two-Factor", text: $twoFactorCode)
                         .paddedRounded(fill: Color.gray.opacity(0.25))
+                        .textContentType(.oneTimeCode)
                 }
                 Button(action: {
                     isLoading = true

@@ -63,10 +63,7 @@ class PhotoEnvironment: SyncProgressInfo {
     func defaultStream() {
         isSearching = false
         Task {
-            for lazyArrayTask in currentLazyArrayTaskQueue {
-                lazyArrayTask.cancel()
-            }
-            currentLazyArrayTaskQueue.removeAll()
+            lastTask?.cancel()
             stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
             await addMoreToLazyArray()
         }
@@ -77,24 +74,19 @@ class PhotoEnvironment: SyncProgressInfo {
         isSearching = true
 //        lazyArray.removeAll()
         Task {
-            for lazyArrayTask in currentLazyArrayTaskQueue {
-                lazyArrayTask.cancel()
-            }
-            currentLazyArrayTaskQueue.removeAll()
+            lastTask?.cancel()
             stream = PhotoDatabase.shared.searchForText(textSearch: searchQuery)
             await addMoreToLazyArray(reset: true)
         }
     }
     
-    private var currentLazyArrayTaskQueue: [Task<Void, Never>] = []
+    private var lastTask: Task<Void, Never>? = nil
     func addMoreToLazyArray(reset: Bool = false) async {
-        if currentLazyArrayTaskQueue.count > 2 {
-            for task in currentLazyArrayTaskQueue {
-                task.cancel()
+        let _ =  await lastTask?.result
+        lastTask = (Task {
+            if PhotoDatabase.shared.getCountOfPhotos() == lazyArray.sortedArray.count {
+                return
             }
-            currentLazyArrayTaskQueue.removeAll()
-        }
-        currentLazyArrayTaskQueue.append(Task {
             print("Call to add", PhotoDatabase.shared.getCountOfPhotos(), lazyArray.sortedArray.count)
             var pollLimit = pollingLimit
             var toInsert: [DBPhotoAsset] = []

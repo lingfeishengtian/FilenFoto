@@ -12,7 +12,11 @@ import Vision
 import FilenSDK
 import CryptoKit
 
+//fileprivate let sha256Queue = DispatchQueue(label: "com.filenfoto.sha256Queue")
+
 func getSHA256(forFile url: URL) throws -> String {
+    //    return try sha256Queue.sync {
+    
     let handle = try FileHandle(forReadingFrom: url)
     var hasher = SHA256()
     while autoreleasepool(invoking: {
@@ -22,10 +26,11 @@ func getSHA256(forFile url: URL) throws -> String {
         return true
     }) { }
     let digest = hasher.finalize()
-//    return digest
-
+    //    return digest
+    
     // Here's how to convert to string form
     return digest.map { String(format: "%02hhx", $0) }.joined()
+    //    }
 }
 
 var filenPhotoFolderUUID: String? {
@@ -157,7 +162,7 @@ class SyncProgressInfo : ObservableObject {
 
 class PhotoVisionDatabaseManager {
     static let shared = PhotoVisionDatabaseManager()
-    static let maxConcurrentTasks: Int = 10
+    static let maxConcurrentTasks: Int = 4
     private var cancelOperation: Bool = false
     
     private init() {}
@@ -189,7 +194,7 @@ class PhotoVisionDatabaseManager {
         cleanTmpDirectory()
         let progressInfo = existingSync ?? SyncProgressInfo()
         progressInfo.reset()
-
+        
         Task {
             let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
             switch status {
@@ -270,7 +275,7 @@ class PhotoVisionDatabaseManager {
     var currentFileNames: [String] = []
     let photoResourceTypes: [PHAssetResourceType] = [.photo, .adjustmentBasePhoto, .alternatePhoto, .fullSizePhoto]
     let videoResourceTypes: [PHAssetResourceType] = [.video, .adjustmentBaseVideo, .adjustmentBasePairedVideo, .fullSizeVideo]
-    
+        
     private func retrieveAssetResources(_ asset: PHAsset) async throws -> PhotoAssetFilenResults {
         guard let filenClient = getFilenClientWithUserDefaultConfig() else {
             throw PhotoSyncError.filenClientError("Invalid default config")
@@ -285,7 +290,7 @@ class PhotoVisionDatabaseManager {
         
         var assetResources = PHAssetResource.assetResources(for: asset)
         let resources = await withTaskGroup(of: (FilenEquivelentAsset)?.self) { group in
-            var collected = [FilenEquivelentAsset]()            
+            var collected = [FilenEquivelentAsset]()
             for assetResource in assetResources {
                 group.addTask {
                     var fileName = assetResource.originalFilename
@@ -338,77 +343,92 @@ class PhotoVisionDatabaseManager {
         return PhotoAssetFilenResults(assetsToCloud: resources)
     }
     
-    private func classifyAndTextRecognize(image imageURL: URL) async -> ([VNClassificationObservation], [VNRecognizedTextObservation]) {
+    private func classifyAndTextRecognize(image imageURL: URL) -> ([VNClassificationObservation], [VNRecognizedTextObservation]) {
         let image = CGImageSourceCreateWithURL(imageURL as CFURL, nil)
         let cgImage = CGImageSourceCreateImageAtIndex(image!, 0, nil)
         
         print("Vision request for \(imageURL)")
         
-        return await classifyAndTextRecognize(image: cgImage!)
+        return classifyAndTextRecognize(image: cgImage!)
     }
     
-    private func classifyAndTextRecognize(image cgImage: CGImage) async -> ([VNClassificationObservation], [VNRecognizedTextObservation]) {
-        let imageRequestHandler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-        
-        var imageClassifications: [VNClassificationObservation] = []
-        var recognizedTextClassifications: [VNRecognizedTextObservation] = []
-        
-        let imageRequest: VNClassifyImageRequest = {
-            let req = VNClassifyImageRequest(completionHandler: { (retReq, err) in
-                if retReq.results == nil {
-                    print("FAILURE \(err?.localizedDescription)")
-                    return
-                }
-                print("Found \(retReq.results!.count) results")
-                for res in retReq.results! {
-                    if !res.confidence.isZero && !res.confidence.isNaN && res.confidence >= 0.1, let imgClassObserver = res as? VNClassificationObservation {
-                        imageClassifications.append(imgClassObserver)
-                    } else {
-                        break
+    fileprivate let dispatchGroup = DispatchGroup()
+    private func classifyAndTextRecognize(image cgImage: CGImage) -> ([VNClassificationObservation], [VNRecognizedTextObservation]) {
+//        return visionDispatchQueue.sync {
+            print("Start to make vision handling")
+            let imageRequestHandler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+            
+            var imageClassifications: [VNClassificationObservation] = []
+            var recognizedTextClassifications: [VNRecognizedTextObservation] = []
+            
+            var imageRequest: VNClassifyImageRequest = {
+                let req = VNClassifyImageRequest(completionHandler: { (retReq, err) in
+                    if retReq.results == nil {
+                        print("FAILURE \(err?.localizedDescription)")
+                        return
                     }
-                }
-            })
-
-            return req
-        }()
-        
-        let textRequest: VNRecognizeTextRequest = {
-            let req = VNRecognizeTextRequest(completionHandler: { (retReq, err) in
-                if retReq.results == nil {
-                    print("FAILURE \(err?.localizedDescription)")
-                    return
-                }
-                print("Found \(retReq.results!.count) results")
-                for res in retReq.results! {
-                    if !res.confidence.isZero && !res.confidence.isNaN && res.confidence >= 0.1, let recogText = res as? VNRecognizedTextObservation {
-                        recognizedTextClassifications.append(recogText)
-                    } else {
-                        break
+                    print("Found \(retReq.results!.count) results")
+                    
+                })
+                
+                return req
+            }()
+            
+            var textRequest: VNRecognizeTextRequest = {
+                let req = VNRecognizeTextRequest(completionHandler: { (retReq, err) in
+                    if retReq.results == nil {
+                        print("FAILURE \(err?.localizedDescription)")
+                        return
                     }
+                    print("Found \(retReq.results!.count) results")
+                })
+                req.automaticallyDetectsLanguage = true
+                req.recognitionLevel = .accurate
+                print(req.recognitionLanguages)
+                req.progressHandler = { req, progress, error in
+                    print(progress, error)
                 }
-            })
-            req.automaticallyDetectsLanguage = true
-            req.recognitionLevel = .accurate
-            return req
-        }()
-        
-#if DEBUG
-        imageRequest.usesCPUOnly = true
-        textRequest.usesCPUOnly = true
+                return req
+            }()
+            
+#if targetEnvironment(simulator)
+            imageRequest.usesCPUOnly = true
+            textRequest.usesCPUOnly = true
 #endif
-        
-        /// For some reason, on a real device, only the main thread works...
-        DispatchQueue.main.sync {
+            
+            /// For some reason, on a real device, only the main thread works...
+            //        DispatchQueue.main.async {
             do {
-                try imageRequestHandler.perform([imageRequest, textRequest])
+                do {
+                    try imageRequestHandler.perform([imageRequest, textRequest])
+                } catch {
+                    print("FAILURE VISION \(error)")
+                }
+                
+                for res in imageRequest.results! {
+                    if !res.confidence.isZero && !res.confidence.isNaN && res.confidence >= 0.1 {
+                        imageClassifications.append(res)
+                    } else {
+                        break
+                    }
+                }
+                for res in textRequest.results! {
+                    if !res.confidence.isZero && !res.confidence.isNaN && res.confidence >= 0.05 {
+                        recognizedTextClassifications.append(res)
+                    } else {
+                        break
+                    }
+                }
             } catch {
                 self.logger.warning("Vision request failed for image with error: \(error)")
             }
-        }
-        return (imageClassifications, recognizedTextClassifications)
+            //        }
+            
+            return (imageClassifications, recognizedTextClassifications)
+//        }
     }
     
-    private func classifyAndTextRecognize(video videoURL: URL) async -> VideoClassificationResults? {
+    private func classifyAndTextRecognize(video videoURL: URL) -> VideoClassificationResults? {
         let asset = AVAsset(url: videoURL)
         let assetImgGenerate = AVAssetImageGenerator(asset: asset)
         assetImgGenerate.appliesPreferredTrackTransform = true
@@ -420,7 +440,7 @@ class PhotoVisionDatabaseManager {
         
         do {
             let img = try assetImgGenerate.copyCGImage(at: time, actualTime: nil)
-            return VideoClassificationResults(photoRecog: await classifyAndTextRecognize(image: img), generatedCGImage: img)
+            return VideoClassificationResults(photoRecog: classifyAndTextRecognize(image: img), generatedCGImage: img)
         } catch {
             print(error.localizedDescription)
             return nil
@@ -471,11 +491,11 @@ class PhotoVisionDatabaseManager {
                 compressedThumbnailUrl = thumbnailsDirectory.appendingPathComponent(targetClassfyFileURL.lastPathComponent, conformingTo: .jpeg)
                 switch mediaTypeOfClassificationFile {
                 case .photo, .adjustmentBasePhoto, .alternatePhoto, .fullSizePhoto:
-                    recognizedClassifyObject = await classifyAndTextRecognize(image: targetClassfyFileURL)
+                    recognizedClassifyObject = classifyAndTextRecognize(image: targetClassfyFileURL)
                     try await ImageCompressor.compressImage(from: targetClassfyFileURL, outputDestination: compressedThumbnailUrl!)
                     break
                 case .video, .adjustmentBaseVideo, .fullSizeVideo, .pairedVideo:
-                    if let vidRecogRes = await classifyAndTextRecognize(video: targetClassfyFileURL) {
+                    if let vidRecogRes = classifyAndTextRecognize(video: targetClassfyFileURL) {
                         recognizedClassifyObject = vidRecogRes.photoRecog
                         try await ImageCompressor.compressImage(from: vidRecogRes.generatedCGImage, outputDestination: compressedThumbnailUrl!)
                     }
@@ -522,8 +542,8 @@ struct FilenEquivelentAsset {
 struct PhotoAssetFilenResults {
     // Sorted where first is thumbnail
     let assetsToCloud: [FilenEquivelentAsset]
-//    let photoOrVideoClassification: URL?
-//    let mediaTypeOfClassificationFile: PHAssetResourceType?
+    //    let photoOrVideoClassification: URL?
+    //    let mediaTypeOfClassificationFile: PHAssetResourceType?
 }
 
 extension PHAssetMediaSubtype: @retroactive CustomStringConvertible {

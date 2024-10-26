@@ -197,7 +197,7 @@ struct Settings: View {
                 } footer: {
                     Text("WARNING: ")
                         .foregroundStyle(.red) +
-                    Text("After selecting a new cache size, the app will resize the folder by deleting cached images until it is under the new size.")
+                    Text("After selecting a new cache size, the app will attempt to resize the folder by deleting cached images until it is under the new size.")
                 }
                 
                 // TODO: Image compression settings

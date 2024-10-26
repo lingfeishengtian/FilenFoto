@@ -28,15 +28,15 @@ enum CompressionLevels: String, CaseIterable, Identifiable {
 fileprivate func resizeLevel(for compressionLevel: CompressionLevels) -> CGSize? {
     switch compressionLevel {
     case .none:
-        return nil
-    case .low:
-        return nil
-    case .medium:
-        return nil
-    case .high:
-        return CGSizeMake(2000, 2000)
-    case .extreme:
         return CGSizeMake(500, 500)
+    case .low:
+        return CGSizeMake(500, 500)
+    case .medium:
+        return CGSizeMake(400, 400)
+    case .high:
+        return CGSizeMake(350, 350)
+    case .extreme:
+        return CGSizeMake(200, 200)
     }
 }
 
@@ -45,11 +45,11 @@ fileprivate func compressionQuality(for compressionLevel: CompressionLevels) -> 
     case .none:
         return nil
     case .low:
-        return 0.5
+        return 1.0
     case .medium:
-        return 0.0
+        return 0.75
     case .high:
-        return 0.0
+        return 0.5
     case .extreme:
         return 0.0
     }
@@ -76,32 +76,36 @@ class ImageCompressor {
         }
     }
     
+    fileprivate static let imageCompressQueue = DispatchQueue(label: "com.filenfoto.imageCompressionQueue")
+    
     private static func compressImage(_ provImage: UIImage, format: ImageFormat) -> Data? {
-        var image = provImage
-        
-        guard let compressionQuality = compressionQuality(for: compressionLevel ?? .high) else {
-            return nil
-        }
-        
-        if let compressionResize = resizeLevel(for: compressionLevel ?? .high) {
-            image = image.resizeImage(image: provImage, targetSize: compressionResize)
-        }
-        
-        switch format {
-        case .png, .jpg:
-            return image.jpegData(compressionQuality: compressionQuality)
-        case .heic:
-            if #available(iOS 11.0, *) {
-                let options: NSDictionary = [kCGImageDestinationLossyCompressionQuality: compressionQuality]
-                let data = NSMutableData()
-                guard let destination = CGImageDestinationCreateWithData(data as CFMutableData, UTType.heic.identifier as CFString, 1, nil) else {
-                    return nil
+        return imageCompressQueue.sync {
+            var image = provImage
+            
+            guard let compressionQuality = compressionQuality(for: compressionLevel ?? .high) else {
+                return nil
+            }
+            
+            if let compressionResize = resizeLevel(for: compressionLevel ?? .high) {
+                image = image.resizeImage(image: provImage, targetSize: compressionResize)
+            }
+            
+            switch format {
+            case .png, .jpg:
+                return image.jpegData(compressionQuality: compressionQuality)
+            case .heic:
+                if #available(iOS 11.0, *) {
+                    let options: NSDictionary = [kCGImageDestinationLossyCompressionQuality: compressionQuality]
+                    let data = NSMutableData()
+                    guard let destination = CGImageDestinationCreateWithData(data as CFMutableData, UTType.heic.identifier as CFString, 1, nil) else {
+                        return nil
+                    }
+                    CGImageDestinationAddImage(destination, image.cgImage!, options)
+                    CGImageDestinationFinalize(destination)
+                    return data as Data
+                } else {
+                    return image.jpegData(compressionQuality: compressionQuality) // fallback to JPEG if HEIC isn't available
                 }
-                CGImageDestinationAddImage(destination, image.cgImage!, options)
-                CGImageDestinationFinalize(destination)
-                return data as Data
-            } else {
-                return image.jpegData(compressionQuality: compressionQuality) // fallback to JPEG if HEIC isn't available
             }
         }
     }
