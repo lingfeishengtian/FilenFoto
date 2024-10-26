@@ -207,13 +207,13 @@ struct Settings: View {
                             Text(compressionLevel.rawValue).tag(compressionLevel)
                         }
                     }
-                    Toggle(isOn: $regenerateThumbnails) {
-                        Text("Regenerate Thumbnails")
-                    }
+//                    Toggle(isOn: $regenerateThumbnails) {
+//                        Text("Regenerate Thumbnails")
+//                    }
                 } header: {
                     Text("Thumbnails")
                 } footer: {
-                    Text("Set image compression level for thumbnails. Toggle regenerate thumbnails to generate new thumbnails whenever an image is viewed.")
+                    Text("Changing compression quality will not affect existing thumbnails.")
                 }
                 
                 Section("Filen Account Management") {

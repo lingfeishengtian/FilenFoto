@@ -30,7 +30,7 @@ fileprivate func resizeLevel(for compressionLevel: CompressionLevels) -> CGSize?
     case .none:
         return CGSizeMake(500, 500)
     case .low:
-        return CGSizeMake(500, 500)
+        return CGSizeMake(400, 400)
     case .medium:
         return CGSizeMake(400, 400)
     case .high:
@@ -43,7 +43,7 @@ fileprivate func resizeLevel(for compressionLevel: CompressionLevels) -> CGSize?
 fileprivate func compressionQuality(for compressionLevel: CompressionLevels) -> CGFloat? {
     switch compressionLevel {
     case .none:
-        return nil
+        return 1.0
     case .low:
         return 1.0
     case .medium:

@@ -8,10 +8,6 @@
 import SwiftUI
 
 /*
- Extreme: on avg 12 KB
- High: on avg 70 KB (recommended)
- Medium: Up to 500 KB
- Low: Depends, up to 4 MB
  None: DO NOT RECOMMEND can be bigger than original file size
  */
 
@@ -25,15 +21,15 @@ struct CompressionLevelSetup : View {
         var totSize = 0
         switch compressionLevel {
         case .none:
-            totSize = numPhotos * 15_000_000
-        case .low:
-            totSize = numPhotos * 6_000_000
-        case .medium:
             totSize = numPhotos * 500_000
+        case .low:
+            totSize = numPhotos * 200_000
+        case .medium:
+            totSize = numPhotos * 100_000
         case .high:
-            totSize = numPhotos * 70_000
+            totSize = numPhotos * 50_000
         case .extreme:
-            totSize = numPhotos * 12_000
+            totSize = numPhotos * 10_000
         }
         return StorageSizeLookup.formatStringSize(totSize)
     }
@@ -51,7 +47,7 @@ struct CompressionLevelSetup : View {
                 .multilineTextAlignment(.center)
             VStack {
                 HStack {
-                    Text("~12 KB / image")
+                    Text("~10 KB / image (low quality)")
                         .bold()
                     Spacer()
                     Button("Extreme") {
@@ -63,7 +59,7 @@ struct CompressionLevelSetup : View {
                     
                 }
                 HStack {
-                    Text("~70 KB / image")
+                    Text("~50 KB / image")
                         .bold()
                     Spacer()
                     Button("High") {
@@ -76,7 +72,7 @@ struct CompressionLevelSetup : View {
                         .animation(.easeIn(duration: 0.4).repeatForever(), value: pulsingScale)
                 }
                 HStack {
-                    Text("Up to 500 KB / image")
+                    Text("~100 KB / image")
                         .bold()
                     Spacer()
                     Button("Medium") {
@@ -84,11 +80,11 @@ struct CompressionLevelSetup : View {
                             compressionLevel = .medium
                         }
                     }.buttonStyle(.borderedProminent)
-                        .tint(compressionLevel == .medium ? .yellow : .blue)
+                        .tint(compressionLevel == .medium ? .orange : .blue)
                 }
                 
                 HStack {
-                    Text("Up to 6 MB / image")
+                    Text("~200 KB / image")
                         .bold()
                     Spacer()
                     Button("Low") {
@@ -100,7 +96,7 @@ struct CompressionLevelSetup : View {
                 }
                 
                 HStack {
-                    Text(">10 MB / image")
+                    Text(">300 KB / image")
                         .bold()
                     Spacer()
                     Button("None") {
@@ -108,7 +104,7 @@ struct CompressionLevelSetup : View {
                             compressionLevel = CompressionLevels.none
                         }
                     }.buttonStyle(.borderedProminent)
-                        .tint(.red)
+                        .tint(compressionLevel == .none ? .orange : .blue)
                 }
             }
             .padding()
@@ -144,7 +140,7 @@ struct PushAnimationView: View {
                 .offset(y: -arrowOffset)
                 .bold()
                 .animation(
-                    Animation.linear(duration: 0.5)
+                    Animation.linear(duration: 0.8)
                         .repeatForever(autoreverses: true),
                     value: arrowOffset
                 )
@@ -159,7 +155,7 @@ struct PushAnimationView: View {
                 .frame(width: 100, height: 25)
                 .scaleEffect(y: isCompressed ? 1.0 : 0.8, anchor: .center)
                 .animation(
-                    Animation.easeInOut(duration: 0.5)
+                    Animation.easeInOut(duration: 0.8)
                         .repeatForever(autoreverses: true),
                     value: isCompressed
                 )
@@ -172,7 +168,7 @@ struct PushAnimationView: View {
                 .offset(y: arrowOffset)
                 .bold()
                 .animation(
-                    Animation.linear(duration: 0.5)
+                    Animation.linear(duration: 0.8)
                         .repeatForever(autoreverses: true),
                     value: arrowOffset
                 )
