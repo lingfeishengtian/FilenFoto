@@ -52,30 +52,12 @@ struct PagedImageView: View {
         let _ = print(fullImageState.scale)
         GeometryReader { reader in
             Pager(page: self.page, data: photoEnvironment.lazyArray.sortedArray, id: \.self) { dbAsset in
-                
                 if dbAsset == photoEnvironment.selectedDbPhotoAsset {
-                    ViewManager(onSwipeUp: swipeUpOnImage, onSwipeDown: swipeDownOnImage)
+                    ViewManager(dbAsset: photoEnvironment.selectedDbPhotoAsset, onSwipeUp: swipeUpOnImage, onSwipeDown: swipeDownOnImage)
                     .matchedGeometryEffect(
                         id: "thumbnailImageTransition"
                         + dbAsset.localIdentifier, in: animation)
                     .frame(width: reader.size.width, height: reader.size.height)
-//                    .onChange(of: fullImageState.offset) {
-//                        if fullImageState.offset.height < -10 {
-//                            withAnimation {
-//                                fullImageState.showDetail = true
-////                                fullImageState.sheetOffset = .zero
-//                            }
-//                        } else if fullImageState.offset.height > 10 && !fullImageState.showDetail {
-//                            withAnimation {
-//                                fullImageState.showDetail = false
-////                                fullImageState.sheetOffset = .zero
-//                            }
-//                        }
-//                    }
-//                    .position(location)
-//                    .gesture(DragGesture().onChanged({ value in
-//                        location = value.location
-//                    }))
                 } else {
                     ZoomablePhoto(
                         scale: $fullImageState.scale,
@@ -84,8 +66,10 @@ struct PagedImageView: View {
                         onSwipeUp: swipeUpOnImage,
                         onSwipeDown: swipeDownOnImage,
                         image: .constant(UIImage(contentsOfFile: dbAsset.thumbnailURL.path) ?? UIImage()))
+                    .matchedGeometryEffect(
+                        id: "thumbnailImageTransition"
+                        + dbAsset.localIdentifier, in: animation)
                     .frame(width: reader.size.width, height: reader.size.height)
-//                    .offset(showDetail ? .init(width: 0, height: sheetOffset.height) : .zero)
                 }
             }
             .onPageChanged({ (newIndex) in

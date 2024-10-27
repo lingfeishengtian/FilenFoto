@@ -1,13 +1,5 @@
-//
-//  ImageCompressor.swift
-//  FilenFoto
-//
-//  Created by Hunter Han on 10/16/24.
-//
-
 import UIKit
 import UniformTypeIdentifiers
-import SwiftUI
 
 enum ImageFormat {
     case png
@@ -34,7 +26,7 @@ fileprivate func resizeLevel(for compressionLevel: CompressionLevels) -> CGSize?
     case .medium:
         return CGSizeMake(400, 400)
     case .high:
-        return CGSizeMake(350, 350)
+        return CGSizeMake(200, 200)
     case .extreme:
         return CGSizeMake(200, 200)
     }
@@ -49,14 +41,15 @@ fileprivate func compressionQuality(for compressionLevel: CompressionLevels) -> 
     case .medium:
         return 0.75
     case .high:
-        return 0.5
+        return 1.0
     case .extreme:
         return 0.0
     }
 }
 
+
 class ImageCompressor {
-    @AppStorage("compressionLevel") static var compressionLevel: CompressionLevels?
+    static let compressionLevel: CompressionLevels? = .high
     
     private static func getImageFormat(from url: URL) -> ImageFormat? {
         guard let data = try? Data(contentsOf: url), let imageSource = CGImageSourceCreateWithData(data as CFData, nil) else {
@@ -76,36 +69,32 @@ class ImageCompressor {
         }
     }
     
-    fileprivate static let imageCompressQueue = DispatchQueue(label: "com.filenfoto.imageCompressionQueue")
-    
     private static func compressImage(_ provImage: UIImage, format: ImageFormat) -> Data? {
-        return imageCompressQueue.sync {
-            var image = provImage
-            
-            guard let compressionQuality = compressionQuality(for: compressionLevel ?? .high) else {
-                return nil
-            }
-            
-            if let compressionResize = resizeLevel(for: compressionLevel ?? .high) {
-                image = image.resizeImage(image: provImage, targetSize: compressionResize)
-            }
-            
-            switch format {
-            case .png, .jpg:
-                return image.jpegData(compressionQuality: compressionQuality)
-            case .heic:
-                if #available(iOS 11.0, *) {
-                    let options: NSDictionary = [kCGImageDestinationLossyCompressionQuality: compressionQuality]
-                    let data = NSMutableData()
-                    guard let destination = CGImageDestinationCreateWithData(data as CFMutableData, UTType.heic.identifier as CFString, 1, nil) else {
-                        return nil
-                    }
-                    CGImageDestinationAddImage(destination, image.cgImage!, options)
-                    CGImageDestinationFinalize(destination)
-                    return data as Data
-                } else {
-                    return image.jpegData(compressionQuality: compressionQuality) // fallback to JPEG if HEIC isn't available
+        var image = provImage
+        
+        guard let compressionQuality = compressionQuality(for: compressionLevel ?? .high) else {
+            return nil
+        }
+        
+        if let compressionResize = resizeLevel(for: compressionLevel ?? .high) {
+            image = image.resizeImage(image: image.cropImage2(image: image, scale: 1.0), targetSize: compressionResize)
+        }
+        
+        switch format {
+        case .png, .jpg:
+            return image.jpegData(compressionQuality: compressionQuality)
+        case .heic:
+            if #available(iOS 11.0, *) {
+                let options: NSDictionary = [kCGImageDestinationLossyCompressionQuality: compressionQuality]
+                let data = NSMutableData()
+                guard let destination = CGImageDestinationCreateWithData(data as CFMutableData, UTType.heic.identifier as CFString, 1, nil) else {
+                    return nil
                 }
+                CGImageDestinationAddImage(destination, image.cgImage!, options)
+                CGImageDestinationFinalize(destination)
+                return data as Data
+            } else {
+                return image.jpegData(compressionQuality: compressionQuality) // fallback to JPEG if HEIC isn't available
             }
         }
     }
@@ -181,6 +170,21 @@ extension UIImage {
         }
 
         return nil
+    }
+    
+    func cropImage2(image: UIImage, scale: CGFloat) -> UIImage {
+        let size = min(image.size.width, image.size.height)
+        let origin = CGPoint(x: (image.size.width - size) / 2, y: (image.size.height - size) / 2)
+        let cropRect = CGRect(origin: origin, size: CGSize(width: size, height: size))
+        
+        UIGraphicsBeginImageContextWithOptions(CGSize(width: cropRect.size.width / scale, height: cropRect.size.height / scale), true, 0.0)
+        
+        image.draw(at: CGPoint(x: -cropRect.origin.x / scale, y: -cropRect.origin.y / scale))
+        
+        let croppedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return croppedImage!
     }
     
     func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {

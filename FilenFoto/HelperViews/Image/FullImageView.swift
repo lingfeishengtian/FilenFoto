@@ -6,17 +6,17 @@ import SwiftUIPager
 struct FullImageView: View {
     @EnvironmentObject var photoEnvironment: PhotoEnvironment
     @StateObject var fullImageState: FullImageViewState = FullImageViewState()
-
+    
     let animation: Namespace.ID
-
+    
     init(currentDbPhotoAsset: DBPhotoAsset, animation: Namespace.ID) {
         //        self.currentDbPhotoAsset = currentDbPhotoAsset
         self.animation = animation
     }
-
+    
     func getImageRatio() -> CGFloat {
         if let selected = photoEnvironment.selectedDbPhotoAsset,
-            let uiImage = UIImage(contentsOfFile: selected.thumbnailURL.path)
+           let uiImage = UIImage(contentsOfFile: selected.thumbnailURL.path)
         {
             // if height is greater than width
             if uiImage.size.height > uiImage.size.width {
@@ -28,10 +28,10 @@ struct FullImageView: View {
             return 1.0
         }
     }
-
+    
     func getHeightOffset(_ height: CGFloat) -> CGFloat {
         if let selected = photoEnvironment.selectedDbPhotoAsset,
-            let uiImage = UIImage(contentsOfFile: selected.thumbnailURL.path)
+           let uiImage = UIImage(contentsOfFile: selected.thumbnailURL.path)
         {
             // if height is greater than width
             if uiImage.size.height > uiImage.size.width {
@@ -43,83 +43,113 @@ struct FullImageView: View {
             return 1.0
         }
     }
-
+    
+    func getBurstImageArray() -> [DBPhotoAsset] {
+        let bImages = photoEnvironment.lazyArray.burstAssets(for: photoEnvironment.selectedDbPhotoAsset?.burstIdentifier ?? "")
+        if bImages.isEmpty {
+            fullImageState.showBurstImages = false
+        }
+        return bImages
+    }
+    
     //TODO: Add loading icon on top
     var body: some View {
         //        let selectOrCurrent = photoEnvironment.selectedDbPhotoAsset ?? currentDbPhotoAsset
-        VStack {
-            FullImageViewTopBar()
-                .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
-                .opacity(fullImageState.shouldHideBars ? 0 : 1)
-            Spacer()
-            GeometryReader { reader in
-                PagedImageView(animation: animation)
-                    .offset(
-                        fullImageState.showDetail
-                            ? .init(width: 0, height: getHeightOffset(reader.size.height)) : .zero
-                    )
-                    .scaleEffect(fullImageState.showDetail ? getImageRatio() : 1.0)
-            }
-            Spacer()
-            PhotoScrubberView(itemsToShow: 5, spacing: 10) {
-                Task {
-                    await self.fullImageState.getView(
-                        selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset)
-                }
-            }
-            .frame(height: 60)
-            .opacity(
-                fullImageState.shouldHideBars ? 0 : 1
-            )
-            .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
-            .opacity(fullImageState.shouldHideBars ? 0 : 1)
-            .disabled(fullImageState.shouldHideBars)
-            FullImageViewQuickActions()
-                .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
-                .opacity(fullImageState.shouldHideBars ? 0 : 1)
-            //                         }
-            //                 }
-            //                 .ignoresSafeArea(.all)
-        }
-        // TODO: MAKE THIS DEPEND ON SCREEN HEIGHT
-        .statusBarHidden(fullImageState.offset.height * 2 < -550)
-        .background {
-            Color.black.opacity(
-                Double(1 - (fullImageState.offset.height / fullImageState.dismissThreshold))
-            )
-            .ignoresSafeArea(.all)
-            .allowsHitTesting(photoEnvironment.shouldShowFullImageView)
-        }
-        .ignoresSafeArea(fullImageState.shouldHideBars ? .all : .keyboard)
-        .sheet(
-            isPresented: .constant(fullImageState.showDetail),
-            onDismiss: {
-                withAnimation {
-                    fullImageState.showDetail = false
-                }
-            }
-        ) {
-            GeometryReader { reader in
+        ZStack {
+            if fullImageState.showBurstImages {
                 VStack {
-                    PhotoDetails(animation: animation)
-                }.environmentObject(fullImageState)
-
-            }.presentationDetents([.medium])
-        }
-        .onAppear {
-            Task {
-                await fullImageState.getView(
-                    selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset)
+                    HStack {
+                        Spacer()
+                        Button {
+                            withAnimation {
+                                fullImageState.showBurstImages = false
+                            }
+                        } label: {
+                            IconView(size: .small, iconSystemName: "xmark")
+                        }
+                    }.padding([.leading, .trailing], 30)
+                    BurstPageView(matchedAnimationLocalIdentifier: photoEnvironment.selectedDbPhotoAsset!.localIdentifier, animation: animation, dbPhotoAssets: getBurstImageArray())
+                }
+                .background {
+                    Color.black.opacity(
+                        Double(1)
+                    ).ignoresSafeArea(.all)
+                }
+            } else {
+                VStack {
+                    FullImageViewTopBar()
+                        .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
+                        .opacity(fullImageState.shouldHideBars ? 0 : 1)
+                    Spacer()
+                    GeometryReader { reader in
+                        PagedImageView(animation: animation)
+                            .offset(
+                                fullImageState.showDetail
+                                ? .init(width: 0, height: getHeightOffset(reader.size.height)) : .zero
+                            )
+                            .scaleEffect(fullImageState.showDetail ? getImageRatio() : 1.0)
+                    }
+                    Spacer()
+                    PhotoScrubberView(itemsToShow: 5, spacing: 10) {
+                        Task {
+                            await self.fullImageState.getView(
+                                selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset)
+                        }
+                    }
+                    .frame(height: 60)
+                    .opacity(
+                        fullImageState.shouldHideBars ? 0 : 1
+                    )
+                    .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
+                    .opacity(fullImageState.shouldHideBars ? 0 : 1)
+                    .disabled(fullImageState.shouldHideBars)
+                    FullImageViewQuickActions()
+                        .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
+                        .opacity(fullImageState.shouldHideBars ? 0 : 1)
+                    //                         }
+                    //                 }
+                    //                 .ignoresSafeArea(.all)
+                }
+                // TODO: MAKE THIS DEPEND ON SCREEN HEIGHT
+                .statusBarHidden(fullImageState.offset.height * 2 < -550)
+                .background {
+                    Color.black.opacity(
+                        Double(1 - (fullImageState.offset.height / fullImageState.dismissThreshold))
+                    )
+                    .ignoresSafeArea(.all)
+                    .allowsHitTesting(photoEnvironment.shouldShowFullImageView)
+                }
+                .ignoresSafeArea(fullImageState.shouldHideBars ? .all : .keyboard)
+                .sheet(
+                    isPresented: .constant(fullImageState.showDetail),
+                    onDismiss: {
+                        withAnimation {
+                            fullImageState.showDetail = false
+                        }
+                    }
+                ) {
+                    GeometryReader { reader in
+                        VStack {
+                            PhotoDetails(animation: animation)
+                        }.environmentObject(fullImageState)
+                        
+                    }.presentationDetents([.medium])
+                }
+                .onAppear {
+                    Task {
+                        await fullImageState.getView(
+                            selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset)
+                    }
+                }
             }
-        }
-        .environmentObject(fullImageState)
+        }.environmentObject(fullImageState)
     }
 }
 
 struct PhotoDetails: View {
     @EnvironmentObject var photoEnvironment: PhotoEnvironment
     @EnvironmentObject var fullImageState: FullImageViewState
-
+    
     fileprivate let fullDateTimeFormatter: Date.FormatStyle = {
         Date.FormatStyle()
             .year(.defaultDigits)
@@ -133,12 +163,12 @@ struct PhotoDetails: View {
             .weekday(.wide)
             .locale(Locale(identifier: "ja_JP"))
     }()
-
+    
     let animation: Namespace.ID
-
+    
     func generateTagsFromMediaSubtype() -> [String] {
         var includedSubtypes = [String]()
-
+        
         if let subTypes = photoEnvironment.selectedDbPhotoAsset?.mediaSubtype {
             for s in subTypes.includedTypes {
                 switch s.0 {
@@ -157,14 +187,14 @@ struct PhotoDetails: View {
                 }
             }
         }
-
+        
         return includedSubtypes
     }
-
+    
     var isMediaImage: Bool {
         photoEnvironment.selectedDbPhotoAsset?.mediaType == .image
     }
-
+    
     var body: some View {
         VStack {
             List {
@@ -204,9 +234,9 @@ struct PhotoDetails: View {
                             "Last modified: \(photoEnvironment.selectedDbPhotoAsset?.modificationDate.formatted(fullDateTimeFormatter) ?? "")"
                         )
                     } icon: {
-
+                        
                     }
-
+                    
                     if let location = photoEnvironment.selectedDbPhotoAsset?.location {
                         MapView(location: location)
                             .frame(height: 200)
@@ -224,9 +254,9 @@ struct PhotoDetails: View {
 
 struct MapView: View {
     var location: CLLocation
-
+    
     @State private var region: MKCoordinateRegion
-
+    
     init(location: CLLocation) {
         self.location = location
         _region = State(
@@ -235,7 +265,7 @@ struct MapView: View {
                 span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
             ))
     }
-
+    
     var body: some View {
         Map(coordinateRegion: $region, interactionModes: .pitch, annotationItems: [location]) { location in
             MapAnnotation(coordinate: location.coordinate) {
@@ -259,30 +289,30 @@ extension CLLocation: Identifiable {
     }
 }
 
-#Preview {
-    @Previewable @Namespace var animation
-    let photoEnviornment = PhotoEnvironment()
-    let dbPhotoAsset: DBPhotoAsset = .init(
-        id: -1, localIdentifier: "testImage", mediaType: .image, mediaSubtype: .photoHDR,
-        creationDate: Date.now - 1_000_000, modificationDate: Date.now,
-        location: CLLocation(latitude: 0, longitude: 0), favorited: false, hidden: false,
-        thumbnailFileName: "meow.jpg")
-    photoEnviornment.lazyArray.insert(
-        dbPhotoAsset
-    )
-    photoEnviornment.selectedDbPhotoAsset = dbPhotoAsset
-    //    return FullImageView(currentDbPhotoAsset: dbPhotoAsset, animation: animation)
-    //        .environmentObject(photoEnviornment)
-    return FullImageView(currentDbPhotoAsset: dbPhotoAsset, animation: animation)
-        .environmentObject(photoEnviornment)
-}
+//#Preview {
+//    @Previewable @Namespace var animation
+//    let photoEnviornment = PhotoEnvironment()
+//    let dbPhotoAsset: DBPhotoAsset = .init(
+//        id: -1, localIdentifier: "testImage", mediaType: .image, mediaSubtype: .photoHDR,
+//        creationDate: Date.now - 1_000_000, modificationDate: Date.now,
+//        location: CLLocation(latitude: 0, longitude: 0), favorited: false, hidden: false,
+//        thumbnailFileName: "meow.jpg")
+//    photoEnviornment.lazyArray.insert(
+//        dbPhotoAsset
+//    )
+//    photoEnviornment.selectedDbPhotoAsset = dbPhotoAsset
+//    //    return FullImageView(currentDbPhotoAsset: dbPhotoAsset, animation: animation)
+//    //        .environmentObject(photoEnviornment)
+//    return FullImageView(currentDbPhotoAsset: dbPhotoAsset, animation: animation)
+//        .environmentObject(photoEnviornment)
+//}
 
 private let formatter: RelativeDateTimeFormatter = {
     let rdtf = RelativeDateTimeFormatter()
-
+    
     rdtf.unitsStyle = .full
     rdtf.locale = Locale(identifier: "ja_JP")
-
+    
     return rdtf
 }()
 
@@ -324,7 +354,7 @@ struct FullImageViewTopBar: View {
         
         return timeFormatter.string(from: date)
     }
-
+    
     var body: some View {
         HStack {
             VStack {
@@ -358,34 +388,10 @@ struct FullImageViewTopBar: View {
 struct FullImageViewQuickActions: View {
     @EnvironmentObject var photoEnvironment: PhotoEnvironment
     @EnvironmentObject var fullImageState: FullImageViewState
-
+    
     @State private var showDeleteAlert: Bool = false
-
+    
     var body: some View {
-//        HStack {
-//            if let assetFileUrl = fullImageState.assetFileUrl {
-//                ShareLink(item: assetFileUrl) {
-//                    IconView(size: .medium, iconSystemName: "square.and.arrow.up")
-//                }
-//            } else {
-//                IconView(size: .medium, iconSystemName: "square.and.arrow.up")
-//                    .disabled(fullImageState.assetFileUrl == nil)
-//            }
-//            Spacer()
-//            Button {
-//                withAnimation {
-//                    fullImageState.showDetail = true
-//                }
-//            } label: {
-//                IconView(size: .medium, iconSystemName: "info.circle")
-//            }
-//            Spacer()
-//            Button {
-//                showDeleteAlert = true
-//            } label: {
-//                IconView(size: .medium, iconSystemName: "trash")
-//            }
-//        }
         HStack {
             if let assetFileUrl = fullImageState.assetFileUrl {
                 ShareLink(item: assetFileUrl) {
@@ -422,6 +428,15 @@ struct FullImageViewQuickActions: View {
                 }
                 //                            .padding(.horizontal)
                 //                        Image(systemName: "slider.horizontal.3")
+                if let isBurst = photoEnvironment.selectedDbPhotoAsset?.isBurst, isBurst {
+                    Button {
+                        withAnimation {
+                            fullImageState.showBurstImages = true
+                        }
+                    } label: {
+                        Image(systemName: "laser.burst")
+                    }.padding([.leading])
+                }
             }
             .padding(10)
             .padding(.horizontal, 5)
@@ -436,14 +451,14 @@ struct FullImageViewQuickActions: View {
                 .clipShape(Circle())
         }
         .padding()
-            .padding(.horizontal, 10)
-            .confirmationDialog("Trash Item", isPresented: $showDeleteAlert) {
-                Button("Confirm (this does nothing rn)", role: .destructive) {
-
-                }
-                Button("Cancel", role: .cancel) {
-
-                }
+        .padding(.horizontal, 10)
+        .confirmationDialog("Trash Item", isPresented: $showDeleteAlert) {
+            Button("Confirm (this does nothing rn)", role: .destructive) {
+                
             }
+            Button("Cancel", role: .cancel) {
+                
+            }
+        }
     }
 }

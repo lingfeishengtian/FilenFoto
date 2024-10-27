@@ -162,7 +162,7 @@ class SyncProgressInfo : ObservableObject {
 
 class PhotoVisionDatabaseManager {
     static let shared = PhotoVisionDatabaseManager()
-    static let maxConcurrentTasks: Int = 4
+    static let maxConcurrentTasks: Int = 3
     private var cancelOperation: Bool = false
     
     private init() {}
@@ -190,7 +190,7 @@ class PhotoVisionDatabaseManager {
         return allPhotos.count
     }
     
-    public func startSync(onComplete: @escaping () -> Void = {}, existingSync: SyncProgressInfo? = nil) -> SyncProgressInfo {
+    public func startSync(onComplete: @escaping () -> Void = {}, onNewDatabasePhotoAdded: @escaping (DBPhotoAsset) -> Void, existingSync: SyncProgressInfo? = nil) -> SyncProgressInfo {
         cleanTmpDirectory()
         let progressInfo = existingSync ?? SyncProgressInfo()
         progressInfo.reset()
@@ -237,7 +237,7 @@ class PhotoVisionDatabaseManager {
                     let curInd = index
                     index += 1
                     group.addTask {
-                        await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo)
+                        await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
                     }
                 }
                 while let _ = await group.next() {
@@ -249,7 +249,7 @@ class PhotoVisionDatabaseManager {
                         index += 1
                         
                         group.addTask {
-                            await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo)
+                            await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
                         }
                     } else {
                         self.cancelOperation = false
@@ -261,11 +261,13 @@ class PhotoVisionDatabaseManager {
         return progressInfo
     }
     
-    private func initiateAssetUploadAndVisionTasks(_ asset: PHAsset, progressInfo: SyncProgressInfo) async {
+    private func initiateAssetUploadAndVisionTasks(_ asset: PHAsset, progressInfo: SyncProgressInfo, onNewDatabasePhotoAdded: @escaping (DBPhotoAsset) -> Void) async {
         do {
             progressInfo.addImage(phAsset: asset)
             try await self.fetchAndSyncAssetsFor(asset) { prog, status in
                 progressInfo.updateImageProgress(progress: prog, message: status, phAsset: asset)
+            } onNewDBPhotoInserted: { dbPhoto in
+                onNewDatabasePhotoAdded(dbPhoto)
             }
         } catch {
             self.logger.error("Failure while fetching and syncing asset: \(error.localizedDescription)")
@@ -288,7 +290,7 @@ class PhotoVisionDatabaseManager {
             self.logger.info("Progress: \(progress) for asset \(asset.localIdentifier)")
         }
         
-        var assetResources = PHAssetResource.assetResources(for: asset)
+        let assetResources = PHAssetResource.assetResources(for: asset)
         let resources = await withTaskGroup(of: (FilenEquivelentAsset)?.self) { group in
             var collected = [FilenEquivelentAsset]()
             for assetResource in assetResources {
@@ -459,7 +461,7 @@ class PhotoVisionDatabaseManager {
         
     }
     
-    private func fetchAndSyncAssetsFor(_ asset: PHAsset, updateProgressOfCurrentFile: @escaping (Double, String) -> Void) async throws {
+    private func fetchAndSyncAssetsFor(_ asset: PHAsset, updateProgressOfCurrentFile: @escaping (Double, String) -> Void, onNewDBPhotoInserted: @escaping (DBPhotoAsset) -> Void) async throws {
         if PhotoDatabase.shared.doesPhotoExist(asset) {
             logger.info("\(asset.localIdentifier) already exists in database. Skipping...")
             updateProgressOfCurrentFile(1.0, "Image already exists, skipping...")
@@ -525,9 +527,10 @@ class PhotoVisionDatabaseManager {
         case .failed:
             logger.error("Failed to insert into database")
             updateProgressOfCurrentFile(1.0, "Failure! This isn't supposed to happen")
-        case .success:
+        case .success(let dbPhoto):
             logger.info("Inserted photo into database")
             updateProgressOfCurrentFile(1.0, "Finished inserting into database")
+            onNewDBPhotoInserted(dbPhoto)
         }
     }
 }

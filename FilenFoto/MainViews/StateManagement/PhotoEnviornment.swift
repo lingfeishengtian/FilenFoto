@@ -27,7 +27,7 @@ class PhotoEnvironment: SyncProgressInfo {
     @Published var selectedDbPhotoAsset: DBPhotoAsset? = nil
     @Published var scrolledToSelect: DBPhotoAsset? = nil
     private var stream: RowIterator?
-    @Published var lazyArray = SortedArray<DBPhotoAsset>()
+    @Published var lazyArray = SortedArray()
     private let pollingLimit: Int
     private var isSearching = false
     @Published var searchHistoryCache: [String]
@@ -72,7 +72,7 @@ class PhotoEnvironment: SyncProgressInfo {
     /// Database always returns values sorted by creation date, which should allow us to poll n amount of times without worrying about things being out of order.
     func searchStream(searchQuery: String) {
         isSearching = true
-//        lazyArray.removeAll()
+        lazyArray.removeAll()
         Task {
             lastTask?.cancel()
             stream = PhotoDatabase.shared.searchForText(textSearch: searchQuery)
@@ -89,23 +89,25 @@ class PhotoEnvironment: SyncProgressInfo {
             }
             print("Call to add", PhotoDatabase.shared.getCountOfPhotos(), lazyArray.sortedArray.count)
             var pollLimit = pollingLimit
-            var toInsert: [DBPhotoAsset] = []
+//            var toInsert: [DBPhotoAsset] = []
             while pollLimit > 0 {
                 if let asset = next() {
-                    if (self.lazyArray.doesExist(asset) && !reset) || toInsert.firstIndex(of: asset) != nil {
+                    if (self.lazyArray.doesExist(asset) && !reset) || lazyArray.doesExist(asset) {
                     } else {
-                        toInsert.append(asset)
+                        DispatchQueue.main.async {
+                            self.lazyArray.insert(asset)
+                        }
                         pollLimit -= 1
                     }
-                } else if (PhotoDatabase.shared.getCountOfPhotos() > (lazyArray.sortedArray.count + toInsert.count) && !isSearching) {
+                } else if (PhotoDatabase.shared.getCountOfPhotos() > (lazyArray.sortedArray.count + lazyArray.sortedArray.count) && !isSearching) {
                     self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
                 } else {
                     break
                 }
             }
-            DispatchQueue.main.async { [toInsert] in
-                self.lazyArray.insertAll(toInsert, resetting: reset)
-            }
+//            DispatchQueue.main.async { [toInsert] in
+//                self.lazyArray.insertAll(toInsert, resetting: reset)
+//            }
         })
     }
     
@@ -129,7 +131,9 @@ class PhotoEnvironment: SyncProgressInfo {
                     location: loc,
                     favorited: try n.get(favorited),
                     hidden: try n.get(hidden),
-                    thumbnailFileName: try n.get(thumbnailName)
+                    thumbnailFileName: try n.get(thumbnailName),
+                    burstIdentifier: try n.get(burstIdentifier),
+                    burstSelectionTypes: PHAssetBurstSelectionType(rawValue: UInt(try n.get(burstSelectionTypes)))
 //                    thumbnailCacheName: try n.get(thumbnailCacheName)
                 )
             } else {

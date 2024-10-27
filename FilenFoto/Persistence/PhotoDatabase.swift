@@ -34,9 +34,13 @@ struct DBPhotoAsset : Comparable, Hashable {
     
 #if DEBUG
     func setId(_ idLocalID: String) -> DBPhotoAsset {
-        return DBPhotoAsset(id: id, localIdentifier: idLocalID, mediaType: mediaType, mediaSubtype: mediaSubtype, creationDate: Date.now - 9999999999999 - TimeInterval(Int(idLocalID) ?? 0), modificationDate: modificationDate, location: location, favorited: favorited, hidden: hidden, thumbnailFileName: thumbnailFileName)
+        return DBPhotoAsset(id: id, localIdentifier: idLocalID, mediaType: mediaType, mediaSubtype: mediaSubtype, creationDate: Date.now - 9999999999999 - TimeInterval(Int(idLocalID) ?? 0), modificationDate: modificationDate, location: location, favorited: favorited, hidden: hidden, thumbnailFileName: thumbnailFileName, burstIdentifier: burstIdentifier, burstSelectionTypes: burstSelectionTypes)
     }
 #endif
+    
+    var isBurst: Bool {
+        burstIdentifier != nil
+    }
     
     let id: Int64
     let localIdentifier: String
@@ -48,7 +52,8 @@ struct DBPhotoAsset : Comparable, Hashable {
     let favorited: Bool
     let hidden: Bool
     let thumbnailFileName: String
-//    let thumbnailCacheName: String?
+    let burstIdentifier: String?
+    let burstSelectionTypes: PHAssetBurstSelectionType
 }
 
 
@@ -66,7 +71,8 @@ let locationLatitudeColumn = Expression<Double?>("locationLatitude")
 let completedAnalysis = Expression<Bool>("completedAnalysis")
 let favorited = Expression<Bool>("favorited")
 let hidden = Expression<Bool>("hidden")
-let isBurst = Expression<Bool>("isBurst")
+let burstIdentifier = Expression<String?>("burstIdentifier")
+let burstSelectionTypes = Expression<Int64>("burstSelectionTypes")
 let thumbnailName = Expression<String>("thumbnailLocation")
 let thumbnailCacheId = Expression<Int64?>("thumbnailCacheId")
 
@@ -87,62 +93,60 @@ let confidenceColumn = Expression<Double>("confidence")
 let recognizedTextTable = Table("recognizedText")
 let textColumn = Expression<String>("text")
 
-struct SortedArray<T: Comparable> {
-    private var array: Array<T> = []
+struct SortedArray {
+    private var array: Array<DBPhotoAsset> = []
+    private var burstAssetDBPhotoAssets: [String:Set<DBPhotoAsset>] = [:]
 
     // Access to the sorted array
-    var sortedArray: [T] {
+    var sortedArray: [DBPhotoAsset] {
         return array
+    }
+    
+    func burstAssets(for burstId: String) -> [DBPhotoAsset] {
+        return burstAssetDBPhotoAssets[burstId]?.sorted() ?? []
     }
     
     mutating func removeAll() {
         array.removeAll()
     }
     
-    func binSearch(_ element: T) -> Int {
+    func binSearch(_ element: DBPhotoAsset) -> Int {
         return array.binarySearch(predicate: { $0 > element})
     }
     
-    func doesExist(_ element: T) -> Bool {
+    func doesExist(_ element: DBPhotoAsset) -> Bool {
+        if let burstId = element.burstIdentifier {
+            return (burstAssetDBPhotoAssets[burstId]?.firstIndex(of: element) != nil)
+        }
         let binSearchedResult = array.binarySearch(predicate: { $0 > element})
         if array.count > 0 && binSearchedResult < array.count && array[binSearchedResult] == element {
             return true
         }
         return false
     }
-    
-    mutating func insertAll(_ elements: [T], resetting: Bool = false) {
-        var tmpArr = resetting ? [] : array
-        
-        func insertIntoArr(_ element: T, _ arr: inout [T]) {
-            let binSearchedResult = arr.binarySearch(predicate: { $0 > element})
-            if arr.count > 0 && binSearchedResult < arr.count && arr[binSearchedResult] == element {
-                return
-            }
-            
-            arr.insert(element, at: binSearchedResult)
-        }
-        
-        for element in elements {
-            insertIntoArr(element, &tmpArr)
-        }
-        
-        array = tmpArr
-    }
 
     // O(lg n)
     // Insert new element and keep array sorted
-    mutating func insert(_ element: T) {
+    mutating func insert(_ element: DBPhotoAsset) {
         let binSearchedResult = array.binarySearch(predicate: { $0 > element})
         if array.count > 0 && binSearchedResult < array.count && array[binSearchedResult] == element {
             return
         }
         
-//#if DEBUG
-//        if binSearchedResult != array.count {
-//            fatalError("Not supposed to insert in between")
-//        }
-//#endif
+        if let burstId = element.burstIdentifier {
+            if burstAssetDBPhotoAssets[burstId] == nil {
+                burstAssetDBPhotoAssets[burstId] = [element]
+            } else {
+                burstAssetDBPhotoAssets[burstId]?.insert(element)
+                return
+            }
+        }
+        
+        //#if DEBUG
+        //        if binSearchedResult != array.count {
+        //            fatalError("Not supposed to insert in between")
+        //        }
+        //#endif
         
 //#if DEBUG
 //        if array.contains(where: { ($0 as! DBPhotoAsset).localIdentifier == (element as! DBPhotoAsset).localIdentifier}) {
@@ -201,7 +205,8 @@ class PhotoDatabase {
             t.column(locationLatitudeColumn)
             t.column(favorited)
             t.column(hidden)
-            t.column(isBurst)
+            t.column(burstIdentifier)
+            t.column(burstSelectionTypes)
             t.column(thumbnailName)
             t.column(thumbnailCacheId)
 //            t.column(thumbnailCacheName)
@@ -321,7 +326,8 @@ class PhotoDatabase {
                                             locationLatitudeColumn <- locationLat,
                                             favorited <- asset.isFavorite,
                                             hidden <- asset.isHidden,
-                                            isBurst <- asset.representsBurst,
+                                            burstIdentifier <- asset.burstIdentifier,
+                                            burstSelectionTypes <- Int64(asset.burstSelectionTypes.rawValue),
                                             thumbnailName <- thumbnailLocation.lastPathComponent)
         
         let id = try? databaseConnection?.run(insert)
@@ -384,7 +390,20 @@ class PhotoDatabase {
             let update = query.update(completedAnalysis <- true, thumbnailCacheId <- storedThumbnailCacheId)
             let _ = try? databaseConnection?.run(update)
 
-            return .success
+            return .success(DBPhotoAsset(
+                id: id,
+                localIdentifier: asset.localIdentifier,
+                mediaType: asset.mediaType,
+                mediaSubtype: asset.mediaSubtypes,
+                creationDate: creationDate,
+                modificationDate: modificationDate,
+                location: asset.location,
+                favorited: asset.isFavorite,
+                hidden: asset.isHidden,
+                thumbnailFileName: thumbnailLocation.lastPathComponent,
+                burstIdentifier: asset.burstIdentifier,
+                burstSelectionTypes: asset.burstSelectionTypes)
+            )
         }
         return .failed
     }
@@ -447,7 +466,7 @@ class PhotoDatabase {
     }
     
     enum InsertPhotoResult {
-        case success
+        case success(DBPhotoAsset)
         case exists
         case failed
     }

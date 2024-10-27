@@ -119,6 +119,7 @@ struct ZoomableLivePhoto: ZoomablePannableViewContent {
         guard let view = uiView.subviews.first as? PHLivePhotoView else { return }
         if livePhoto != view.livePhoto {
             view.livePhoto = livePhoto
+            view.startPlayback(with: .hint)
         }
     }
 

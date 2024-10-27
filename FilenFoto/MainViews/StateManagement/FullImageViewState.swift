@@ -103,6 +103,8 @@ class FullImageViewState: ObservableObject {
     @Published var showDetail: Bool = false
     @Published var imageViewGeneration: ImageViewGenerationData = .init()
     
+    @Published var showBurstImages: Bool = false
+    
     var assetFileUrl: URL?
     
     var hasUserStoppedScrolling: Bool {

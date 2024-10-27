@@ -27,7 +27,7 @@ struct CompressionLevelSetup : View {
         case .medium:
             totSize = numPhotos * 100_000
         case .high:
-            totSize = numPhotos * 50_000
+            totSize = numPhotos * 75_000
         case .extreme:
             totSize = numPhotos * 10_000
         }
@@ -42,9 +42,10 @@ struct CompressionLevelSetup : View {
                 .bold()
                 .multilineTextAlignment(.center)
                 .padding()
-            Text("To conserve storage, please choose an appropriate compression level.")
+            Text("To conserve storage, please choose an appropriate compression level. High and extreme compression my result in better app performance.")
                 .font(.headline)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal)
             VStack {
                 HStack {
                     Text("~10 KB / image (low quality)")
@@ -59,7 +60,7 @@ struct CompressionLevelSetup : View {
                     
                 }
                 HStack {
-                    Text("~50 KB / image")
+                    Text("~75 KB / image")
                         .bold()
                     Spacer()
                     Button("High") {

@@ -12,11 +12,13 @@ import AVKit
 struct ViewManager: View {
     @EnvironmentObject var photoEnviorment: PhotoEnvironment
     @EnvironmentObject var fullImageState: FullImageViewState
+    var dbAsset: DBPhotoAsset?
         
     let onSwipeUp: (() -> Void)
     let onSwipeDown: (() -> Void)
         
-    init(onSwipeUp: @escaping () -> Void = {}, onSwipeDown: @escaping () -> Void = {}) {
+    init(dbAsset: DBPhotoAsset?, onSwipeUp: @escaping () -> Void = {}, onSwipeDown: @escaping () -> Void = {}) {
+        self.dbAsset = dbAsset
         self.onSwipeUp = onSwipeUp
         self.onSwipeDown = onSwipeDown
     }
@@ -24,7 +26,7 @@ struct ViewManager: View {
     var body: some View {
         return (
             fullImageState.imageViewGeneration.generateView(
-                dbPhotoAsset: photoEnviorment.selectedDbPhotoAsset,
+                dbPhotoAsset: dbAsset,
                 scale: $fullImageState.scale,
                 offset: $fullImageState.offset,
                 scrolling: $fullImageState.scrolling,
@@ -40,7 +42,7 @@ struct ViewManager: View {
                                      //            .aspectRatio(contentMode: .fit)
                                      //            .scaledToFit()
                 .overlay {
-                    if !fullImageState.imageViewGeneration.isLoaded(dbPhotoAsset: photoEnviorment.selectedDbPhotoAsset) {
+                    if !fullImageState.imageViewGeneration.isLoaded(dbPhotoAsset: dbAsset) {
                         Color.black.opacity(0.5)
                             .edgesIgnoringSafeArea(.all)
                             .overlay(

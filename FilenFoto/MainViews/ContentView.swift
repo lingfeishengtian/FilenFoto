@@ -20,6 +20,36 @@ struct ContentView: View {
     @FocusState var keyboardFocus: Bool
     @State private var fanOut = false
     
+    func initiateSyncTask() {
+        Task {
+#if DEBUG
+            //                    if let isPrev = ProcessInfo.processInfo.environment[
+            //                        "XCODE_RUNNING_FOR_PREVIEWS"], isPrev == "1"
+            //                    {
+            //                        photoEnvironment.progress = 1.0
+            //                        let dbPhotoAsset: DBPhotoAsset = .init(
+            //                            id: -1, localIdentifier: "testImage", mediaType: .image,
+            //                            mediaSubtype: .photoHDR,
+            //                            creationDate: Date.now - 1_000_000, modificationDate: Date.now,
+            //                            location: CLLocation(latitude: 0, longitude: 0), favorited: false,
+            //                            hidden: false,
+            //                            thumbnailFileName: "meow.jpg")
+            //                        photoEnvironment.lazyArray.insert(
+            //                            dbPhotoAsset
+            //                        )
+            //                        photoEnvironment.selectedDbPhotoAsset = dbPhotoAsset
+            //                    }
+#endif
+            await photoEnvironment.addMoreToLazyArray()
+            DispatchQueue.main.async {
+                let _ = PhotoVisionDatabaseManager.shared.startSync(
+                    onNewDatabasePhotoAdded:  { dbPhoto in
+                        self.photoEnvironment.lazyArray.insert(dbPhoto)
+                    }, existingSync: photoEnvironment)
+            }
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -56,8 +86,7 @@ struct ContentView: View {
                             VStack {
                                 Menu {
                                     Button(action: {
-                                        let _ = PhotoVisionDatabaseManager.shared.startSync(
-                                            existingSync: photoEnvironment)
+                                        initiateSyncTask()
                                     }) {
                                         Label("Refresh", systemImage: "arrow.clockwise")
                                     }.disabled(photoEnvironment.progress < 0.99)
@@ -145,6 +174,48 @@ struct ContentView: View {
                 VStack {
                     ScrollViewReader { value in
                         ScrollView {
+                            
+                            VStack {
+                                if photoEnvironment.progress < 0.99 {
+                                    VStack {
+                                        Text("Sync Progress")
+                                            .font(.title2)
+                                            .bold()
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .padding()
+                                            .padding(.horizontal)
+                                        HStack {
+                                            ProgressView(value: photoEnvironment.progress)
+                                                .padding([.leading])
+                                            if photoEnvironment.getTotalProgress().totalImages > 0 {
+                                                Text(
+                                                    "\(photoEnvironment.getTotalProgress().completedImages)/\(photoEnvironment.getTotalProgress().totalImages)"
+                                                )
+                                            }
+                                            Menu {
+                                                ForEach(
+                                                    photoEnvironment.getLastChanged(), id: \.phAsset.localIdentifier
+                                                ) { progIndicator in
+                                                    HStack {
+                                                        Label(
+                                                            progIndicator.internalMessage,
+                                                            systemImage: progIndicator.phAsset.mediaType == .image
+                                                            ? "photo" : "video")
+                                                    }
+                                                }
+                                            } label: {
+                                                Image(systemName: "info.circle.fill")
+                                            }
+                                            .padding([.trailing])
+                                        }.padding([.leading, .trailing, .bottom])
+                                    }.background {
+                                        Color.black
+                                            .ignoresSafeArea(.all)
+                                    }
+                                    Spacer()
+                                }
+                            }
+                            .animation(.bouncy, value: photoEnvironment.progress)
                             if !photoEnvironment.lazyArray.sortedArray.isEmpty {
                                 LazyVGrid(
                                     columns: [
@@ -163,6 +234,11 @@ struct ContentView: View {
                                         .contentShape(Rectangle())
                                         .aspectRatio(1, contentMode: .fit)
                                         .clipped()
+                                        .overlay (alignment: .topLeading) {
+                                            if dbPhotoAsset.isBurst {
+                                                Image(systemName: "laser.burst")
+                                            }
+                                        }
                                         .opacity(
                                             (photoEnvironment.selectedDbPhotoAsset == dbPhotoAsset && photoEnvironment.shouldShowFullImageView == true)
                                             ? 0 : 1
@@ -221,84 +297,14 @@ struct ContentView: View {
                 
             }
             .onAppear {
-                photoEnvironment.setOnComplete {
-                    Task {
-                        await photoEnvironment.addMoreToLazyArray()
-                    }
-                }
-                Task {
-#if DEBUG
-                    if let isPrev = ProcessInfo.processInfo.environment[
-                        "XCODE_RUNNING_FOR_PREVIEWS"], isPrev == "1"
-                    {
-                        photoEnvironment.progress = 1.0
-                        let dbPhotoAsset: DBPhotoAsset = .init(
-                            id: -1, localIdentifier: "testImage", mediaType: .image,
-                            mediaSubtype: .photoHDR,
-                            creationDate: Date.now - 1_000_000, modificationDate: Date.now,
-                            location: CLLocation(latitude: 0, longitude: 0), favorited: false,
-                            hidden: false,
-                            thumbnailFileName: "meow.jpg")
-                        photoEnvironment.lazyArray.insert(
-                            dbPhotoAsset
-                        )
-                        photoEnvironment.selectedDbPhotoAsset = dbPhotoAsset
-                    } else {
-                        await photoEnvironment.addMoreToLazyArray()
-                        let _ = PhotoVisionDatabaseManager.shared.startSync(
-                            existingSync: photoEnvironment)
-                    }
-#else
-                    await photoEnvironment.addMoreToLazyArray()
-                    let _ = PhotoVisionDatabaseManager.shared.startSync(
-                        existingSync: photoEnvironment)
-#endif
-                }
+                //                photoEnvironment.setOnComplete {
+                //                    Task {
+                //                        await photoEnvironment.addMoreToLazyArray()
+                //                    }
+                //                }
+                initiateSyncTask()
             }
             .environmentObject(photoEnvironment)
-            .overlay {
-                VStack {
-                    if photoEnvironment.progress < 0.99 {
-                        VStack {
-                            Text("Sync Progress")
-                                .font(.title2)
-                                .bold()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding()
-                                .padding(.horizontal)
-                            HStack {
-                                ProgressView(value: photoEnvironment.progress)
-                                    .padding([.leading])
-                                if photoEnvironment.getTotalProgress().totalImages > 0 {
-                                    Text(
-                                        "\(photoEnvironment.getTotalProgress().completedImages)/\(photoEnvironment.getTotalProgress().totalImages)"
-                                    )
-                                }
-                                Menu {
-                                    ForEach(
-                                        photoEnvironment.getLastChanged(), id: \.phAsset.localIdentifier
-                                    ) { progIndicator in
-                                        HStack {
-                                            Label(
-                                                progIndicator.internalMessage,
-                                                systemImage: progIndicator.phAsset.mediaType == .image
-                                                ? "photo" : "video")
-                                        }
-                                    }
-                                } label: {
-                                    Image(systemName: "info.circle.fill")
-                                }
-                                .padding([.trailing])
-                            }.padding([.leading, .trailing, .bottom])
-                        }.background {
-                            Color.black
-                                .ignoresSafeArea(.all)
-                        }
-                        Spacer()
-                    }
-                }
-                .animation(.bouncy, value: photoEnvironment.progress)
-            }
             .overlay {
                 if photoEnvironment.shouldShowFullImageView {
                     //                ZoomablePhoto(scale: .constant(1.0), offset: .constant(.init(width: 0, height: 0)), onSwipeUp: {}, onSwipeDown: {}, image: .constant(UIImage(named: "IMG_3284")!))
