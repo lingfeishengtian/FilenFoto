@@ -22,6 +22,8 @@ struct FilenFotoApp: App {
         
     var body: some Scene {
         WindowGroup {
+            
+//            SwiftMatchExampleWrapper()
             if isLoggedIn && hasPhotoFolder && compressionLevel != nil {
                 ContentView()
             } else if isLoggedIn {

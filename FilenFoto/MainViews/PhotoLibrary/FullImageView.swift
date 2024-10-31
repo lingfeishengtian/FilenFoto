@@ -9,7 +9,7 @@ struct FullImageView: View {
     
     let animation: Namespace.ID
     
-    init(currentDbPhotoAsset: DBPhotoAsset, animation: Namespace.ID) {
+    init(animation: Namespace.ID) {
         //        self.currentDbPhotoAsset = currentDbPhotoAsset
         self.animation = animation
     }
@@ -288,24 +288,6 @@ extension CLLocation: Identifiable {
         self
     }
 }
-
-//#Preview {
-//    @Previewable @Namespace var animation
-//    let photoEnviornment = PhotoEnvironment()
-//    let dbPhotoAsset: DBPhotoAsset = .init(
-//        id: -1, localIdentifier: "testImage", mediaType: .image, mediaSubtype: .photoHDR,
-//        creationDate: Date.now - 1_000_000, modificationDate: Date.now,
-//        location: CLLocation(latitude: 0, longitude: 0), favorited: false, hidden: false,
-//        thumbnailFileName: "meow.jpg")
-//    photoEnviornment.lazyArray.insert(
-//        dbPhotoAsset
-//    )
-//    photoEnviornment.selectedDbPhotoAsset = dbPhotoAsset
-//    //    return FullImageView(currentDbPhotoAsset: dbPhotoAsset, animation: animation)
-//    //        .environmentObject(photoEnviornment)
-//    return FullImageView(currentDbPhotoAsset: dbPhotoAsset, animation: animation)
-//        .environmentObject(photoEnviornment)
-//}
 
 private let formatter: RelativeDateTimeFormatter = {
     let rdtf = RelativeDateTimeFormatter()

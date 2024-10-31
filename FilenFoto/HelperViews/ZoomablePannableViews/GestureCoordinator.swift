@@ -26,9 +26,9 @@ where Coordinator == ZoomablePannableViewContentCoordinator {
 }
 
 class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDelegate {
-    var parent: any ZoomablePannable
+    var parent: ZoomablePannable
 
-    init(_ parent: any ZoomablePannable) {
+    init(_ parent: some ZoomablePannable) {
         self.parent = parent
     }
 

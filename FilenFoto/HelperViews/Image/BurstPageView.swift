@@ -24,7 +24,7 @@ struct BurstPageView : View {
     var body: some View {
             GeometryReader { reader in
                 Pager(page: page, data: dbPhotoAssets, id: \.self) { dbPhotoAsset in
-                    ViewManager(dbAsset: dbPhotoAsset) {
+                    FilenAsyncImage(dbAsset: dbPhotoAsset) {
                         withAnimation {
                             fullImageState.showBurstImages = false
                         }

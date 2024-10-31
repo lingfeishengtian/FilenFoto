@@ -37,11 +37,6 @@ struct PagedImageView: View {
         DispatchQueue.main.async {
             withAnimation {
                 fullImageState.showDetail = true
-//                if fullImageState.offset.height > -200 && fullImageState.offset.height < 0 {
-//                    withAnimation {
-//                        fullImageState.offset.height = -200
-//                    }
-//                }
             }
         }
     }
@@ -53,7 +48,7 @@ struct PagedImageView: View {
         GeometryReader { reader in
             Pager(page: self.page, data: photoEnvironment.lazyArray.sortedArray, id: \.self) { dbAsset in
                 if dbAsset == photoEnvironment.selectedDbPhotoAsset {
-                    ViewManager(dbAsset: photoEnvironment.selectedDbPhotoAsset, onSwipeUp: swipeUpOnImage, onSwipeDown: swipeDownOnImage)
+                    FilenAsyncImage(dbAsset: photoEnvironment.selectedDbPhotoAsset, onSwipeUp: swipeUpOnImage, onSwipeDown: swipeDownOnImage)
                     .matchedGeometryEffect(
                         id: "thumbnailImageTransition"
                         + dbAsset.localIdentifier, in: animation)
@@ -66,9 +61,6 @@ struct PagedImageView: View {
                         onSwipeUp: swipeUpOnImage,
                         onSwipeDown: swipeDownOnImage,
                         image: .constant(UIImage(contentsOfFile: dbAsset.thumbnailURL.path) ?? UIImage()))
-                    .matchedGeometryEffect(
-                        id: "thumbnailImageTransition"
-                        + dbAsset.localIdentifier, in: animation)
                     .frame(width: reader.size.width, height: reader.size.height)
                 }
             }
@@ -79,20 +71,17 @@ struct PagedImageView: View {
                 }
             })
             .interactive(scale: 0.8)
-//            .allowsDragging(!fullImageState.showDetail && fullImageState.scale == 1.0)
             .allowsDragging(!fullImageState.shouldHideBars)
         }
         .onAppear {
             if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {
                 self.page.update(.new(index: photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset)))
             }
-            //            isScrolling = false
         }
         .onChange(of: photoEnvironment.selectedDbPhotoAsset) {
             if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {
                 self.page.update(.new(index: photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset)))
             }
-            //            isScrolling = false
         }
     }
 }

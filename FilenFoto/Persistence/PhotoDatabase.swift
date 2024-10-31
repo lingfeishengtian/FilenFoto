@@ -12,7 +12,7 @@ import os
 import Vision
 import InternalCollectionsUtilities
 
-struct DBPhotoAsset : Comparable, Hashable {
+struct DBPhotoAsset : Comparable, Hashable, Identifiable {
     static func < (lhs: DBPhotoAsset, rhs: DBPhotoAsset) -> Bool {
         if lhs.creationDate == rhs.creationDate {
             return lhs.localIdentifier < rhs.localIdentifier
@@ -33,8 +33,8 @@ struct DBPhotoAsset : Comparable, Hashable {
     }
     
 #if DEBUG
-    func setId(_ idLocalID: String) -> DBPhotoAsset {
-        return DBPhotoAsset(id: id, localIdentifier: idLocalID, mediaType: mediaType, mediaSubtype: mediaSubtype, creationDate: Date.now - 9999999999999 - TimeInterval(Int(idLocalID) ?? 0), modificationDate: modificationDate, location: location, favorited: favorited, hidden: hidden, thumbnailFileName: thumbnailFileName, burstIdentifier: burstIdentifier, burstSelectionTypes: burstSelectionTypes)
+    func setId(_ idLocalID: String, idOffset: Int64) -> DBPhotoAsset {
+        return DBPhotoAsset(id: id + 50000 + idOffset, localIdentifier: idLocalID, mediaType: mediaType, mediaSubtype: mediaSubtype, creationDate: Date.now - 9999999999999 - TimeInterval(Int(idLocalID) ?? 0), modificationDate: modificationDate, location: location, favorited: favorited, hidden: hidden, thumbnailFileName: thumbnailFileName, burstIdentifier: burstIdentifier, burstSelectionTypes: burstSelectionTypes)
     }
 #endif
     
@@ -58,7 +58,7 @@ struct DBPhotoAsset : Comparable, Hashable {
 
 
 // Bug in SQLite right now
-typealias Expression = SQLite.Expression
+fileprivate typealias Expression = SQLite.Expression
 let photoAssetTable = Table("photoAsset")
 let idColumn = Expression<Int64>("id")
 let assetColumn = Expression<String>("localIdentifier")
@@ -128,6 +128,7 @@ struct SortedArray {
     // O(lg n)
     // Insert new element and keep array sorted
     mutating func insert(_ element: DBPhotoAsset) {
+//        let now = Date.now
         let binSearchedResult = array.binarySearch(predicate: { $0 > element})
         if array.count > 0 && binSearchedResult < array.count && array[binSearchedResult] == element {
             return
@@ -159,6 +160,8 @@ struct SortedArray {
 //            fatalError("binsearch diff")
 //        }
         array.insert(element, at: binSearchedResult)
+//        let msTime = Date.now.timeIntervalSince(now)
+//        print("Inserting \(element.localIdentifier) at \(binSearchedResult) took \(msTime)")
     }
 }
 
@@ -209,7 +212,6 @@ class PhotoDatabase {
             t.column(burstSelectionTypes)
             t.column(thumbnailName)
             t.column(thumbnailCacheId)
-//            t.column(thumbnailCacheName)
             t.column(completedAnalysis, defaultValue: false)
             t.foreignKey(thumbnailCacheId, references: photoResourcesTable, idColumn)
         })

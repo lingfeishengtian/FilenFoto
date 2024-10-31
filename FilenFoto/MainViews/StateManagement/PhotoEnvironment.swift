@@ -1,5 +1,5 @@
 //
-//  PhotoEnviornment.swift
+//  PhotoEnvironment.swift
 //  FilenFoto
 //
 //  Created by Hunter Han on 10/18/24.
@@ -40,11 +40,11 @@ class PhotoEnvironment: SyncProgressInfo {
         
         super.init()
 //#if DEBUG
-//        if (ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == nil || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "0") && lazyArray.sortedArray.count < 50_000 {
+//        if (ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == nil || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "0") && lazyArray.sortedArray.count < 20_000 {
 //            DispatchQueue.main.async {
 //                let dbPhoto = self.next()!
-//                for i in 0..<20000 {
-//                    self.lazyArray.insert(dbPhoto.setId(String(i)))
+//                for i in 0..<20_000 {
+//                    self.lazyArray.insert(dbPhoto.setId(String(i), idOffset: Int64(i)))
 //                }
 //                print("Done")
 //            }
@@ -89,24 +89,29 @@ class PhotoEnvironment: SyncProgressInfo {
             }
             print("Call to add", PhotoDatabase.shared.getCountOfPhotos(), lazyArray.sortedArray.count)
             var pollLimit = pollingLimit
-//            var toInsert: [DBPhotoAsset] = []
-            while pollLimit > 0 {
-                if let asset = next() {
-                    if (self.lazyArray.doesExist(asset) && !reset) || lazyArray.doesExist(asset) {
-                    } else {
-                        DispatchQueue.main.async {
-                            self.lazyArray.insert(asset)
-                        }
-                        pollLimit -= 1
-                    }
-                } else if (PhotoDatabase.shared.getCountOfPhotos() > (lazyArray.sortedArray.count + lazyArray.sortedArray.count) && !isSearching) {
-                    self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
+            while let asset = next() {
+                if (self.lazyArray.doesExist(asset) && !reset) || lazyArray.doesExist(asset) {
                 } else {
-                    break
+                    DispatchQueue.main.async {
+                        self.lazyArray.insert(asset)
+                    }
+//                    pollLimit -= 1
                 }
             }
-//            DispatchQueue.main.async { [toInsert] in
-//                self.lazyArray.insertAll(toInsert, resetting: reset)
+//            while PhotoDatabase.shared.getCountOfPhotos() != lazyArray.sortedArray.count {
+//                if let asset = next() {
+//                    if (self.lazyArray.doesExist(asset) && !reset) || lazyArray.doesExist(asset) {
+//                    } else {
+//                        DispatchQueue.main.async {
+//                            self.lazyArray.insert(asset)
+//                        }
+//                        pollLimit -= 1
+//                    }
+//                } else if (PhotoDatabase.shared.getCountOfPhotos() > (lazyArray.sortedArray.count + lazyArray.sortedArray.count) && !isSearching) {
+//                    self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
+//                } else {
+//                    break
+//                }
 //            }
         })
     }

@@ -11,6 +11,7 @@
 		963774362CBDE25600FFFCBA /* FilenSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 963774352CBDE25600FFFCBA /* FilenSDK */; };
 		963774392CBDE31300FFFCBA /* FilenSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 963774382CBDE31300FFFCBA /* FilenSDK */; };
 		963774B02CBF396500FFFCBA /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = 963774AF2CBF396500FFFCBA /* SQLite */; };
+		9654A7C32CD0D6A800316FE3 /* Hero in Frameworks */ = {isa = PBXBuildFile; productRef = 9654A7C22CD0D6A800316FE3 /* Hero */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,6 +63,7 @@
 				963774B02CBF396500FFFCBA /* SQLite in Frameworks */,
 				963774392CBDE31300FFFCBA /* FilenSDK in Frameworks */,
 				960C50462CC8BB03004B3407 /* SwiftUIPager in Frameworks */,
+				9654A7C32CD0D6A800316FE3 /* Hero in Frameworks */,
 				963774362CBDE25600FFFCBA /* FilenSDK in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -135,6 +137,7 @@
 				963774382CBDE31300FFFCBA /* FilenSDK */,
 				963774AF2CBF396500FFFCBA /* SQLite */,
 				960C50452CC8BB03004B3407 /* SwiftUIPager */,
+				9654A7C22CD0D6A800316FE3 /* Hero */,
 			);
 			productName = FilenFoto;
 			productReference = 963773F12CBD8DAF00FFFCBA /* FilenFoto.app */;
@@ -222,6 +225,7 @@
 				963774372CBDE31300FFFCBA /* XCLocalSwiftPackageReference "../FilenSDK" */,
 				963774AE2CBF396500FFFCBA /* XCRemoteSwiftPackageReference "SQLite" */,
 				960C50442CC8BB03004B3407 /* XCRemoteSwiftPackageReference "SwiftUIPager" */,
+				9654A7C12CD0D6A800316FE3 /* XCRemoteSwiftPackageReference "Hero" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 963773F22CBD8DAF00FFFCBA /* Products */;
@@ -435,7 +439,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -475,7 +479,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -646,6 +650,14 @@
 				minimumVersion = 0.15.3;
 			};
 		};
+		9654A7C12CD0D6A800316FE3 /* XCRemoteSwiftPackageReference "Hero" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/HeroTransitions/Hero";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.6.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -666,6 +678,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 963774AE2CBF396500FFFCBA /* XCRemoteSwiftPackageReference "SQLite" */;
 			productName = SQLite;
+		};
+		9654A7C22CD0D6A800316FE3 /* Hero */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9654A7C12CD0D6A800316FE3 /* XCRemoteSwiftPackageReference "Hero" */;
+			productName = Hero;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

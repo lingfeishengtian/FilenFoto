@@ -26,9 +26,9 @@ fileprivate func resizeLevel(for compressionLevel: CompressionLevels) -> CGSize?
     case .medium:
         return CGSizeMake(400, 400)
     case .high:
-        return CGSizeMake(200, 200)
+        return CGSizeMake(300, 300)
     case .extreme:
-        return CGSizeMake(200, 200)
+        return CGSizeMake(100, 100)
     }
 }
 
@@ -41,7 +41,7 @@ fileprivate func compressionQuality(for compressionLevel: CompressionLevels) -> 
     case .medium:
         return 0.75
     case .high:
-        return 1.0
+        return 0.75
     case .extreme:
         return 0.0
     }
@@ -64,6 +64,8 @@ class ImageCompressor {
             return .jpg
         case UTType.heic.identifier:
             return .heic
+        case UTType.webP.identifier:
+            return .png
         default:
             return nil
         }
