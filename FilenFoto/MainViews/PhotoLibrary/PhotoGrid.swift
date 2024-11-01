@@ -70,7 +70,7 @@ struct LazyPhotoGrid : View {
                 .opacity(imageOpacity(dbPhotoAsset) ? 0 : 1)
                 .onTapGesture {
                     withAnimation {
-                        photoEnvironment.selectedDbPhotoAsset = dbPhotoAsset
+                        photoEnvironment.setCurrentSelectedDbPhotoAsset(dbPhotoAsset, index: index)
                         photoEnvironment.shouldShowFullImageView = true
                         keyboardFocus = false
                     }

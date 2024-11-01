@@ -24,7 +24,6 @@ var searchHistory: [String] {
 
 class PhotoEnvironment: SyncProgressInfo {
     var firstSelected: DBPhotoAsset? = nil
-    @Published var selectedDbPhotoAsset: DBPhotoAsset? = nil
     @Published var scrolledToSelect: DBPhotoAsset? = nil
 //    private var stream: RowIterator?
     @Published var searchArray: [DBPhotoAsset] = []
@@ -33,6 +32,47 @@ class PhotoEnvironment: SyncProgressInfo {
     @Published var searchHistoryCache: [String]
     @Published var shouldShowFullImageView: Bool = false
     @Published var countOfPhotos: Int = 0
+    @Published private var pairedSelectedDbPhotoAsset: DBPhotoAsset? = nil
+    @Published private var selectedDBPhotoAssetIndex: Int = 0
+    
+    var selectedDbPhotoAsset : DBPhotoAsset? {
+        pairedSelectedDbPhotoAsset
+    }
+    
+    func eventPhotoInserted(_ dbPhotoAsset: DBPhotoAsset) {
+        guard let selectedDbPhotoAsset else {
+            return
+        }
+        
+        if dbPhotoAsset.creationDate > selectedDbPhotoAsset.creationDate {
+            selectedDBPhotoAssetIndex += 1
+        } else if dbPhotoAsset.creationDate < selectedDbPhotoAsset.creationDate {
+            selectedDBPhotoAssetIndex += 0 // index doesnt change if value was appended
+        } else {
+            if dbPhotoAsset.id > selectedDbPhotoAsset.id {
+                selectedDBPhotoAssetIndex += 1
+            } else {
+                selectedDBPhotoAssetIndex += 0 // index doesnt change if value was appended
+            }
+        }
+        
+        countOfPhotos += 1
+    }
+    
+    func setCurrentSelectedDbPhotoAsset(_ dbPhotoAsset: DBPhotoAsset, index: Int) {
+        DispatchQueue.main.async {
+            self.pairedSelectedDbPhotoAsset = dbPhotoAsset
+            self.selectedDBPhotoAssetIndex = index
+        }
+    }
+    
+    func getCurrentPhotoAssetIndex() -> Int? {
+        guard selectedDbPhotoAsset != nil else {
+            return nil
+        }
+        
+        return selectedDBPhotoAssetIndex
+    }
     
     init(pollingLimit: Int = 20) {
 //        self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()

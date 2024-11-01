@@ -26,7 +26,7 @@ fileprivate func resizeLevel(for compressionLevel: CompressionLevels) -> CGSize?
     case .medium:
         return CGSizeMake(400, 400)
     case .high:
-        return CGSizeMake(300, 300)
+        return CGSizeMake(400, 400)
     case .extreme:
         return CGSizeMake(100, 100)
     }
@@ -41,7 +41,7 @@ fileprivate func compressionQuality(for compressionLevel: CompressionLevels) -> 
     case .medium:
         return 0.75
     case .high:
-        return 0.75
+        return 0.5
     case .extreme:
         return 0.0
     }
@@ -79,7 +79,8 @@ class ImageCompressor {
         }
         
         if let compressionResize = resizeLevel(for: compressionLevel ?? .high) {
-            image = image.resizeImage(image: image.cropImage2(image: image, scale: 1.0), targetSize: compressionResize)
+//            image = image.resizeImage(image: image.cropImage2(image: image, scale: 1.0), targetSize: compressionResize)
+            image = image.resizeImage(image: image, targetSize: compressionResize)
         }
         
         switch format {

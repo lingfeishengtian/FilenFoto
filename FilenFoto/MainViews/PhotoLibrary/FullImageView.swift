@@ -44,13 +44,13 @@ struct FullImageView: View {
         }
     }
     
-    func getBurstImageArray() -> [DBPhotoAsset] {
-        let bImages = photoEnvironment.lazyArray.burstAssets(for: photoEnvironment.selectedDbPhotoAsset?.burstIdentifier ?? "")
-        if bImages.isEmpty {
-            fullImageState.showBurstImages = false
-        }
-        return bImages
-    }
+//    func getBurstImageArray() -> [DBPhotoAsset] {
+//        let bImages = photoEnvironment.lazyArray.burstAssets(for: photoEnvironment.selectedDbPhotoAsset?.burstIdentifier ?? "")
+//        if bImages.isEmpty {
+//            fullImageState.showBurstImages = false
+//        }
+//        return bImages
+//    }
     
     //TODO: Add loading icon on top
     var body: some View {
@@ -68,7 +68,7 @@ struct FullImageView: View {
                             IconView(size: .small, iconSystemName: "xmark")
                         }
                     }.padding([.leading, .trailing], 30)
-                    BurstPageView(matchedAnimationLocalIdentifier: photoEnvironment.selectedDbPhotoAsset!.localIdentifier, animation: animation, dbPhotoAssets: getBurstImageArray())
+//                    BurstPageView(matchedAnimationLocalIdentifier: photoEnvironment.selectedDbPhotoAsset!.localIdentifier, animation: animation, dbPhotoAssets: getBurstImageArray())
                 }
                 .background {
                     Color.black.opacity(
@@ -90,12 +90,12 @@ struct FullImageView: View {
                             .scaleEffect(fullImageState.showDetail ? getImageRatio() : 1.0)
                     }
                     Spacer()
-//                    PhotoScrubberView(itemsToShow: 5, spacing: 10) {
-//                        Task {
-//                            await self.fullImageState.getView(
-//                                selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset)
-//                        }
-//                    }
+                    PhotoScrubberView(itemsToShow: 5, spacing: 10) {
+                        Task {
+                            await self.fullImageState.getView(
+                                selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset)
+                        }
+                    }
                     .frame(height: 60)
                     .opacity(
                         fullImageState.shouldHideBars ? 0 : 1

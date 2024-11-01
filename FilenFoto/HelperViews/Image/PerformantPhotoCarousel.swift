@@ -7,20 +7,6 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
 {
 
     var collectionView: UICollectionView!
-    var currentArraySlice: ArraySlice<DBPhotoAsset> {
-        if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {
-            var endIndex = photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset) + itemsToShow
-            endIndex =
-                endIndex < photoEnvironment.lazyArray.sortedArray.count
-                ? endIndex : photoEnvironment.lazyArray.sortedArray.count - 1
-            var startIndex =
-                photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset) - itemsToShow
-            startIndex = startIndex >= 0 ? startIndex : 0
-
-            return photoEnvironment.lazyArray.sortedArray[startIndex...endIndex]
-        }
-        return photoEnvironment.lazyArray.sortedArray[0...]
-    }
     let itemsToShow = 10
     let spacing: CGFloat = 5
     let selectedPadding: CGFloat = 10
@@ -38,7 +24,8 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         self.photoEnvironment = photoEnvironment
         if let dbAssetForFirstIndex {
             self.startWithIndexPath = .init(
-                item: photoEnvironment.lazyArray.binSearch(dbAssetForFirstIndex), section: 0)
+                item: photoEnvironment.getCurrentPhotoAssetIndex() ?? 0, section: 0
+            )
         } else {
             self.startWithIndexPath = nil
         }
@@ -116,14 +103,14 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     }
 
     func scrollToSelected() {
-        if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset,
-            startWithIndexPath != nil
+        if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset
+            //, startWithIndexPath != nil
         {
-            let index = photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset)
+            let index = photoEnvironment.getCurrentPhotoAssetIndex() ?? 0
             let indexPath = IndexPath(item: index, section: 0)
             if index != selectedIndexPath?.item {
                 collectionView.scrollToItem(
-                    at: indexPath, at: .centeredHorizontally, animated: true)
+                    at: indexPath, at: .centeredHorizontally, animated: false)
                 //                startWithIndexPath = nil
             }
         }
@@ -133,7 +120,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int)
         -> Int
     {
-        return photoEnvironment.lazyArray.sortedArray.count
+        return PhotoDatabase.shared.getCountOfPhotos()
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath)
@@ -142,11 +129,11 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         let cell =
             collectionView.dequeueReusableCell(withReuseIdentifier: "ThumbnailCell", for: indexPath)
             as! ThumbnailCell
-        let item = photoEnvironment.lazyArray.sortedArray[indexPath.item]
+        let item = PhotoDatabase.shared.getDBPhotoSync(atOffset: indexPath.item)!
         cell.configure(with: item)
 
         if let selectedAsset = photoEnvironment.selectedDbPhotoAsset,
-            indexPath.item == photoEnvironment.lazyArray.binSearch(selectedAsset)
+           indexPath.item == photoEnvironment.getCurrentPhotoAssetIndex()
         {
             selectedIndexPath = indexPath
             cell.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
@@ -163,8 +150,8 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
 
     // MARK: - UICollectionViewDelegate
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let selectedItem = photoEnvironment.lazyArray.sortedArray[indexPath.item]
-        photoEnvironment.selectedDbPhotoAsset = selectedItem
+        let selectedItem = PhotoDatabase.shared.getDBPhotoSync(atOffset: indexPath.item)!
+        photoEnvironment.setCurrentSelectedDbPhotoAsset(selectedItem, index: indexPath.item)
         collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
     }
 
@@ -200,8 +187,8 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
             indexPath != selectedIndexPath
         {
             //            collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
-            let selectedItem = photoEnvironment.lazyArray.sortedArray[indexPath.item]
-            photoEnvironment.selectedDbPhotoAsset = selectedItem
+            let selectedItem = PhotoDatabase.shared.getDBPhotoSync(atOffset: indexPath.item)!
+            photoEnvironment.setCurrentSelectedDbPhotoAsset(selectedItem, index: indexPath.item)
 
             // Animate the selection
             if let previousIndexPath = selectedIndexPath,
@@ -397,8 +384,7 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: PhotoScrubberViewController, context: Context) {
         // Update the view controller with new data or state changes if needed
-        //        uiViewController.collectionView.reloadData()
-        // Check the selected item and scroll to it
+        uiViewController.collectionView.reloadData()
         uiViewController.scrollToSelected()
     }
 

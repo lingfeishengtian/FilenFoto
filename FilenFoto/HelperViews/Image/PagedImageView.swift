@@ -46,7 +46,10 @@ struct PagedImageView: View {
     var body: some View {
         let _ = print(fullImageState.scale)
         GeometryReader { reader in
-            Pager(page: self.page, data: photoEnvironment.lazyArray.sortedArray, id: \.self) { dbAsset in
+            Pager(page: self.page, data: 0..<photoEnvironment.countOfPhotos, id: \.self) { index in
+                let dbAsset = PhotoDatabase.shared.getDBPhotoSync(
+                    atOffset: index
+                )!
                 if dbAsset == photoEnvironment.selectedDbPhotoAsset {
                     FilenAsyncImage(dbAsset: photoEnvironment.selectedDbPhotoAsset, onSwipeUp: swipeUpOnImage, onSwipeDown: swipeDownOnImage)
                     .matchedGeometryEffect(
@@ -65,7 +68,9 @@ struct PagedImageView: View {
                 }
             }
             .onPageChanged({ (newIndex) in
-                photoEnvironment.selectedDbPhotoAsset = photoEnvironment.lazyArray.sortedArray[newIndex]
+                photoEnvironment.setCurrentSelectedDbPhotoAsset(PhotoDatabase.shared.getDBPhotoSync(
+                    atOffset: newIndex
+                )!, index: newIndex)
                 Task {
                     await fullImageState.getView(selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset!)
                 }
@@ -74,13 +79,13 @@ struct PagedImageView: View {
             .allowsDragging(!fullImageState.shouldHideBars)
         }
         .onAppear {
-            if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {
-                self.page.update(.new(index: photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset)))
+            if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
+                self.page.update(.new(index: ind))
             }
         }
         .onChange(of: photoEnvironment.selectedDbPhotoAsset) {
-            if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {
-                self.page.update(.new(index: photoEnvironment.lazyArray.binSearch(selectedDbPhotoAsset)))
+            if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
+                self.page.update(.new(index: ind))
             }
         }
     }

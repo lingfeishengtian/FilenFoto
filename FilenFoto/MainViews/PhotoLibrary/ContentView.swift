@@ -27,7 +27,8 @@ struct ContentView: View {
                     onNewDatabasePhotoAdded:  { dbPhoto in
                         DispatchQueue.main.async {
 //                            self.photoEnvironment.lazyArray.insert(dbPhoto)
-                            self.photoEnvironment.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
+//                            self.photoEnvironment.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
+                            self.photoEnvironment.eventPhotoInserted(dbPhoto)
                         }
                     }, existingSync: photoEnvironment)
             }
@@ -163,6 +164,7 @@ struct ContentView: View {
                 .animation(.easeInOut, value: (searchText.isEmpty && searchBarShow))
             }
             .onAppear {
+                photoEnvironment.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
                 initiateSyncTask()
             }
             .environmentObject(photoEnvironment)
@@ -252,8 +254,8 @@ struct PhotoScroller: View {
                         .padding([.top])
                 }.scrollPosition($scrollPosition, anchor: .top)
                     .onChange(of: photoEnvironment.selectedDbPhotoAsset) {
-                        if let selected = photoEnvironment.selectedDbPhotoAsset?.localIdentifier, photoEnvironment.shouldShowFullImageView {
-                            scrollPosition.scrollTo(y: (reader.size.width / 3) * (3 - 1))
+                        if let selected = photoEnvironment.selectedDbPhotoAsset?.localIdentifier, photoEnvironment.shouldShowFullImageView, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
+                            scrollPosition.scrollTo(y: (reader.size.width) * CGFloat((ind / 3 - 1)))
                         }
                     }
             }

@@ -451,10 +451,12 @@ class PhotoVisionDatabaseManager {
         case .failed:
             logger.error("Failed to insert into database")
             passthrough.updateProgressOfCurrentFile(1.0, "Failure! This isn't supposed to happen")
-        case .success(let dbPhoto):
+        case .success(let dbPhoto, let shouldCallNewInsertedEvent):
             logger.info("Inserted photo into database")
             passthrough.updateProgressOfCurrentFile(1.0, "Finished inserting into database")
-            passthrough.onNewDBPhotoInserted(dbPhoto)
+            if shouldCallNewInsertedEvent {
+                passthrough.onNewDBPhotoInserted(dbPhoto)
+            }
         }
     }
     
