@@ -26,15 +26,16 @@ class PhotoEnvironment: SyncProgressInfo {
     var firstSelected: DBPhotoAsset? = nil
     @Published var selectedDbPhotoAsset: DBPhotoAsset? = nil
     @Published var scrolledToSelect: DBPhotoAsset? = nil
-    private var stream: RowIterator?
-    @Published var lazyArray = SortedArray()
+//    private var stream: RowIterator?
+    @Published var searchArray: [DBPhotoAsset] = []
     private let pollingLimit: Int
     private var isSearching = false
     @Published var searchHistoryCache: [String]
     @Published var shouldShowFullImageView: Bool = false
+    @Published var countOfPhotos: Int = 0
     
     init(pollingLimit: Int = 20) {
-        self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
+//        self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
         self.pollingLimit = pollingLimit
         self.searchHistoryCache = searchHistory
         
@@ -62,91 +63,21 @@ class PhotoEnvironment: SyncProgressInfo {
     
     func defaultStream() {
         isSearching = false
-        Task {
-            lastTask?.cancel()
-            stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
-            await addMoreToLazyArray()
-        }
+//        Task {
+//            lastTask?.cancel()
+////            stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
+//            await addMoreToLazyArray()
+//        }
     }
     
     /// Database always returns values sorted by creation date, which should allow us to poll n amount of times without worrying about things being out of order.
     func searchStream(searchQuery: String) {
         isSearching = true
-        lazyArray.removeAll()
-        Task {
-            lastTask?.cancel()
-            stream = PhotoDatabase.shared.searchForText(textSearch: searchQuery)
-            await addMoreToLazyArray(reset: true)
-        }
-    }
-    
-    private var lastTask: Task<Void, Never>? = nil
-    func addMoreToLazyArray(reset: Bool = false) async {
-        let _ =  await lastTask?.result
-        lastTask = (Task {
-            if PhotoDatabase.shared.getCountOfPhotos() == lazyArray.sortedArray.count {
-                return
-            }
-            print("Call to add", PhotoDatabase.shared.getCountOfPhotos(), lazyArray.sortedArray.count)
-            var pollLimit = pollingLimit
-            while let asset = next() {
-                if (self.lazyArray.doesExist(asset) && !reset) || lazyArray.doesExist(asset) {
-                } else {
-                    DispatchQueue.main.async {
-                        self.lazyArray.insert(asset)
-                    }
-//                    pollLimit -= 1
-                }
-            }
-//            while PhotoDatabase.shared.getCountOfPhotos() != lazyArray.sortedArray.count {
-//                if let asset = next() {
-//                    if (self.lazyArray.doesExist(asset) && !reset) || lazyArray.doesExist(asset) {
-//                    } else {
-//                        DispatchQueue.main.async {
-//                            self.lazyArray.insert(asset)
-//                        }
-//                        pollLimit -= 1
-//                    }
-//                } else if (PhotoDatabase.shared.getCountOfPhotos() > (lazyArray.sortedArray.count + lazyArray.sortedArray.count) && !isSearching) {
-//                    self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
-//                } else {
-//                    break
-//                }
-//            }
-        })
-    }
-    
-    func next() -> DBPhotoAsset? {
-        do {
-            if let n = try stream?.failableNext() {
-                let nLat = try n.get(locationLatitudeColumn)
-                let nLon = try n.get(locationLongitudeColumn)
-                var loc: CLLocation? = nil
-                if nLat != nil && nLon != nil {
-                    loc = CLLocation(latitude: nLat!, longitude: nLon!)
-                }
-                
-                return DBPhotoAsset(
-                    id: try n.get(idColumn),
-                    localIdentifier: try n.get(assetColumn),
-                    mediaType: PHAssetMediaType(rawValue: Int(try n.get(mediaTypeColumn))) ?? .image,
-                    mediaSubtype: PHAssetMediaSubtype(rawValue: UInt(try n.get(mediaSubtypeColumn))),
-                    creationDate: try n.get(creationDateColumn),
-                    modificationDate: try n.get(modificationDateColumn),
-                    location: loc,
-                    favorited: try n.get(favorited),
-                    hidden: try n.get(hidden),
-                    thumbnailFileName: try n.get(thumbnailName),
-                    burstIdentifier: try n.get(burstIdentifier),
-                    burstSelectionTypes: PHAssetBurstSelectionType(rawValue: UInt(try n.get(burstSelectionTypes)))
-//                    thumbnailCacheName: try n.get(thumbnailCacheName)
-                )
-            } else {
-                return nil
-            }
-        } catch {
-            print(error)
-            return nil
-        }
+//        lazyArray.removeAll()
+//        Task {
+//            lastTask?.cancel()
+////            stream = PhotoDatabase.shared.searchForText(textSearch: searchQuery)
+//            await addMoreToLazyArray(reset: true)
+//        }
     }
 }

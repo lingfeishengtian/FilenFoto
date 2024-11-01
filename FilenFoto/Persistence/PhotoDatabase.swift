@@ -76,6 +76,19 @@ let burstSelectionTypes = Expression<Int64>("burstSelectionTypes")
 let thumbnailName = Expression<String>("thumbnailLocation")
 let thumbnailCacheId = Expression<Int64?>("thumbnailCacheId")
 
+let photoLibrary = Table("photoLibrary")
+let burstAssetTable = Table("burstAsset")
+// id column
+// localIdentifier
+// mediaType
+// mediaSubtype
+// location long and lat
+// completed analysis
+// burstIdentifier
+//let burstSelectionType = Expression<Int64>("burstSelectionTypes")
+// thumbnailName
+// thumbnailCacheId
+
 let photoResourcesTable = Table("photoResources")
 let uuidColumn = Expression<String>("uuid")
 let hashColumn = Expression<String>("hash")
@@ -96,7 +109,7 @@ let textColumn = Expression<String>("text")
 struct SortedArray {
     private var array: Array<DBPhotoAsset> = []
     private var burstAssetDBPhotoAssets: [String:Set<DBPhotoAsset>] = [:]
-
+    
     // Access to the sorted array
     var sortedArray: [DBPhotoAsset] {
         return array
@@ -124,11 +137,11 @@ struct SortedArray {
         }
         return false
     }
-
+    
     // O(lg n)
     // Insert new element and keep array sorted
     mutating func insert(_ element: DBPhotoAsset) {
-//        let now = Date.now
+        //        let now = Date.now
         let binSearchedResult = array.binarySearch(predicate: { $0 > element})
         if array.count > 0 && binSearchedResult < array.count && array[binSearchedResult] == element {
             return
@@ -149,19 +162,19 @@ struct SortedArray {
         //        }
         //#endif
         
-//#if DEBUG
-//        if array.contains(where: { ($0 as! DBPhotoAsset).localIdentifier == (element as! DBPhotoAsset).localIdentifier}) {
-//            fatalError("SHOULD NOT HAVE EQUALS")
-//        }
-//#endif
+        //#if DEBUG
+        //        if array.contains(where: { ($0 as! DBPhotoAsset).localIdentifier == (element as! DBPhotoAsset).localIdentifier}) {
+        //            fatalError("SHOULD NOT HAVE EQUALS")
+        //        }
+        //#endif
         
-//        let index = array.firstIndex { $0 < element } ?? array.count
-//        if binSearchedResult != index {
-//            fatalError("binsearch diff")
-//        }
+        //        let index = array.firstIndex { $0 < element } ?? array.count
+        //        if binSearchedResult != index {
+        //            fatalError("binsearch diff")
+        //        }
         array.insert(element, at: binSearchedResult)
-//        let msTime = Date.now.timeIntervalSince(now)
-//        print("Inserting \(element.localIdentifier) at \(binSearchedResult) took \(msTime)")
+        //        let msTime = Date.now.timeIntervalSince(now)
+        //        print("Inserting \(element.localIdentifier) at \(binSearchedResult) took \(msTime)")
     }
 }
 
@@ -216,6 +229,14 @@ class PhotoDatabase {
             t.foreignKey(thumbnailCacheId, references: photoResourcesTable, idColumn)
         })
         
+        let _ = try? databaseConnection?.run(photoLibrary.create(ifNotExists: true) { t in
+            t.column(idColumn, primaryKey: .default)
+            t.column(creationDateColumn)
+            t.foreignKey(idColumn, references: photoAssetTable, idColumn)
+        })
+        
+        let _ = try? databaseConnection?.run(photoLibrary.createIndex(idColumn, creationDateColumn))
+        
         let _ = try? databaseConnection?.run(photoResourcesTable.create(ifNotExists: true) { t in
             t.column(idColumn, primaryKey: .autoincrement)
             t.column(assetIdColumn)
@@ -241,6 +262,8 @@ class PhotoDatabase {
             t.column(confidenceColumn)
             t.foreignKey(assetIdColumn, references: photoAssetTable, idColumn)
         })
+        
+        let _ = try? databaseConnection?.run(photoAssetTable.createIndex(creationDateColumn.desc))
     }
     
     // Check for completedAnalysis, if photo's completed analysis is false, remove all instances of it from the database
@@ -265,15 +288,132 @@ class PhotoDatabase {
     }
     
     func getCountOfPhotos() -> Int {
-        let query = photoAssetTable.count
+        let query = getBasePhotoLibraryListingQuery().count
         let result = try? databaseConnection?.scalar(query)
-        return result ?? 0
+        return (result) ?? 0
     }
     
-    func getAllPhotoDatabaseStreamer() -> RowIterator? {
-        let query = photoAssetTable.select(*).order(creationDateColumn.desc)
-        let stream = try? databaseConnection?.prepareRowIterator(query)
-        return stream
+    private let dispatchQueue = DispatchQueue(label: "com.peterfriese.PhotoStreamer.PhotoDatabase")
+    
+    let cacheOffset = 1000
+    private var perThousandDateCache = [Date]()
+    private var perThousandIDCache: [Int] = []
+    
+    private func getBasePhotoLibraryListingQuery() -> Table {
+        photoLibrary.select(*).join(photoAssetTable, on: photoAssetTable[idColumn] == photoLibrary[idColumn]).order(photoAssetTable[creationDateColumn].desc, photoAssetTable[idColumn].desc)
+    }
+    
+    private var prePrepStmt: Statement? = nil
+    
+    private func getDateIDOffsettedQuery(id: Int, offset: Int = 0) -> RowIterator? {
+        let ind = id / cacheOffset + offset
+        if ind >= perThousandIDCache.count || ind >= perThousandDateCache.count {
+            return try? databaseConnection?.prepareRowIterator(getBasePhotoLibraryListingQuery().limit(1, offset: id))
+        }
+        return try? databaseConnection?.prepareRowIterator("""
+        SELECT *
+        FROM "photoLibrary"
+        JOIN photoAsset ON photoAsset.id = photoLibrary.id
+        WHERE (photoLibrary."creationDate", photoLibrary."id") <= ('\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))', \(perThousandIDCache[ind]))
+        ORDER BY photoLibrary."creationDate" DESC, photoLibrary.id DESC
+        LIMIT 1
+        OFFSET \(id % cacheOffset + -1 * offset * cacheOffset);
+        """)
+    }
+    
+    // TODO: Fix burst support
+    private func initiateThousandIndexing() {
+        if !perThousandDateCache.isEmpty {
+            return
+        }
+        
+        databaseConnection?.trace({ print($0) })
+        
+        let countOfPhotos = getCountOfPhotos()
+        var count = 0
+        while count < countOfPhotos {
+            let now = Date.now
+            if count == 0 {
+                let query =
+                //            (count == 0) ?
+                getBasePhotoLibraryListingQuery().limit(1, offset: count)
+                //            : getDateIDOffsettedQuery(id: count, offset: -1)
+                
+                let result = try? self.databaseConnection?.prepare(query)
+                
+                guard let result else {
+                    continue
+                }
+                
+                
+                do {
+                    for row in result {
+                        perThousandDateCache.append(try row.get(photoAssetTable[creationDateColumn]))
+                        perThousandIDCache.append(Int(try row.get(photoAssetTable[idColumn])))
+                    }
+                } catch {
+                    print(error)
+                }
+                
+            } else {
+                let query = getDateIDOffsettedQuery(id: count, offset: -1)
+                
+                do {
+                    while let row = query?.next() {
+                        perThousandDateCache.append(try row.get(creationDateColumn))
+                        perThousandIDCache.append(Int(try row.get(idColumn)))
+                    }
+                } catch {
+                    print(error)
+                }
+            }
+            
+            count += cacheOffset
+            print("Done with \(count) in \(Date.now.timeIntervalSince(now))")
+        }
+    }
+    
+    func getDBPhotoSync(atOffset: Int) -> DBPhotoAsset? {
+        initiateThousandIndexing()
+        let dateStart = Date.now
+        //        let lastDate = perThousandDateCache[atOffset / cacheOffset]
+        let query =
+//        try? databaseConnection?.prepare(getBasePhotoLibraryListingQuery().limit(1, offset: atOffset))
+        getDateIDOffsettedQuery(id: atOffset)
+        //        getBasePhotoLibraryListingQuery().where(creationDateColumn < lastDate).limit(1, offset: atOffset % cacheOffset)
+        
+        
+        if let result = query {
+            while let row = result.next() {
+//            for row in result {
+                do {
+                    if Date.now.timeIntervalSince(dateStart) > pow(10, -4) {
+                        logger.error("\(atOffset) photo retrieval took too long. \(Date.now.timeIntervalSince(dateStart))")
+                    }
+                    
+                    let burstRep = try row.get(burstSelectionTypes)
+                    
+                    return (DBPhotoAsset(
+                        id: try row.get(idColumn),
+                        localIdentifier: try row.get(assetColumn),
+                        mediaType: PHAssetMediaType(rawValue: Int(try row.get(mediaTypeColumn)))!,
+                        mediaSubtype: PHAssetMediaSubtype(rawValue: UInt((try row.get(mediaSubtypeColumn)))),
+                        creationDate: try row.get(creationDateColumn),
+                        modificationDate: try row.get(modificationDateColumn),
+                        location: CLLocation(latitude: try row.get(locationLatitudeColumn) ?? 0, longitude: try row.get(locationLongitudeColumn) ?? 0),
+                        favorited: try row.get(favorited),
+                        hidden: try row.get(hidden),
+                        thumbnailFileName: try row.get(thumbnailName),
+                        burstIdentifier: try row.get(burstIdentifier),
+                        burstSelectionTypes: PHAssetBurstSelectionType(rawValue: burstRep < 0 ? 0 : UInt(burstRep)))
+                    )
+                } catch {
+                    print("Error \(error)")
+                }
+            }
+        }
+        
+        return nil
     }
     
     func searchForText(textSearch: String) -> RowIterator? {
@@ -312,7 +452,7 @@ class PhotoDatabase {
         }
         
         createPhotoAssetTable()
-
+        
         let mediaSubtype = asset.mediaSubtypes.rawValue
         let creationDate = asset.creationDate ?? Date.now
         let modificationDate = asset.modificationDate ?? Date.now
@@ -331,9 +471,8 @@ class PhotoDatabase {
                                             burstIdentifier <- asset.burstIdentifier,
                                             burstSelectionTypes <- Int64(asset.burstSelectionTypes.rawValue),
                                             thumbnailName <- thumbnailLocation.lastPathComponent)
-        
-        let id = try? databaseConnection?.run(insert)
-        if let id = id {
+
+        if let id = try? databaseConnection?.run(insert) {
             self.logger.info("Inserted photo with ID \(id)")
             
             var insertedImageClassificationCount = 0
@@ -341,7 +480,7 @@ class PhotoDatabase {
             var insertedResourceCount = 0
             
             var storedThumbnailCacheId: Int64? = nil
-                        
+            
             for resource in resources {
                 let insertResource = photoResourcesTable.insert(
                     assetIdColumn <- id,
@@ -359,11 +498,11 @@ class PhotoDatabase {
                 }
             }
             
-//            if let thumbnailCacheFileName {
-//                let update = photoAssetTable.filter(idColumn == id).update(thumbnailCacheName <- thumbnailCacheFileName)
-//                let _ = try? databaseConnection?.run(update)
-//            }
-
+            //            if let thumbnailCacheFileName {
+            //                let update = photoAssetTable.filter(idColumn == id).update(thumbnailCacheName <- thumbnailCacheFileName)
+            //                let _ = try? databaseConnection?.run(update)
+            //            }
+            
             for result in imageClassificationResults {
                 let insert = identifiedObjectsTable.insert(objectNameColumn <- result.identifier,
                                                            confidenceColumn <- Double(result.confidence),
@@ -373,7 +512,7 @@ class PhotoDatabase {
                     insertedImageClassificationCount += 1
                 }
             }
-
+            
             for result in textResultClassificationResults {
                 for observation in result.topCandidates(10) {
                     let insert = recognizedTextTable.insert(textColumn <- observation.string,
@@ -385,13 +524,49 @@ class PhotoDatabase {
                     }
                 }
             }
-
+            
             self.logger.info("Inserted \(insertedResourceCount) resources \(insertedImageClassificationCount) image classification results and \(insertedTextResultClassificationCount) text classification results")
-
+            
             let query = photoAssetTable.filter(idColumn == id)
             let update = query.update(completedAnalysis <- true, thumbnailCacheId <- storedThumbnailCacheId)
             let _ = try? databaseConnection?.run(update)
 
+            // If the asset is a burst, check if the burstIdentifier exists in the photoLibrary table, if not, insert it
+            if let assetBurstIdentifier = asset.burstIdentifier {
+                let query = getBasePhotoLibraryListingQuery().filter(burstIdentifier == assetBurstIdentifier)
+                let result = try? databaseConnection?.prepare(query)
+                if result == nil {
+                    let insert = photoLibrary.insert(
+                        idColumn <- id,
+                        creationDateColumn <- creationDate
+                    )
+
+                    let _ = try? databaseConnection?.run(insert)
+                } else {
+                    for row in result! {
+                        if row[burstSelectionTypes] < asset.burstSelectionTypes.rawValue {
+                            let remove = photoLibrary.filter(idColumn == row[idColumn]).delete()
+                            let _ = try? databaseConnection?.run(remove)
+
+                            let insert = photoLibrary.insert(
+                                idColumn <- id,
+                                creationDateColumn <- creationDate
+                            )
+                            let _ = try? databaseConnection?.run(insert)
+                        }
+                    }
+                }
+            } else {
+                let insert = photoLibrary.insert(
+                    idColumn <- id,
+                    creationDateColumn <- creationDate
+                )
+                let _ = try? databaseConnection?.run(insert)
+            }
+            
+            perThousandIDCache.removeAll()
+            perThousandDateCache.removeAll()
+            
             return .success(DBPhotoAsset(
                 id: id,
                 localIdentifier: asset.localIdentifier,

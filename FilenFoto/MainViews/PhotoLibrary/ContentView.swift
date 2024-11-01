@@ -22,12 +22,12 @@ struct ContentView: View {
     
     func initiateSyncTask() {
         Task {
-            await photoEnvironment.addMoreToLazyArray()
             DispatchQueue.main.async {
                 let _ = PhotoVisionDatabaseManager.shared.startSync(
                     onNewDatabasePhotoAdded:  { dbPhoto in
                         DispatchQueue.main.async {
-                            self.photoEnvironment.lazyArray.insert(dbPhoto)
+//                            self.photoEnvironment.lazyArray.insert(dbPhoto)
+                            self.photoEnvironment.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
                         }
                     }, existingSync: photoEnvironment)
             }
@@ -61,7 +61,7 @@ struct ContentView: View {
                                 Text("ライブラリ")
                                     .font(.largeTitle)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                Text("\(photoEnvironment.lazyArray.sortedArray.count)項目 ")
+                                Text("\(photoEnvironment.countOfPhotos)項目 ")
                                     .font(.subheadline)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }.bold()
@@ -158,9 +158,9 @@ struct ContentView: View {
                     keyboardFocus: $keyboardFocus,
                     animation: animation
                 )
-                    .blur(radius: (searchText.count == 0 && searchBarShow) ? 10 : 0)
-                    .disabled(searchText.count == 0 && searchBarShow)
-                    .animation(.easeInOut, value: (searchText.isEmpty && searchBarShow))
+                .blur(radius: (searchText.count == 0 && searchBarShow) ? 10 : 0)
+                .disabled(searchText.count == 0 && searchBarShow)
+                .animation(.easeInOut, value: (searchText.isEmpty && searchBarShow))
             }
             .onAppear {
                 initiateSyncTask()
@@ -185,9 +185,12 @@ struct PhotoScroller: View {
     @FocusState.Binding var keyboardFocus: Bool
     let animation: Namespace.ID
     
+    @State var scrollPosition: ScrollPosition = .init(id: 0)
+    @State var isScrolling: Bool = false
+    
     var body: some View {
         VStack {
-            ScrollViewReader { value in
+            GeometryReader { reader in
                 ScrollView {
                     VStack {
                         if photoEnvironment.progress < 0.99 {
@@ -230,13 +233,12 @@ struct PhotoScroller: View {
                         }
                     }
                     .animation(.bouncy, value: photoEnvironment.progress)
-                    if !photoEnvironment.lazyArray.sortedArray.isEmpty {
-                        LazyPhotoGrid(
-                            keyboardFocus: $keyboardFocus,
-                            scrollViewProxy: value,
-                            animation: animation
-                        )
-                    }
+                    //                    if !photoEnvironment.lazyArray.sortedArray.isEmpty {
+                    LazyPhotoGrid(
+                        keyboardFocus: $keyboardFocus,
+                        animation: animation
+                    )
+                    //                    }
                     
                     VStack {
                         Text(" ")
@@ -248,7 +250,12 @@ struct PhotoScroller: View {
                     }.bold()
                         .hidden()
                         .padding([.top])
-                }
+                }.scrollPosition($scrollPosition, anchor: .top)
+                    .onChange(of: photoEnvironment.selectedDbPhotoAsset) {
+                        if let selected = photoEnvironment.selectedDbPhotoAsset?.localIdentifier, photoEnvironment.shouldShowFullImageView {
+                            scrollPosition.scrollTo(y: (reader.size.width / 3) * (3 - 1))
+                        }
+                    }
             }
         }
     }

@@ -90,12 +90,12 @@ struct FullImageView: View {
                             .scaleEffect(fullImageState.showDetail ? getImageRatio() : 1.0)
                     }
                     Spacer()
-                    PhotoScrubberView(itemsToShow: 5, spacing: 10) {
-                        Task {
-                            await self.fullImageState.getView(
-                                selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset)
-                        }
-                    }
+//                    PhotoScrubberView(itemsToShow: 5, spacing: 10) {
+//                        Task {
+//                            await self.fullImageState.getView(
+//                                selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset)
+//                        }
+//                    }
                     .frame(height: 60)
                     .opacity(
                         fullImageState.shouldHideBars ? 0 : 1
