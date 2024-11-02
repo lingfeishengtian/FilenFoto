@@ -16,6 +16,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     var photoEnvironment: PhotoEnvironment
     var startWithIndexPath: IndexPath?
     let onShouldFullImageLoad: () -> Void
+    var numberOfPhotos: Int
 
     init(
         photoEnvironment: PhotoEnvironment, dbAssetForFirstIndex: DBPhotoAsset?,
@@ -30,6 +31,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
             self.startWithIndexPath = nil
         }
         self.onShouldFullImageLoad = onShouldFullImageLoad
+        self.numberOfPhotos = photoEnvironment.countOfPhotos
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -120,7 +122,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int)
         -> Int
     {
-        return PhotoDatabase.shared.getCountOfPhotos()
+        return numberOfPhotos
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath)
@@ -180,8 +182,13 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         selectCenteredItem()
         onShouldFullImageLoad()
     }
+    
+    var performingUpdates: Bool = false
 
     private func selectCenteredItem() {
+        if performingUpdates {
+            return
+        }
         let centerPoint = view.convert(collectionView.center, to: collectionView)
         if let indexPath = collectionView.indexPathForItem(at: centerPoint),
             indexPath != selectedIndexPath
@@ -378,14 +385,39 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
         let viewController = PhotoScrubberViewController(
             photoEnvironment: photoEnvironment,
             dbAssetForFirstIndex: photoEnvironment.selectedDbPhotoAsset,
-            onShouldFullImageLoad: onLoadFullImage)
+            onShouldFullImageLoad: onLoadFullImage
+            )
         return viewController
     }
 
     func updateUIViewController(_ uiViewController: PhotoScrubberViewController, context: Context) {
         // Update the view controller with new data or state changes if needed
-        uiViewController.collectionView.reloadData()
-        uiViewController.scrollToSelected()
+        let numPhotos = photoEnvironment.countOfPhotos
+        let changeItemsCount = uiViewController.collectionView.numberOfItems(inSection: 0) - numPhotos
+        
+        // TODO: Fix indexing insert
+        if changeItemsCount == 0 {
+            uiViewController.scrollToSelected()
+        } else {
+            uiViewController.performingUpdates = true
+            uiViewController.collectionView.performBatchUpdates({
+                if changeItemsCount > 0 {
+                    // generate changeitemscount number of indexpaths to delete
+                    let indexPathsToDelete = (0..<abs(changeItemsCount)).map { IndexPath(item: $0, section: 0) }
+                    uiViewController.collectionView.deleteItems(at: indexPathsToDelete)
+                } else {
+                    // generate changeitemscount number of indexpaths to insert
+                    let indexPathsToInsert = (0..<abs(changeItemsCount)).map { IndexPath(item: $0, section: 0) }
+                    uiViewController.collectionView.insertItems(at: indexPathsToInsert)
+                }
+                
+                uiViewController.numberOfPhotos = numPhotos
+//                uiViewController.collectionView.reloadData()
+            }, completion: { _ in
+                uiViewController.scrollToSelected()
+                uiViewController.performingUpdates = false
+            })
+        }
     }
 
     // Coordinator to handle events if needed

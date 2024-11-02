@@ -83,7 +83,7 @@ struct PagedImageView: View {
                 self.page.update(.new(index: ind))
             }
         }
-        .onChange(of: photoEnvironment.selectedDbPhotoAsset) {
+        .onChange(of: photoEnvironment.getCurrentPhotoAssetIndex()) {
             if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
                 self.page.update(.new(index: ind))
             }

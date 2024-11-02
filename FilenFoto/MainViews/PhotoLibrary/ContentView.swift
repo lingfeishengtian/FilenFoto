@@ -169,7 +169,7 @@ struct ContentView: View {
             }
             .environmentObject(photoEnvironment)
             .overlay {
-                if photoEnvironment.shouldShowFullImageView {
+                if photoEnvironment.shouldShowFullImageView && photoEnvironment.selectedDbPhotoAsset != nil {
                     FullImageView(animation: animation)
                         .environmentObject(photoEnvironment)
                 }
@@ -253,8 +253,8 @@ struct PhotoScroller: View {
                         .hidden()
                         .padding([.top])
                 }.scrollPosition($scrollPosition, anchor: .top)
-                    .onChange(of: photoEnvironment.selectedDbPhotoAsset) {
-                        if let selected = photoEnvironment.selectedDbPhotoAsset?.localIdentifier, photoEnvironment.shouldShowFullImageView, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
+                    .onChange(of: photoEnvironment.shouldShowFullImageView) {
+                        if let selected = photoEnvironment.selectedDbPhotoAsset?.localIdentifier, !photoEnvironment.shouldShowFullImageView, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
                             scrollPosition.scrollTo(y: (reader.size.width) * CGFloat((ind / 3 - 1)))
                         }
                     }

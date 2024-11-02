@@ -33,7 +33,7 @@ class PhotoEnvironment: SyncProgressInfo {
     @Published var shouldShowFullImageView: Bool = false
     @Published var countOfPhotos: Int = 0
     @Published private var pairedSelectedDbPhotoAsset: DBPhotoAsset? = nil
-    @Published private var selectedDBPhotoAssetIndex: Int = 0
+    private var selectedDBPhotoAssetIndex: Int = 0
     
     var selectedDbPhotoAsset : DBPhotoAsset? {
         pairedSelectedDbPhotoAsset
@@ -41,6 +41,7 @@ class PhotoEnvironment: SyncProgressInfo {
     
     func eventPhotoInserted(_ dbPhotoAsset: DBPhotoAsset) {
         guard let selectedDbPhotoAsset else {
+            countOfPhotos += 1
             return
         }
         
@@ -57,12 +58,15 @@ class PhotoEnvironment: SyncProgressInfo {
         }
         
         countOfPhotos += 1
+#if DEBUG
+        assert(PhotoDatabase.shared.getCountOfPhotos() == countOfPhotos)
+#endif
     }
     
     func setCurrentSelectedDbPhotoAsset(_ dbPhotoAsset: DBPhotoAsset, index: Int) {
         DispatchQueue.main.async {
-            self.pairedSelectedDbPhotoAsset = dbPhotoAsset
             self.selectedDBPhotoAssetIndex = index
+            self.pairedSelectedDbPhotoAsset = dbPhotoAsset
         }
     }
     
@@ -91,6 +95,7 @@ class PhotoEnvironment: SyncProgressInfo {
 //            }
 //        }
 //#endif
+        self.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
     }
     
     func addNewSearchHistory(searchQuery: String) {
