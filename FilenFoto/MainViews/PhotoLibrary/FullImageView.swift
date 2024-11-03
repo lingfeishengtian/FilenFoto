@@ -6,6 +6,7 @@ import SwiftUIPager
 struct FullImageView: View {
     @EnvironmentObject var photoEnvironment: PhotoEnvironment
     @StateObject var fullImageState: FullImageViewState = FullImageViewState()
+    @State var sheetTopAnchor: CGPoint = .zero
     
     let animation: Namespace.ID
     
@@ -33,11 +34,12 @@ struct FullImageView: View {
         if let selected = photoEnvironment.selectedDbPhotoAsset,
            let uiImage = UIImage(contentsOfFile: selected.thumbnailURL.path)
         {
+            let sheetTopAnchorAdjustment = height / 2 - sheetTopAnchor.y
             // if height is greater than width
             if uiImage.size.height > uiImage.size.width {
-                return -height / 12
+                return -height / 12 - sheetTopAnchorAdjustment
             } else {
-                return -height / 7
+                return -height / 7 - sheetTopAnchorAdjustment
             }
         } else {
             return 1.0
@@ -83,6 +85,9 @@ struct FullImageView: View {
                     Spacer()
                     GeometryReader { reader in
                         PagedImageView(animation: animation)
+//                            .if (fullImageState.showDetail && fullImageState.sheetTopAnchor.y <= reader.size.height / 2) { view in
+//                                view.position(fullImageState.sheetTopAnchor)
+//                            }
                             .offset(
                                 fullImageState.showDetail
                                 ? .init(width: 0, height: getHeightOffset(reader.size.height)) : .zero
@@ -133,7 +138,23 @@ struct FullImageView: View {
                             PhotoDetails(animation: animation)
                         }.environmentObject(fullImageState)
                         
-                    }.presentationDetents([.medium])
+                    }
+                    //TODO: Deal with this
+//                    .onGeometryChange(for: CGRect.self) {
+//                      $0.frame(in: .global)
+//                    } action: { newValue in
+//                        withAnimation {
+//                            fullImageState.sheetTopAnchor = CGPoint(x: newValue.midX, y: newValue.minY - 80)
+//                        }
+//                    }
+                    .onGeometryChange(for: CGRect.self) {
+                        $0.frame(in: .global)
+                    } action: { newValue in
+                        withAnimation {
+                            sheetTopAnchor = CGPoint(x: newValue.midX, y: newValue.minY - 80)
+                        }
+                    }
+                    .presentationDetents([.fraction(0.7), .medium])
                 }
                 .onAppear {
                     Task {

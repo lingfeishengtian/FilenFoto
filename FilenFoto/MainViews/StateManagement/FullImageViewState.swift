@@ -95,6 +95,7 @@ struct ImageViewGenerationData {
 class FullImageViewState: ObservableObject {
     @Published var scale: CGFloat = 1.0
     @Published var offset: CGSize = .zero
+//    @Published var sheetTopAnchor: CGPoint = .zero
     @Published var scrolling: Bool = false
     //    @Published var sheetOffset: CGSize = .zero
     @Published private var isDragging = false
