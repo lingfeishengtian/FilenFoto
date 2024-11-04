@@ -141,7 +141,7 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
     }
     private var scrollState: ScrollState = .normalPan
     private var gestureBegan = false
-    private let minVelocity: CGFloat = 250
+    private let minVelocity: CGFloat = 20
 
     var previousTranslation: CGSize = .zero
 
@@ -190,6 +190,7 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
                 return
             }
             var translation = gesture.translation(in: gesture.view)
+            print("translationY", translation.y)
 
             if scrollState == .normalPan {
                 // if translation is out of bounds, reduce it until it can be moved
@@ -217,7 +218,8 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
                     y: view.frame.origin.y - view.frame.height / 4)  // scaled by 0.5
 
                 // TODO: FIX doesn't always snap back to top
-                if view.frame.midY < (view.superview?.frame.midY ?? 900) / 3 {
+//                if view.frame.midY < (view.superview?.frame.midY ?? 900) / 3 {
+                if translation.y < 0 {
                     scrollState = .scrollUp
 
                     self.parent.scale = 1.0
@@ -225,8 +227,8 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
 
                     UIView.animate(withDuration: 0.3) {
                         view.transform = CGAffineTransform.identity
-                        view.transform = view.transform.translatedBy(
-                            x: 0, y: translation.y - center.y)
+//                        view.transform = view.transform.translatedBy(
+//                            x: 0, y: translation.y - center.y)
                     }
                 } else {
                     UIView.animate(withDuration: 0.3) {
@@ -243,34 +245,43 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
                 let maximumScaleMagnitude = 0.3
                 var translationY = translation.y
 
-                if view.frame.minY + translation.y < maximumNegation {
+                print("translationY", translationY)
+                if translation.y < maximumNegation {
                     translationY = maximumNegation
                 }
 
-                if view.frame.minY + translation.y > 0 {
-                    scrollState = .scrollDown
+//                if translation.y > 0 {
+////                    scrollState = .scrollDown
+////
+////                    DispatchQueue.main.async {
+////                        self.parent.scale = 0.5
+////                    }
+////
+////                    UIView.animate(withDuration: 0.3) {
+////                        view.transform = view.transform.scaledBy(x: 0.5, y: 0.5)
+////                        view.transform = view.transform.translatedBy(x: 0, y: translationY)
+////                    }
+//                } else {
 
-                    DispatchQueue.main.async {
-                        self.parent.scale = 0.5
-                    }
-
-                    UIView.animate(withDuration: 0.3) {
-                        view.transform = view.transform.scaledBy(x: 0.5, y: 0.5)
-                        view.transform = view.transform.translatedBy(x: 0, y: translationY)
-                    }
-                } else {
-                    UIView.animate(withDuration: 0.3) {
-                        view.transform = CGAffineTransform.identity
-                        //                    view.transform = view.transform.scaledBy(x: 1 + (translationY / maximumNegation) * maximumScaleMagnitude, y: 1 + (translationY / maximumNegation) * maximumScaleMagnitude)
-                        view.transform = view.transform.translatedBy(x: 0, y: translationY)
-                    }
+                withAnimation {
+                    self.parent.offset = .init(width: 0, height: translationY)
                 }
+//                    UIView.animate(withDuration: 0.3) {
+//                        view.transform = CGAffineTransform.identity
+//                        //                    view.transform = view.transform.scaledBy(x: 1 + (translationY / maximumNegation) * maximumScaleMagnitude, y: 1 + (translationY / maximumNegation) * maximumScaleMagnitude)
+//                        view.transform = view.transform.translatedBy(x: 0, y: translationY)
+//                    }
+//                }
             }
 
         default:
+            let velocity = gesture.velocity(in: gesture.view)
+            
             withAnimation {
                 self.parent.scrolling = false
-                self.parent.offset = .zero
+                if scrollState != .scrollUp || self.parent.offset.height > 0 || velocity.y > minVelocity {
+                    self.parent.offset = .zero
+                }
                 if !isPinching {
                     self.parent.scale = 1.0
                 }
@@ -300,13 +311,12 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
                 newViewFrame.origin.y = view.superview!.frame.height - view.frame.height
             }
 
-            let velocity = gesture.velocity(in: gesture.view)
 
             if scrollState == .scrollDown {
                 UIView.animate(withDuration: 0.3) {
                     view.transform = CGAffineTransform.identity
                 }
-            } else if scrollState == .scrollUp {
+            } else if scrollState == .scrollUp && velocity.y < -minVelocity {
                 UIView.animate(withDuration: 0.3) {
                     view.transform = CGAffineTransform.identity
                     self.parent.onSwipeUp()

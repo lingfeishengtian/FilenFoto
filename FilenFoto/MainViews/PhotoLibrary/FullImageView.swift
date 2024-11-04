@@ -30,19 +30,31 @@ struct FullImageView: View {
         }
     }
     
+    private let sheetSizeOffset: CGFloat = 220
+    
     func getHeightOffset(_ height: CGFloat) -> CGFloat {
         if let selected = photoEnvironment.selectedDbPhotoAsset,
            let uiImage = UIImage(contentsOfFile: selected.thumbnailURL.path)
         {
-            let sheetTopAnchorAdjustment = height / 2 - sheetTopAnchor.y
+            let sheetTopAnchorAdjustment = sheetTopAnchor.y - sheetSizeOffset > 0 ? height - sheetTopAnchor.y - sheetSizeOffset : 0
             // if height is greater than width
-            if uiImage.size.height > uiImage.size.width {
-                return -height / 12 - sheetTopAnchorAdjustment
-            } else {
-                return -height / 7 - sheetTopAnchorAdjustment
-            }
+            return -sheetTopAnchorAdjustment
+//            if uiImage.size.height > uiImage.size.width {
+//                return -height / 12 - sheetTopAnchorAdjustment
+//            } else {
+//                return -height / 7 - sheetTopAnchorAdjustment
+//            }
         } else {
             return 1.0
+        }
+    }
+    
+    func getHeightOfSheet() -> PresentationDetent {
+        let photoEnvHeight = abs(fullImageState.offset.height) + sheetSizeOffset
+        if abs(fullImageState.offset.height) == 0 || fullImageState.showDetail {
+            return .medium
+        } else {
+            return .height(photoEnvHeight)
         }
     }
     
@@ -86,10 +98,10 @@ struct FullImageView: View {
                     GeometryReader { reader in
                         PagedImageView(animation: animation, page: .withIndex(photoEnvironment.getCurrentPhotoAssetIndex() ?? 0))
                             .offset(
-                                fullImageState.showDetail
+                                fullImageState.showDetail || fullImageState.offset.height < 0
                                 ? .init(width: 0, height: getHeightOffset(reader.size.height)) : .zero
                             )
-                            .scaleEffect(fullImageState.showDetail ? getImageRatio() : 1.0)
+//                            .scaleEffect(fullImageState.showDetail ? getImageRatio() : 1.0)
                     }
                     Spacer()
                     PhotoScrubberView(itemsToShow: 5, spacing: 10) {
@@ -123,9 +135,10 @@ struct FullImageView: View {
                 }
                 .ignoresSafeArea(fullImageState.shouldHideBars ? .all : .keyboard)
                 .sheet(
-                    isPresented: .constant(fullImageState.showDetail),
+                    isPresented: .constant(fullImageState.offset.height < 0 || fullImageState.showDetail),
                     onDismiss: {
                         withAnimation {
+                            fullImageState.offset.height = 0
                             fullImageState.showDetail = false
                         }
                     }
@@ -151,7 +164,8 @@ struct FullImageView: View {
                             sheetTopAnchor = CGPoint(x: newValue.midX, y: newValue.minY - 80)
                         }
                     }
-                    .presentationDetents([.fraction(0.7), .medium, .height(fullImageState.offset.height)])
+                    .presentationDetents([getHeightOfSheet()])
+                    .presentationBackgroundInteraction(.disabled)
                 }
                 .onAppear {
                     Task {

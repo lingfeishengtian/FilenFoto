@@ -413,9 +413,7 @@ class PhotoDatabase {
         if !perThousandDateCache.isEmpty {
             return
         }
-        
-        databaseConnection?.trace({ print($0) })
-        
+                
         let countOfPhotos = getCountOfPhotos()
         var count = 0
         while count < countOfPhotos {
