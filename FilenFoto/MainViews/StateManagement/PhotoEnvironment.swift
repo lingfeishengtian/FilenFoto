@@ -65,10 +65,21 @@ class PhotoEnvironment: SyncProgressInfo {
     
     func setCurrentSelectedDbPhotoAsset(_ dbPhotoAsset: DBPhotoAsset, index: Int) {
         DispatchQueue.main.async {
-            self.selectedDBPhotoAssetIndex = index
-            self.pairedSelectedDbPhotoAsset = dbPhotoAsset
+            withAnimation {
+                self.selectedDBPhotoAssetIndex = index
+                self.pairedSelectedDbPhotoAsset = dbPhotoAsset
+                self.shouldShowFullImageView = true
+            }
         }
     }
+    
+//    func () {
+//        DispatchQueue.main.async {
+//            withAnimation {
+//                
+//            }
+//        }
+//    }
     
     func getCurrentPhotoAssetIndex() -> Int? {
         guard selectedDbPhotoAsset != nil else {

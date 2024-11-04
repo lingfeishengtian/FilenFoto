@@ -163,10 +163,6 @@ struct ContentView: View {
                 .disabled(searchText.count == 0 && searchBarShow)
                 .animation(.easeInOut, value: (searchText.isEmpty && searchBarShow))
             }
-            .onAppear {
-                photoEnvironment.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
-                initiateSyncTask()
-            }
             .environmentObject(photoEnvironment)
             .overlay {
                 if photoEnvironment.shouldShowFullImageView && photoEnvironment.selectedDbPhotoAsset != nil {
@@ -174,6 +170,10 @@ struct ContentView: View {
                         .environmentObject(photoEnvironment)
                 }
             }
+        }
+        .onAppear {
+            photoEnvironment.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
+            initiateSyncTask()
         }
     }
 }

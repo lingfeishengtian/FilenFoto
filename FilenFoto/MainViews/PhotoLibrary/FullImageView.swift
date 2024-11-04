@@ -84,10 +84,7 @@ struct FullImageView: View {
                         .opacity(fullImageState.shouldHideBars ? 0 : 1)
                     Spacer()
                     GeometryReader { reader in
-                        PagedImageView(animation: animation)
-//                            .if (fullImageState.showDetail && fullImageState.sheetTopAnchor.y <= reader.size.height / 2) { view in
-//                                view.position(fullImageState.sheetTopAnchor)
-//                            }
+                        PagedImageView(animation: animation, page: .withIndex(photoEnvironment.getCurrentPhotoAssetIndex() ?? 0))
                             .offset(
                                 fullImageState.showDetail
                                 ? .init(width: 0, height: getHeightOffset(reader.size.height)) : .zero
@@ -154,7 +151,7 @@ struct FullImageView: View {
                             sheetTopAnchor = CGPoint(x: newValue.midX, y: newValue.minY - 80)
                         }
                     }
-                    .presentationDetents([.fraction(0.7), .medium])
+                    .presentationDetents([.fraction(0.7), .medium, .height(fullImageState.offset.height)])
                 }
                 .onAppear {
                     Task {
@@ -163,7 +160,8 @@ struct FullImageView: View {
                     }
                 }
             }
-        }.environmentObject(fullImageState)
+        }
+        .environmentObject(fullImageState)
     }
 }
 

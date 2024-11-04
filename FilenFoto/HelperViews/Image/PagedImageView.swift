@@ -14,7 +14,7 @@ struct PagedImageView: View {
     
     let animation: Namespace.ID
     
-    @State private var page: Page = .first()
+    @State var page: Page
     
     func swipeDownOnImage () {
         if fullImageState.showDetail || fullImageState.offset.height < 0 {
@@ -52,9 +52,11 @@ struct PagedImageView: View {
                 )!
                 if dbAsset == photoEnvironment.selectedDbPhotoAsset {
                     FilenAsyncImage(dbAsset: photoEnvironment.selectedDbPhotoAsset, onSwipeUp: swipeUpOnImage, onSwipeDown: swipeDownOnImage)
-                    .matchedGeometryEffect(
+                        .matchedGeometryEffect(
                         id: "thumbnailImageTransition"
-                        + dbAsset.localIdentifier, in: animation)
+                        + dbAsset.localIdentifier,
+                        in: animation
+                    )
                     .frame(width: reader.size.width, height: reader.size.height)
                 } else {
                     ZoomablePhoto(
@@ -77,11 +79,6 @@ struct PagedImageView: View {
             })
             .interactive(scale: 0.8)
             .allowsDragging(!fullImageState.shouldHideBars)
-        }
-        .onAppear {
-            if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
-                self.page.update(.new(index: ind))
-            }
         }
         .onChange(of: photoEnvironment.getCurrentPhotoAssetIndex()) {
             if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {

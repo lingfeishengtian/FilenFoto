@@ -51,38 +51,44 @@ struct LazyPhotoGrid : View {
                 let dbPhotoAsset = PhotoDatabase.shared.getDBPhotoSync(
                     atOffset: index
                 )!
-                Color.clear.background(
-                    Image(
-                        uiImage: UIImage(contentsOfFile: dbPhotoAsset.thumbnailURL.path) ?? UIImage()
+//                NavigationLink {
+//                    NavigationStack {
+//                        FullImageView(animation: animation)
+//                    }
+//                    .navigationTransition(.zoom(sourceID: "Foto", in: animation))
+//                } label: {
+                    Color.clear.background(
+                        Image(
+                            uiImage: UIImage(contentsOfFile: dbPhotoAsset.thumbnailURL.path) ?? UIImage()
+                        )
+                        .resizable()
+                        .matchedGeometryEffect(
+                            id: "thumbnailImageTransition"
+                            + dbPhotoAsset.localIdentifier,
+                            in: animation,
+                            isSource: true
+                        )
+                        .scaledToFill()
+                        .clipped()
                     )
-                    .resizable()
-                    .scaledToFill()
+                    .contentShape(Rectangle())
+                    .aspectRatio(1, contentMode: .fit)
                     .clipped()
-                )
-                .contentShape(Rectangle())
-                .aspectRatio(1, contentMode: .fit)
-                .clipped()
-                .overlay (alignment: .topLeading) {
-                    if dbPhotoAsset.isBurst {
-                        Image(systemName: "laser.burst")
+                    .overlay (alignment: .topLeading) {
+                        if dbPhotoAsset.isBurst {
+                            Image(systemName: "laser.burst")
+                        }
+                    }
+                    .opacity(imageOpacity(dbPhotoAsset) ? 0 : 1)
+                    .onTapGesture {
+                        withAnimation {
+                            photoEnvironment.setCurrentSelectedDbPhotoAsset(dbPhotoAsset, index: index)
+//                            photoEnvironment.shouldShowFullImageView = true
+                            keyboardFocus = false
+                        }
                     }
                 }
-                .opacity(imageOpacity(dbPhotoAsset) ? 0 : 1)
-                .onTapGesture {
-                    withAnimation {
-                        photoEnvironment.setCurrentSelectedDbPhotoAsset(dbPhotoAsset, index: index)
-                        photoEnvironment.shouldShowFullImageView = true
-                        keyboardFocus = false
-                    }
-                }
-                .matchedGeometryEffect(
-                    id: "thumbnailImageTransition"
-                    + dbPhotoAsset.localIdentifier + (
-                        photoEnvironment.shouldShowFullImageView ? ".fullImage" : ""
-                    ),
-                    in: animation
-                )
-            }
+//            }
         }
         .frame(maxHeight: .infinity, alignment: .bottom)
     }
