@@ -1662,8 +1662,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/GestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "286"
-            endingLineNumber = "286"
+            startingLineNumber = "289"
+            endingLineNumber = "289"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1678,8 +1678,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/GestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "269"
-            endingLineNumber = "269"
+            startingLineNumber = "272"
+            endingLineNumber = "272"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1694,8 +1694,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/GestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "242"
-            endingLineNumber = "242"
+            startingLineNumber = "245"
+            endingLineNumber = "245"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1710,8 +1710,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/GestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "307"
-            endingLineNumber = "307"
+            startingLineNumber = "310"
+            endingLineNumber = "310"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1726,8 +1726,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/GestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "308"
-            endingLineNumber = "308"
+            startingLineNumber = "311"
+            endingLineNumber = "311"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1742,8 +1742,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/GestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "296"
-            endingLineNumber = "296"
+            startingLineNumber = "299"
+            endingLineNumber = "299"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1758,8 +1758,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/GestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "297"
-            endingLineNumber = "297"
+            startingLineNumber = "300"
+            endingLineNumber = "300"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2424,7 +2424,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "D27FEBEC-CAD4-4FA4-8D61-3CF07EBB79B9"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FilenFoto/Utils/PhotoSyncUtils/PhotoLocationPersistence.swift"
@@ -2434,36 +2434,6 @@
             endingLineNumber = "429"
             landmarkName = "fetchAndSyncAssetsFor(_:updateProgressOfCurrentFile:onNewDBPhotoInserted:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "D27FEBEC-CAD4-4FA4-8D61-3CF07EBB79B9 - aab97dc08f4f3d6f"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(1) suspend resume partial function for FilenFoto.PhotoVisionDatabaseManager.fetchAndSyncAssetsFor(_: __C.PHAsset, updateProgressOfCurrentFile: (Swift.Double, Swift.String) -&gt; (), onNewDBPhotoInserted: (FilenFoto.DBPhotoAsset) -&gt; ()) async throws -&gt; ()"
-                  moduleName = "FilenFoto.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/hunterhan/Documents/Github/FilenFoto/FilenFoto/Utils/PhotoSyncUtils/PhotoLocationPersistence.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "429"
-                  endingLineNumber = "429">
-               </Location>
-               <Location
-                  uuid = "D27FEBEC-CAD4-4FA4-8D61-3CF07EBB79B9 - c8c2e6230169816d"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(3) suspend resume partial function for FilenFoto.PhotoVisionDatabaseManager.fetchAndSyncAssetsFor(_: __C.PHAsset, updateProgressOfCurrentFile: (Swift.Double, Swift.String) -&gt; (), onNewDBPhotoInserted: (FilenFoto.DBPhotoAsset) -&gt; ()) async throws -&gt; ()"
-                  moduleName = "FilenFoto.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/hunterhan/Documents/Github/FilenFoto/FilenFoto/Utils/PhotoSyncUtils/PhotoLocationPersistence.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "429"
-                  endingLineNumber = "429">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -2716,26 +2686,10 @@
             filePath = "FilenFoto/Persistence/PhotoDatabase.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "355"
-            endingLineNumber = "355"
-            landmarkName = "index(for:onComplete:)"
+            startingLineNumber = "389"
+            endingLineNumber = "389"
+            landmarkName = "index(of:)"
             landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "6932AAA6-8C9D-4DEB-BE5F-90DC50408058"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/HelperViews/Image/PagedImageView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "54"
-            endingLineNumber = "54"
-            landmarkName = "body"
-            landmarkType = "24">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -2812,9 +2766,9 @@
             filePath = "FilenFoto/Persistence/PhotoDatabase.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "338"
-            endingLineNumber = "338"
-            landmarkName = "index(for:onComplete:)"
+            startingLineNumber = "372"
+            endingLineNumber = "372"
+            landmarkName = "index(of:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -2908,8 +2862,8 @@
             filePath = "FilenFoto/HelperViews/Image/PerformantPhotoCarousel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "404"
-            endingLineNumber = "404"
+            startingLineNumber = "403"
+            endingLineNumber = "403"
             landmarkName = "updateUIViewController(_:context:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2924,8 +2878,8 @@
             filePath = "FilenFoto/HelperViews/Image/PerformantPhotoCarousel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "415"
-            endingLineNumber = "415"
+            startingLineNumber = "414"
+            endingLineNumber = "414"
             landmarkName = "updateUIViewController(_:context:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2972,8 +2926,8 @@
             filePath = "FilenFoto/MainViews/StateManagement/PhotoEnvironment.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "85"
-            endingLineNumber = "85"
+            startingLineNumber = "99"
+            endingLineNumber = "99"
             landmarkName = "getCurrentPhotoAssetIndex()"
             landmarkType = "7">
          </BreakpointContent>
@@ -3068,8 +3022,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/GestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "246"
-            endingLineNumber = "246"
+            startingLineNumber = "249"
+            endingLineNumber = "249"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3132,8 +3086,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/GestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "322"
-            endingLineNumber = "322"
+            startingLineNumber = "325"
+            endingLineNumber = "325"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3148,8 +3102,8 @@
             filePath = "FilenFoto/HelperViews/ZoomablePannableViews/GestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "332"
-            endingLineNumber = "332"
+            startingLineNumber = "335"
+            endingLineNumber = "335"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3167,6 +3121,38 @@
             startingLineNumber = "53"
             endingLineNumber = "53"
             landmarkName = "getHeightOfSheet()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "597C850E-9821-46CB-B313-0444ABBC62E6"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/Persistence/PhotoDatabase.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "312"
+            endingLineNumber = "312"
+            landmarkName = "getDateIDOffsettedQuery(index:offset:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "7C5C4D70-7DC3-49C4-9596-73B08CC4C930"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/Persistence/PhotoDatabase.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "337"
+            endingLineNumber = "337"
+            landmarkName = "index(of:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

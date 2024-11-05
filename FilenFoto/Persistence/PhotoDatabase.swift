@@ -322,56 +322,90 @@ class PhotoDatabase {
         """)
     }
     
-    // TODO: Improve performance maybe
-    func index(for dbPhotoAsset: DBPhotoAsset, onComplete: @escaping (Int?) -> Void) {
-        dispatchQueue.async { [self] in
-            initiateThousandIndexing()
-            var ind = 0
-            for i in 0..<perThousandIDCache.count {
-                if perThousandDateCache[i] > dbPhotoAsset.creationDate {
-                    ind = i
-                } else {
-                    break
-                }
+    func index(of dbPhotoAsset: DBPhotoAsset) -> Int {
+//        dispatchQueue.async { [self] in
+        initiateThousandIndexing()
+        let dateNow = Date.now
+        var ind = 0
+        for i in 0..<perThousandIDCache.count {
+            if perThousandDateCache[i] > dbPhotoAsset.creationDate {
+                ind = i
+            } else {
+                break
             }
-            
-            let query = """
-        WITH RankedPhotos AS (
-            SELECT 
-                photoLibrary.*, 
-                ROW_NUMBER() OVER (ORDER BY photoLibrary."creationDate" DESC, photoLibrary."id" DESC) AS RowIndex
-            FROM 
-                photoLibrary
-            JOIN 
-                photoAsset ON photoAsset.id = photoLibrary.id
-            WHERE (photoLibrary."creationDate", photoLibrary."id") <= ('\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))', \(perThousandIDCache[ind]))
-        )
-        SELECT 
-            RowIndex, id
-        FROM 
-            RankedPhotos
-        WHERE 
-            id = ?;
-        """
-            do {
-                let result = try databaseConnection?.prepareRowIterator(query, bindings: [dbPhotoAsset.id])
-                if let result {
-                    while let row = try result.failableNext() {
-                        if let f = try row.get(Expression<Int?>("RowIndex")) {
-                            let finInd = f - 1 + ind * cacheOffset
-                            let testingDBPhoto = getDBPhotoSync(atOffset: finInd)
-                            assert(testingDBPhoto == dbPhotoAsset)
-                            onComplete(finInd)
-                            return
-                        }
-                    }
-                }
-            } catch {
-                logger.error("Failed to get index from id \(error)")
-            }
-            onComplete(nil)
-            return
         }
+        var upperBoundQuery: String? = nil
+        if ind > 0 {
+            upperBoundQuery = """
+                AND ("creationDate", "id") <= ('\(SQLite.dateFormatter.string(from: perThousandDateCache[ind - 1]))', \(perThousandIDCache[ind - 1]))
+            """
+        }
+        let query = """
+            SELECT 
+                COUNT(*)
+            FROM photoLibrary
+            WHERE ("creationDate", "id") > ('\(SQLite.dateFormatter.string(from: dbPhotoAsset.creationDate))', \(dbPhotoAsset.id))
+            \(upperBoundQuery ?? "")
+            ORDER BY creationDate DESC, id DESC;
+            """
+        do {
+            let result = try databaseConnection?.scalar(query)
+            
+            if let result, let index = result as? Int64 {
+                print("Finding index took \(Date.now.timeIntervalSince(dateNow))")
+                return Int(index) + (ind > 0 ? (ind - 1) * cacheOffset : 0)
+            }
+            return -1
+        } catch {
+            logger.error("Failed to get index from id \(error)")
+            return -1
+        }
+//            var ind = 0
+//            for i in 0..<perThousandIDCache.count {
+//                if perThousandDateCache[i] > dbPhotoAsset.creationDate {
+//                    ind = i
+//                } else {
+//                    break
+//                }
+//            }
+//            
+//            let query = """
+//        WITH RankedPhotos AS (
+//            SELECT 
+//                photoLibrary.*, 
+//                ROW_NUMBER() OVER (ORDER BY photoLibrary."creationDate" DESC, photoLibrary."id" DESC) AS RowIndex
+//            FROM 
+//                photoLibrary
+//            JOIN 
+//                photoAsset ON photoAsset.id = photoLibrary.id
+//            WHERE (photoLibrary."creationDate", photoLibrary."id") <= ('\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))', \(perThousandIDCache[ind]))
+//        )
+//        SELECT 
+//            RowIndex, id
+//        FROM 
+//            RankedPhotos
+//        WHERE 
+//            id = ?;
+//        """
+//            do {
+//                let result = try databaseConnection?.prepareRowIterator(query, bindings: [dbPhotoAsset.id])
+//                if let result {
+//                    while let row = try result.failableNext() {
+//                        if let f = try row.get(Expression<Int?>("RowIndex")) {
+//                            let finInd = f - 1 + ind * cacheOffset
+//                            let testingDBPhoto = getDBPhotoSync(atOffset: finInd)
+//                            assert(testingDBPhoto == dbPhotoAsset)
+//                            onComplete(finInd)
+//                            return
+//                        }
+//                    }
+//                }
+//            } catch {
+//                logger.error("Failed to get index from id \(error)")
+//            }
+//            onComplete(nil)
+//            return
+//        }
     }
     
     @available(*, deprecated, message: "ID based indexing deprecated")
@@ -409,11 +443,14 @@ class PhotoDatabase {
     }
     
     // TODO: Fix burst support
+    // TODO: Store this in a table cache
     private func initiateThousandIndexing() {
         if !perThousandDateCache.isEmpty {
             return
         }
-                
+        
+        databaseConnection?.trace({ print($0) })
+        
         let countOfPhotos = getCountOfPhotos()
         var count = 0
         while count < countOfPhotos {
@@ -628,6 +665,7 @@ class PhotoDatabase {
                         )
                         
                         let _ = try? databaseConnection?.run(insert)
+                        didInsertNewLibrary = true
                     } else {
                         var hadRow = false
                         for row in result! {

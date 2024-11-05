@@ -50,7 +50,7 @@ struct PagedImageView: View {
                 let dbAsset = PhotoDatabase.shared.getDBPhotoSync(
                     atOffset: index
                 )!
-                if dbAsset == photoEnvironment.selectedDbPhotoAsset {
+                if index == photoEnvironment.getCurrentPhotoAssetIndex() {
                     FilenAsyncImage(dbAsset: photoEnvironment.selectedDbPhotoAsset, onSwipeUp: swipeUpOnImage, onSwipeDown: swipeDownOnImage)
                         .matchedGeometryEffect(
                         id: "thumbnailImageTransition"
@@ -72,7 +72,7 @@ struct PagedImageView: View {
             .onPageChanged({ (newIndex) in
                 photoEnvironment.setCurrentSelectedDbPhotoAsset(PhotoDatabase.shared.getDBPhotoSync(
                     atOffset: newIndex
-                )!, index: newIndex)
+                )!, index: newIndex, animate: false)
                 Task {
                     await fullImageState.getView(selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset!)
                 }

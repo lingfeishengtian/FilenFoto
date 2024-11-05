@@ -153,7 +153,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     // MARK: - UICollectionViewDelegate
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let selectedItem = PhotoDatabase.shared.getDBPhotoSync(atOffset: indexPath.item)!
-        photoEnvironment.setCurrentSelectedDbPhotoAsset(selectedItem, index: indexPath.item)
+        photoEnvironment.setCurrentSelectedDbPhotoAsset(selectedItem, index: indexPath.item, animate: false)
         collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
     }
 
@@ -195,7 +195,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         {
             //            collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
             let selectedItem = PhotoDatabase.shared.getDBPhotoSync(atOffset: indexPath.item)!
-            photoEnvironment.setCurrentSelectedDbPhotoAsset(selectedItem, index: indexPath.item)
+            photoEnvironment.setCurrentSelectedDbPhotoAsset(selectedItem, index: indexPath.item, animate: false)
 
             // Animate the selection
             if let previousIndexPath = selectedIndexPath,
@@ -221,7 +221,9 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         _ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout,
         sizeForItemAt indexPath: IndexPath
     ) -> CGSize {
-        let itemWidth = calculateSizeOfSingle(collectionView.frame.size)
+        let itemWidth = indexPath.item == photoEnvironment.getCurrentPhotoAssetIndex() ?
+        calculateSizeOfSingle(collectionView.bounds.size) * scaleEffectSelected :
+        calculateSizeOfSingle(collectionView.bounds.size)
         return CGSize(width: itemWidth, height: 100)
     }
 
@@ -308,16 +310,13 @@ class ThumbnailCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // the image should crop to fit the cell
     func setupImageView() {
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.backgroundColor = .clear
-        imageView.contentMode = .scaleAspectFit
+        imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-
-        // rounded corners
-        imageView.layer.cornerRadius = 20
+        imageView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(imageView)
-
+        
         NSLayoutConstraint.activate([
             imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
@@ -407,16 +406,20 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
                     uiViewController.collectionView.deleteItems(at: indexPathsToDelete)
                 } else {
                     // generate changeitemscount number of indexpaths to insert
-                    let indexPathsToInsert = (0..<abs(changeItemsCount)).map { IndexPath(item: $0, section: 0) }
+                    let indexPathsToInsert = photoEnvironment.retrieveAndClearPhotoInsertQueue()
                     uiViewController.collectionView.insertItems(at: indexPathsToInsert)
                 }
                 
                 uiViewController.numberOfPhotos = numPhotos
 //                uiViewController.collectionView.reloadData()
             }, completion: { _ in
-                uiViewController.scrollToSelected()
+//                uiViewController.scrollToSelected()
                 uiViewController.performingUpdates = false
             })
+        }
+        //animate the change
+        UIView.animate(withDuration: 0.3) {
+            uiViewController.collectionView.collectionViewLayout.invalidateLayout()
         }
     }
 

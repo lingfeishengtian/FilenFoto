@@ -219,16 +219,19 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
 
                 // TODO: FIX doesn't always snap back to top
 //                if view.frame.midY < (view.superview?.frame.midY ?? 900) / 3 {
-                if translation.y < 0 {
+                if translation.y < -100 {
                     scrollState = .scrollUp
 
-                    self.parent.scale = 1.0
-                    self.parent.offset = .zero
+//                    self.parent.offset = .zero
 
                     UIView.animate(withDuration: 0.3) {
                         view.transform = CGAffineTransform.identity
 //                        view.transform = view.transform.translatedBy(
 //                            x: 0, y: translation.y - center.y)
+                    }
+                    
+                    withAnimation {
+                        self.parent.scale = 1.0
                     }
                 } else {
                     UIView.animate(withDuration: 0.3) {

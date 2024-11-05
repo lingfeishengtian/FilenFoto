@@ -34,6 +34,7 @@ class PhotoEnvironment: SyncProgressInfo {
     @Published var countOfPhotos: Int = 0
     @Published private var pairedSelectedDbPhotoAsset: DBPhotoAsset? = nil
     private var selectedDBPhotoAssetIndex: Int = 0
+    private var photoInsertQueue = [IndexPath]()
     
     var selectedDbPhotoAsset : DBPhotoAsset? {
         pairedSelectedDbPhotoAsset
@@ -58,14 +59,27 @@ class PhotoEnvironment: SyncProgressInfo {
         }
         
         countOfPhotos += 1
+        photoInsertQueue.append(IndexPath(item: PhotoDatabase.shared.index(of: dbPhotoAsset), section: 0))
 #if DEBUG
         assert(PhotoDatabase.shared.getCountOfPhotos() == countOfPhotos)
 #endif
     }
     
-    func setCurrentSelectedDbPhotoAsset(_ dbPhotoAsset: DBPhotoAsset, index: Int) {
+    func retrieveAndClearPhotoInsertQueue() -> [IndexPath] {
+        let queue = photoInsertQueue
+        photoInsertQueue.removeAll()
+        return queue
+    }
+    
+    func setCurrentSelectedDbPhotoAsset(_ dbPhotoAsset: DBPhotoAsset, index: Int, animate: Bool = true) {
         DispatchQueue.main.async {
-            withAnimation {
+            if animate {
+                withAnimation {
+                    self.selectedDBPhotoAssetIndex = index
+                    self.pairedSelectedDbPhotoAsset = dbPhotoAsset
+                    self.shouldShowFullImageView = true
+                }
+            } else {
                 self.selectedDBPhotoAssetIndex = index
                 self.pairedSelectedDbPhotoAsset = dbPhotoAsset
                 self.shouldShowFullImageView = true
