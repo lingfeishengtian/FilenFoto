@@ -126,10 +126,12 @@ class StorageSizeLookup: ObservableObject {
 }
 
 struct Settings: View {
-    // Use @AppStorage
+    @EnvironmentObject var photoEnvironment: PhotoEnvironment
     @AppStorage("maxCacheSize") var maxCacheSize: CacheSizeValues = .一GB // mb
     @AppStorage("regenerateThumbnails") var regenerateThumbnails: Bool = false
     @AppStorage("compressionLevel") var compressionLevel: CompressionLevels = .high
+    // TODO: Support multiple import tasks
+    @AppStorage("filenImportTasks") var filenImportTasks: String = ""
     @StateObject var filenFotoStorage: StorageSizeLookup = StorageSizeLookup()
     
     func iIndex(for component: FilenFotoStorageComponent) -> Int {
@@ -218,12 +220,14 @@ struct Settings: View {
                 
                 Section("Filen Account Management") {
                     HStack {
-                        Text("Import Images")
-                        Spacer()
-                        Button {
-                            
+                        NavigationLink {
+                            if let baseFolderUUID = photoEnvironment.baseFolderUUID {
+                                SetupFolder(currentFolderUuid: baseFolderUUID, onSelected: { uuid in
+                                    filenImportTasks = uuid
+                                }, requiresEmptyFolder: false)
+                            }
                         } label: {
-                            Text("Select Cloud Folder")
+                            Text("Import Images")
                         }
                     }
                     Button {

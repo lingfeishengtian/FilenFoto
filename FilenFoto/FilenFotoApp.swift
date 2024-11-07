@@ -12,6 +12,7 @@ import CoreLocation
 struct FilenFotoApp: App {
     @State var isLoggedIn: Bool = FilenFoto.isLoggedIn()
     @State var hasPhotoFolder: Bool = filenPhotoFolderUUID != nil
+    @AppStorage("filenImportTasks") var filenImportTasks: String = ""
     @AppStorage("compressionLevel") var compressionLevel: CompressionLevels?
 
     init() {
@@ -22,53 +23,19 @@ struct FilenFotoApp: App {
         
     var body: some Scene {
         WindowGroup {
-            
-//            SwiftMatchExampleWrapper()
-            if isLoggedIn && hasPhotoFolder && compressionLevel != nil {
+            /// Ensures no case is missed
+            switch (isLoggedIn, hasPhotoFolder, compressionLevel != nil, filenImportTasks.isEmpty) {
+            case (true, true, true, true):
                 ContentView()
-            } else if isLoggedIn {
-                if !hasPhotoFolder {
-                    SetupFolderRoot(hasPhotoFolder: $hasPhotoFolder)
-                } else if compressionLevel == nil {
-                    CompressionLevelSetup()
-                }
-            } else {
+            case (true, true, true, false):
+                FilenSyncStatus()
+            case (true, true, false, _):
+                CompressionLevelSetup()
+            case (true, false, _, _):
+                SetupFolderRoot(hasPhotoFolder: $hasPhotoFolder)
+            case (false, _, _, _):
                 Login(isLoggedIn: $isLoggedIn)
             }
         }
     }
-}
-
-#Preview {
-    @Previewable @State var showImage = false
-    @Previewable @Namespace var namespace
-    VStack {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 100, maximum: .infinity), spacing: 3)]) {
-            ForEach(0..<10) { i in
-                Image("IMG_3284")
-                    .resizable()
-                    .matchedGeometryEffect(id: "foto\(i)", in: namespace, isSource: true)
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-                    .onTapGesture {
-                        withAnimation {
-                            showImage.toggle()
-                        }
-                    }
-            }
-        }
-    }
-        .overlay {
-            if showImage {
-                Image("IMG_3284")
-                    .resizable()
-                    .matchedGeometryEffect(id: "foto\(4)", in: namespace, isSource: false)
-                    .scaledToFill()
-                    .onTapGesture {
-                        withAnimation {
-                            showImage.toggle()
-                        }
-                    }
-            }
-        }
 }

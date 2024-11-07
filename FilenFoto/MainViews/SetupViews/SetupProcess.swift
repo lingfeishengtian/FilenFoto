@@ -30,7 +30,8 @@ struct SetupFolderRoot : View {
                     retrieveBaseFolderUuid()
                 }
         } else {
-            SetupFolder(currentFolderUuid: baseFolderUuid!, onSelected: {_ in 
+            SetupFolder(currentFolderUuid: baseFolderUuid!, onSelected: {uuid in
+                filenPhotoFolderUUID = uuid
                 hasPhotoFolder = true
             })
         }
@@ -42,11 +43,13 @@ struct SetupFolder: View {
     let currentFolderUuid: String
     let folderName: String?
     let onSelected: (String) -> Void
+    let requiresEmptyFolder: Bool
     
-    init(currentFolderUuid: String, onSelected: @escaping (String) -> Void, folderName: String? = nil) {
+    init(currentFolderUuid: String, onSelected: @escaping (String) -> Void, folderName: String? = nil, requiresEmptyFolder: Bool = true) {
         self.currentFolderUuid = currentFolderUuid
         self.folderName = folderName
         self.onSelected = onSelected
+        self.requiresEmptyFolder = requiresEmptyFolder
     }
     
     let filenClient = getFilenClientWithUserDefaultConfig()!
@@ -84,7 +87,7 @@ struct SetupFolder: View {
                 List {
                     ForEach(currentDirectory, id: \.name) { folder in
                         NavigationLink(){
-                            SetupFolder(currentFolderUuid: folder.uuid, onSelected: onSelected, folderName: folder.name)
+                            SetupFolder(currentFolderUuid: folder.uuid, onSelected: onSelected, folderName: folder.name, requiresEmptyFolder: requiresEmptyFolder)
                         } label: {
                             Text(folder.name)
                         }
@@ -96,10 +99,9 @@ struct SetupFolder: View {
                 .navigationTitle(folderName ?? "Select Folder")
                 .toolbar {
                     ToolbarItemGroup(placement: .primaryAction) {
-                        // prevent using root folder
-                        if folderName != nil && isEmptyFolder {
+                        /// folderName should always be nil for the root folder
+                        if folderName != nil && (!requiresEmptyFolder || isEmptyFolder) {
                             Button("", systemImage: "checkmark.circle") {
-                                filenPhotoFolderUUID = currentFolderUuid
                                 onSelected(currentFolderUuid)
                             }
                         }

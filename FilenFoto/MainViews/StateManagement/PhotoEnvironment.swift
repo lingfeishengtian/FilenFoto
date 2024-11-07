@@ -35,6 +35,42 @@ class PhotoEnvironment: SyncProgressInfo {
     @Published private var pairedSelectedDbPhotoAsset: DBPhotoAsset? = nil
     private var selectedDBPhotoAssetIndex: Int = 0
     private var photoInsertQueue = [IndexPath]()
+    @Published private var storedBaseFolderUUID: String? = nil
+    
+    init(pollingLimit: Int = 20) {
+//        self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
+        self.pollingLimit = pollingLimit
+        self.searchHistoryCache = searchHistory
+        
+        super.init()
+//#if DEBUG
+//        if (ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == nil || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "0") && lazyArray.sortedArray.count < 20_000 {
+//            DispatchQueue.main.async {
+//                let dbPhoto = self.next()!
+//                for i in 0..<20_000 {
+//                    self.lazyArray.insert(dbPhoto.setId(String(i), idOffset: Int64(i)))
+//                }
+//                print("Done")
+//            }
+//        }
+//#endif
+        self.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
+        
+    }
+    
+    
+    var baseFolderUUID: String? {
+        if storedBaseFolderUUID == nil {
+            Task {
+                let uuid = try? await getFilenClientWithUserDefaultConfig()?.baseFolder().uuid
+                DispatchQueue.main.async {
+                    self.storedBaseFolderUUID = uuid
+                }
+            }
+        }
+        
+        return storedBaseFolderUUID
+    }
     
     var selectedDbPhotoAsset : DBPhotoAsset? {
         pairedSelectedDbPhotoAsset
@@ -101,26 +137,6 @@ class PhotoEnvironment: SyncProgressInfo {
         }
         
         return selectedDBPhotoAssetIndex
-    }
-    
-    init(pollingLimit: Int = 20) {
-//        self.stream = PhotoDatabase.shared.getAllPhotoDatabaseStreamer()
-        self.pollingLimit = pollingLimit
-        self.searchHistoryCache = searchHistory
-        
-        super.init()
-//#if DEBUG
-//        if (ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == nil || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "0") && lazyArray.sortedArray.count < 20_000 {
-//            DispatchQueue.main.async {
-//                let dbPhoto = self.next()!
-//                for i in 0..<20_000 {
-//                    self.lazyArray.insert(dbPhoto.setId(String(i), idOffset: Int64(i)))
-//                }
-//                print("Done")
-//            }
-//        }
-//#endif
-        self.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
     }
     
     func addNewSearchHistory(searchQuery: String) {

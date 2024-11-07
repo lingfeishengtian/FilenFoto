@@ -12,27 +12,6 @@ import Vision
 import FilenSDK
 import CryptoKit
 
-//fileprivate let sha256Queue = DispatchQueue(label: "com.filenfoto.sha256Queue")
-
-func getSHA256(forFile url: URL) throws -> String {
-    //    return try sha256Queue.sync {
-    
-    let handle = try FileHandle(forReadingFrom: url)
-    var hasher = SHA256()
-    while autoreleasepool(invoking: {
-        let nextChunk = handle.readData(ofLength: SHA256.blockByteCount)
-        guard !nextChunk.isEmpty else { return false }
-        hasher.update(data: nextChunk)
-        return true
-    }) { }
-    let digest = hasher.finalize()
-    //    return digest
-    
-    // Here's how to convert to string form
-    return digest.map { String(format: "%02hhx", $0) }.joined()
-    //    }
-}
-
 var filenPhotoFolderUUID: String? {
     get {
         return UserDefaults.standard.string(forKey: "filenPhotoFolderUUID")
@@ -74,6 +53,7 @@ class SyncProgressInfo : ObservableObject {
     let maxStatusMessages: Int = 10
     private var onComplete: () -> Void
     private var overrideMaxImages: Int = 0
+    private var overrideCompletedImages: Int = 0
     
     init() {
         self.onComplete = { }
@@ -104,9 +84,12 @@ class SyncProgressInfo : ObservableObject {
         }
     }
     
-    public func setMaxImages(maxImages: Int) {
+    public func setMaxImages(maxImages: Int, updateProgress: Bool = false) {
         DispatchQueue.main.async {
             self.overrideMaxImages = maxImages
+            if updateProgress {
+                self.updateProgress()
+            }
         }
     }
     
@@ -119,6 +102,7 @@ class SyncProgressInfo : ObservableObject {
             }
             progress += value.internalProgress / Double(max(imageSyncProgressQueue.count, overrideMaxImages))
         }
+        progress += Double(overrideCompletedImages) / Double(max(imageSyncProgressQueue.count, overrideMaxImages))
         print("Current progress: \(progress) with \(imageSyncProgressQueue.count) images")
     }
     
@@ -132,19 +116,36 @@ class SyncProgressInfo : ObservableObject {
         }
     }
     
-    func updateImageProgress(progress localProgress: Double, message: String, phAsset: PHAsset) {
+    func addImage(localIdentifier: String) {
         DispatchQueue.main.async {
-            if let imageInQueue = self.imageSyncProgressQueue[phAsset.localIdentifier] {
+            self.imageSyncProgressQueue[localIdentifier] = ImageSyncProgress(internalMessage: "Syncing \(localIdentifier)...", phAssetLocalIdentifier: localIdentifier, isImage: true)
+            self.lastChanged.insert(self.imageSyncProgressQueue[localIdentifier]!, at: 0)
+            
+            self.checkLastChanged()
+            self.updateProgress()
+        }
+    }
+    
+    func overrideFinished(count: Int) {
+        DispatchQueue.main.async {
+            self.overrideCompletedImages = count
+            self.updateProgress()
+        }
+    }
+    
+    func updateImageProgress(progress localProgress: Double, message: String, localIdentifier: String) {
+        DispatchQueue.main.async {
+            if let imageInQueue = self.imageSyncProgressQueue[localIdentifier] {
                 if localProgress >= 1.0 && imageInQueue.internalProgress < 1.0 {
                     self.completedImages += 1
                     if message != "Image already exists, skipping..." {
                         self.onComplete()
                     }
                 }
-                self.imageSyncProgressQueue[phAsset.localIdentifier]?.internalProgress = localProgress
-                self.imageSyncProgressQueue[phAsset.localIdentifier]?.internalMessage = message
-                self.lastChanged.removeAll(where: { $0.phAssetLocalIdentifier == phAsset.localIdentifier })
-                self.lastChanged.insert(self.imageSyncProgressQueue[phAsset.localIdentifier]!, at: 0)
+                self.imageSyncProgressQueue[localIdentifier]?.internalProgress = localProgress
+                self.imageSyncProgressQueue[localIdentifier]?.internalMessage = message
+                self.lastChanged.removeAll(where: { $0.phAssetLocalIdentifier == localIdentifier })
+                self.lastChanged.insert(self.imageSyncProgressQueue[localIdentifier]!, at: 0)
                 
                 self.checkLastChanged()
                 self.updateProgress()
@@ -153,7 +154,7 @@ class SyncProgressInfo : ObservableObject {
     }
     
     func getTotalProgress() -> (completedImages: Int, totalImages: Int) {
-        return (completedImages: completedImages, max(imageSyncProgressQueue.count, overrideMaxImages))
+        return (completedImages: completedImages + overrideCompletedImages, max(imageSyncProgressQueue.count, overrideMaxImages))
     }
     
     func getLastChanged() -> [ImageSyncProgress] {
@@ -161,7 +162,7 @@ class SyncProgressInfo : ObservableObject {
     }
 }
 
-class PhotoVisionDatabaseManager {
+class PhotoVisionDatabaseManager: ProgressCheckingPhotoSyncProtocol {
     static let shared = PhotoVisionDatabaseManager()
     static let maxConcurrentTasks: Int = 4
     private var cancelOperation: Bool = false
@@ -174,16 +175,7 @@ class PhotoVisionDatabaseManager {
     
     let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "PhotoVisionDatabaseManager")
     
-    func cleanTmpDirectory() {
-        do {
-            try FileManager.default.removeItem(at: FileManager.default.temporaryDirectory)
-            try FileManager.default.createDirectory(at: FileManager.default.temporaryDirectory, withIntermediateDirectories: true)
-        } catch {
-            print("Cannot remove tmp")
-        }
-    }
-    
-    public func getTotalNumberOfPhotos() -> Int {
+    func getTotalNumberOfPhotos() -> Int {
         let fetchOptions = PHFetchOptions()
         fetchOptions.includeHiddenAssets = true
         fetchOptions.includeAllBurstAssets = true
@@ -191,9 +183,8 @@ class PhotoVisionDatabaseManager {
         return allPhotos.count
     }
     
-    public func startSync(onComplete: @escaping () -> Void = {}, onNewDatabasePhotoAdded: @escaping (DBPhotoAsset) -> Void, existingSync: SyncProgressInfo? = nil) -> SyncProgressInfo {
+    public func startSync(onComplete: @escaping () -> Void = {}, onNewDatabasePhotoAdded: @escaping (DBPhotoAsset) -> Void, progressInfo: SyncProgressInfo) {
         cleanTmpDirectory()
-        let progressInfo = existingSync ?? SyncProgressInfo()
         progressInfo.reset()
         
         Task {
@@ -258,15 +249,13 @@ class PhotoVisionDatabaseManager {
                 }
             }
         }
-        
-        return progressInfo
     }
     
     private func initiateAssetUploadAndVisionTasks(_ asset: PHAsset, progressInfo: SyncProgressInfo, onNewDatabasePhotoAdded: @escaping (DBPhotoAsset) -> Void) async {
         do {
             progressInfo.addImage(phAsset: asset)
             try await self.fetchAndSyncAssetsFor(asset) { prog, status in
-                progressInfo.updateImageProgress(progress: prog, message: status, phAsset: asset)
+                progressInfo.updateImageProgress(progress: prog, message: status, localIdentifier: asset.localIdentifier)
             } onNewDBPhotoInserted: { dbPhoto in
                 onNewDatabasePhotoAdded(dbPhoto)
             }
@@ -276,8 +265,6 @@ class PhotoVisionDatabaseManager {
     }
     
     var currentFileNames: [String] = []
-    let photoResourceTypes: [PHAssetResourceType] = [.photo, .adjustmentBasePhoto, .alternatePhoto, .fullSizePhoto]
-    let videoResourceTypes: [PHAssetResourceType] = [.video, .adjustmentBaseVideo, .adjustmentBasePairedVideo, .fullSizeVideo]
         
     private func retrieveAssetResources(_ asset: PHAsset) async throws -> PhotoAssetFilenResults {
         guard let filenClient = getFilenClientWithUserDefaultConfig() else {
@@ -325,20 +312,7 @@ class PhotoVisionDatabaseManager {
                 }
             }
             
-            collected = collected.sorted(by: { first, second in
-                let a = first.phAssetResource.type
-                let b = second.phAssetResource.type
-                let isFilePhoto = self.photoResourceTypes.firstIndex(of: a)
-                let isCurrentPhoto = self.photoResourceTypes.firstIndex(of: b)
-                let isFileVideo = self.videoResourceTypes.firstIndex(of: a)
-                let isCurrentVideo = self.videoResourceTypes.firstIndex(of: b)
-                
-                if isFileVideo != nil && isCurrentVideo != nil {
-                    return isFileVideo! < isCurrentVideo!
-                } else {
-                    return isFilePhoto ?? Int.max < isCurrentPhoto ?? Int.max
-                }
-            })
+            collected = collected.sorted(by: {thumbnailCandidacyComparison($0.phAssetResource.type, $1.phAssetResource.type)})
             
             return collected
         }

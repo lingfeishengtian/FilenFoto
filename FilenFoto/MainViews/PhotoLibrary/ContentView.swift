@@ -26,11 +26,9 @@ struct ContentView: View {
                 let _ = PhotoVisionDatabaseManager.shared.startSync(
                     onNewDatabasePhotoAdded:  { dbPhoto in
                         DispatchQueue.main.async {
-//                            self.photoEnvironment.lazyArray.insert(dbPhoto)
-//                            self.photoEnvironment.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
                             self.photoEnvironment.eventPhotoInserted(dbPhoto)
                         }
-                    }, existingSync: photoEnvironment)
+                    }, progressInfo: photoEnvironment)
             }
         }
     }
@@ -76,6 +74,7 @@ struct ContentView: View {
                                     }.disabled(photoEnvironment.progress < 0.99)
                                     NavigationLink {
                                         Settings()
+                                            .environmentObject(photoEnvironment)
                                     } label: {
                                         Label("Settings", systemImage: "gear")
                                     }
