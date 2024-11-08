@@ -45,9 +45,10 @@ enum SyncStatusCode: Int64 {
 class FileSyncDatabase {
     private let databaseConnection: Connection?
     private let logger: Logger
+    let dbFilePath: URL
     
     init(uuid: String) {
-        let dbFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appending(component: "FilenSyncDatabases", directoryHint: .isDirectory).appending(path: "\(uuid).db", directoryHint: .notDirectory)
+        dbFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appending(component: "FilenSyncDatabases", directoryHint: .isDirectory).appending(path: "\(uuid).db", directoryHint: .notDirectory)
         try? FileManager.default.createDirectory(at: dbFilePath.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
         databaseConnection = try? Connection(dbFilePath.path)
         logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "FilenSyncDatabase-\(uuid)")
@@ -96,6 +97,10 @@ class FileSyncDatabase {
     /// Set status to 1
     func finishPotentialImport() {
         let _ = try? databaseConnection?.run(statusTable.update(statusNumber <- 1))
+    }
+    
+    func failedImportStream() -> RowIterator {
+        return try! databaseConnection!.prepareRowIterator(failedFiles)
     }
         
     func localIdentifier(livePhotoId: String?, localIdentifier: String) -> Int64? {

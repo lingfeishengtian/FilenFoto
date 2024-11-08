@@ -8,6 +8,7 @@
 import Foundation
 import FilenSDK
 import os
+import SQLite
 
 class FilenSync : ProgressCheckingPhotoSyncProtocol {
     var filenClient: FilenClient? = nil
@@ -16,6 +17,12 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
     private var countOfPhotos = 0
     private let logger = Logger(subsystem: "com.filen.filenfoto", category: "FilenSync")
     private let maxConcurrentThreads = 4
+    @Published private var failedFileStatuses = [FailedStatus]()
+    private var failedStatusesDatabaseStream: RowIterator?
+    
+    var dbFilePath: URL {
+        return syncDatabase.dbFilePath
+    }
     
     init(folderUUID: String) {
         filenClient = getFilenClientWithUserDefaultConfig()
@@ -25,6 +32,37 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
     
     func getTotalNumberOfPhotos() -> Int {
         return countOfPhotos
+    }
+    
+    /// Newly added failed statuses will not be added
+    var failedImports: [FailedStatus] {
+#if targetEnvironment(simulator)
+//        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+//            var ret = [FailedStatus]()
+//            for i in 0..<100 {
+//                ret.append(FailedStatus(fileUUID: "UUID\(i)", fileName: "File\(i)File\(i)File\(i)File\(i)File\(i)", statusMessage: "Failed \(i)"))
+//            }
+//            return ret
+//        }
+#endif
+        if failedStatusesDatabaseStream == nil {
+            failedStatusesDatabaseStream = syncDatabase.failedImportStream()
+            addMoreFailedImportsFromStream()
+        }
+        
+        return failedFileStatuses
+    }
+    
+    func addMoreFailedImportsFromStream() {
+        var cnt = 20
+        while cnt > 0 {
+            if let failedStatus = try? failedStatusesDatabaseStream?.failableNext() {
+                failedFileStatuses.append(FailedStatus(fileUUID: failedStatus[failedFileUUID], fileName: failedStatus[failedFileName], statusMessage: failedStatus[failedStatusMessage]))
+                cnt -= 1
+            } else {
+                break
+            }
+        }
     }
     
     /// Non recursive
@@ -65,6 +103,7 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
             }
             
             guard let filenClient else {
+                onComplete()
                 logger.error("Filen client cannot be found")
                 return
             }
@@ -80,6 +119,7 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
                 do {
                     try await queuePhotosToDownload()
                 } catch {
+                    onComplete()
                     logger.error("Could not queue photos to download \(error)")
                     return
                 }
@@ -101,10 +141,11 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
                     
                     count += 1
                     group.addTask {
-                        await self.downloadAndIdentifyPhoto(file, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded, onComplete: onComplete)
+                        await self.downloadAndIdentifyPhoto(file, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
                     }
                 }
             }
+            onComplete()
         }
     }
     
@@ -117,7 +158,7 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
     
     let thumbnailsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("thumbnails", conformingTo: .folder)
 
-    func downloadAndIdentifyPhoto(_ filenFile: FilenFile, onNewDatabasePhotoAdded: @escaping (DBPhotoAsset) -> Void, onComplete: @escaping () -> Void) async {
+    func downloadAndIdentifyPhoto(_ filenFile: FilenFile, onNewDatabasePhotoAdded: @escaping (DBPhotoAsset) -> Void) async {
         syncProgress?.addImage(localIdentifier: filenFile.filenUUID)
         syncProgress?.updateImageProgress(progress: 0.0, message: "Downloading \(filenFile.filenUUID)", localIdentifier: filenFile.filenUUID)
         let fileInfo = try? await filenClient?.fileInfo(uuid: filenFile.filenUUID)
@@ -172,7 +213,7 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
                         do {
                             try await ImageCompressor.compressImage(from: tmpLocation, outputDestination: compressedThumbnailUrl)
                             let result = PhotoDatabase.shared.insertPhoto(asset: extractedImageDetails, filenUUID: uploadFileResults.uuid, fileName: filenFile.fileName, assetRowId: assetId, imageClassificationResults: obs!.0, textResultClassificationResults: obs!.1, thumbnailLocation: compressedThumbnailUrl)
-                            self.handleInsertResult(result: result, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded, onComplete: onComplete, filenFile: filenFile)
+                            self.handleInsertResult(result: result, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded, filenFile: filenFile)
                             
                             self.syncDatabase.finishImport(filenUUID: filenFile.filenUUID)
                             try FileManager.default.removeItem(at: tmpLocation)
@@ -195,7 +236,7 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
                         do {
                             try await ImageCompressor.compressImage(from: res!.generatedCGImage, outputDestination: compressedThumbnailUrl)
                             let result = PhotoDatabase.shared.insertPhoto(asset: extractedImageDetails, filenUUID: filenFile.filenUUID, fileName: filenFile.fileName, assetRowId: assetId, imageClassificationResults: res!.photoRecog.0, textResultClassificationResults: res!.photoRecog.1, thumbnailLocation: compressedThumbnailUrl)
-                            self.handleInsertResult(result: result, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded, onComplete: onComplete, filenFile: filenFile)
+                            self.handleInsertResult(result: result, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded, filenFile: filenFile)
                             
                             self.syncDatabase.finishImport(filenUUID: filenFile.filenUUID)
                             try FileManager.default.removeItem(at: tmpLocation)
@@ -209,7 +250,7 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
         }
     }
     
-    func handleInsertResult(result: PhotoDatabase.InsertPhotoResult, onNewDatabasePhotoAdded: @escaping (DBPhotoAsset) -> Void, onComplete: @escaping () -> Void, filenFile: FilenFile) {
+    func handleInsertResult(result: PhotoDatabase.InsertPhotoResult, onNewDatabasePhotoAdded: @escaping (DBPhotoAsset) -> Void, filenFile: FilenFile) {
         switch result {
         case .success(let dbPhotoAsset, let shouldCallNewPhotoAdded):
             if shouldCallNewPhotoAdded {

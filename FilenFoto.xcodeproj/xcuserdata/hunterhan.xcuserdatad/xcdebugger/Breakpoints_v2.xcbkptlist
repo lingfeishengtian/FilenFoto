@@ -2990,9 +2990,9 @@
             filePath = "FilenFoto/Utils/PhotoSyncUtils/FilenImporter.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "139"
-            endingLineNumber = "139"
-            landmarkName = "downloadAndIdentifyPhoto(_:onNewDatabasePhotoAdded:onComplete:)"
+            startingLineNumber = "180"
+            endingLineNumber = "180"
+            landmarkName = "downloadAndIdentifyPhoto(_:onNewDatabasePhotoAdded:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -3086,8 +3086,8 @@
             filePath = "FilenFoto/Utils/PhotoSyncUtils/FilenImporter.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "89"
-            endingLineNumber = "89"
+            startingLineNumber = "129"
+            endingLineNumber = "129"
             landmarkName = "startSync(onComplete:onNewDatabasePhotoAdded:progressInfo:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3102,8 +3102,8 @@
             filePath = "FilenFoto/MainViews/FilenSyncStatus.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "38"
-            endingLineNumber = "38"
+            startingLineNumber = "142"
+            endingLineNumber = "142"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>
@@ -3134,8 +3134,8 @@
             filePath = "FilenFoto/Utils/PhotoSyncUtils/FilenImporter.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "92"
-            endingLineNumber = "92"
+            startingLineNumber = "132"
+            endingLineNumber = "132"
             landmarkName = "startSync(onComplete:onNewDatabasePhotoAdded:progressInfo:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3169,6 +3169,54 @@
             startingLineNumber = "106"
             endingLineNumber = "106"
             landmarkName = "updateProgress()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "C2EF2275-3C08-41C4-BBA1-E216C3C1C119"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/HelperViews/ZoomablePannableViews/ZoomableVideo.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "46"
+            endingLineNumber = "46"
+            landmarkName = "updateUIViewController(_:context:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5286A157-CEE8-4EA2-8499-3ED3884EF5FB"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/MainViews/StateManagement/FullImageViewState.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "68"
+            endingLineNumber = "68"
+            landmarkName = "generateView(dbPhotoAsset:scale:offset:scrolling:onSwipeUp:onSwipeDown:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "15D6E2B7-D245-4784-9840-9A799A899852"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/MainViews/StateManagement/FullImageViewState.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "171"
+            endingLineNumber = "171"
+            landmarkName = "getView(selectedDbPhotoAsset:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
