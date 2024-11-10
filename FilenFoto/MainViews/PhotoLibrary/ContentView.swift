@@ -18,7 +18,6 @@ struct ContentView: View {
     @State var searchBarShow: Bool = true
     @State var searchText: String = ""
     @FocusState var keyboardFocus: Bool
-    @State private var fanOut = false
     
     func initiateSyncTask() {
         Task {
@@ -85,74 +84,8 @@ struct ContentView: View {
                         }
                         .padding()
                     } else {
-                        VStack {
-                            Text("検索")
-                                .font(.largeTitle)
-                                .bold()
-                                .padding([.leading], 10)
-                                .padding([.bottom], 10)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            if searchText.count == 0 {
-                                Text("Popular Categories")
-                                    .font(.subheadline)
-                                    .bold()
-                                    .padding([.leading], 10)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                PopularCategoryTags()
-                                    .padding([.leading, .trailing])
-                                    .animation(.easeInOut, value: searchText.count == 0)
-                                Spacer()
-                                FanOutListView(
-                                    history: photoEnvironment.searchHistoryCache,
-                                    onChangeValueClicked: { val in
-                                        withAnimation {
-                                            fanOut = false
-                                            searchText = val
-                                            photoEnvironment.addNewSearchHistory(searchQuery: val)
-                                        }
-                                    })
-                            } else {
-                                
-                                Spacer()
-                            }
-                            TextField("Search", text: $searchText)
-                                .paddedRounded(fill: Color(UIColor.darkGray).opacity(0.7))
-                                .foregroundStyle(.white)
-                                .focused($keyboardFocus)
-                                .onChange(of: keyboardFocus) {
-                                    withAnimation {
-                                        fanOut = keyboardFocus
-                                    }
-                                }
-                                .matchedGeometryEffect(id: "searchbar", in: animation)
-                                .onChange(of: searchText) {
-                                    if searchText.count > 0 {
-                                        Task {
-                                            photoEnvironment.searchStream(searchQuery: searchText)
-                                        }
-                                    } else {
-                                        Task {
-                                            photoEnvironment.defaultStream()
-                                        }
-                                    }
-                                }
-                                .onAppear {
-                                    keyboardFocus = true
-                                }
-                                .onSubmit {
-                                    withAnimation {
-                                        if searchText.count == 0 {
-                                            searchBarShow = false
-                                            keyboardFocus = false
-                                        } else {
-                                            withAnimation {
-                                                photoEnvironment.addNewSearchHistory(
-                                                    searchQuery: searchText)
-                                            }
-                                        }
-                                    }
-                                }
-                        }.padding()
+                        SearchView(searchBarShow: $searchBarShow, searchText: $searchText, keyboardFocus: $keyboardFocus, animation: animation)
+                            .environmentObject(photoEnvironment)
                     }
                 }.zIndex(2)
                 PhotoScroller(
