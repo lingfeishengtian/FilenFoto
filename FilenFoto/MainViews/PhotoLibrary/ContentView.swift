@@ -15,7 +15,7 @@ struct ContentView: View {
     @StateObject var photoEnvironment: PhotoEnvironment = PhotoEnvironment()
     @State var showProgressMenu: Bool = false
     @State var inAnimation: Bool = false
-    @State var searchBarShow: Bool = false
+    @State var searchBarShow: Bool = true
     @State var searchText: String = ""
     @FocusState var keyboardFocus: Bool
     @State private var fanOut = false
@@ -112,6 +112,7 @@ struct ContentView: View {
                                         }
                                     })
                             } else {
+                                
                                 Spacer()
                             }
                             TextField("Search", text: $searchText)
@@ -158,7 +159,7 @@ struct ContentView: View {
                     keyboardFocus: $keyboardFocus,
                     animation: animation
                 )
-                .blur(radius: (searchText.count == 0 && searchBarShow) ? 10 : 0)
+                .blur(radius: (searchBarShow) ? 10 : 0)
                 .disabled(searchText.count == 0 && searchBarShow)
                 .animation(.easeInOut, value: (searchText.isEmpty && searchBarShow))
             }

@@ -222,31 +222,47 @@ class PhotoVisionDatabaseManager: ProgressCheckingPhotoSyncProtocol {
             var index = 0
             
             await withTaskGroup(of: Void.self) { group in
-                for _ in 0 ..< PhotoVisionDatabaseManager.maxConcurrentTasks {
-                    if index >= allPhotos.count {
+                while index < allPhotos.count {
+                    if index >= PhotoVisionDatabaseManager.maxConcurrentTasks {
+                        await group.next()
+                    }
+                    
+                    if cancelOperation {
+                        cancelOperation = false
                         break
                     }
-                    let curInd = index
+                    
                     index += 1
+                    
                     group.addTask {
-                        await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
+                        await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: index - 1), progressInfo: progressInfo, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
                     }
                 }
-                while let _ = await group.next() {
-                    if index >= allPhotos.count {
-                        break
-                    }
-                    if !self.cancelOperation {
-                        let curInd = index
-                        index += 1
-                        
-                        group.addTask {
-                            await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
-                        }
-                    } else {
-                        self.cancelOperation = false
-                    }
-                }
+//                for _ in 0 ..< PhotoVisionDatabaseManager.maxConcurrentTasks {
+//                    if index >= allPhotos.count {
+//                        break
+//                    }
+//                    let curInd = index
+//                    index += 1
+//                    group.addTask {
+//                        await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
+//                    }
+//                }
+//                while let _ = await group.next() {
+//                    if index >= allPhotos.count {
+//                        break
+//                    }
+//                    if !self.cancelOperation {
+//                        let curInd = index
+//                        index += 1
+//                        
+//                        group.addTask {
+//                            await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
+//                        }
+//                    } else {
+//                        self.cancelOperation = false
+//                    }
+//                }
             }
         }
     }
@@ -342,66 +358,70 @@ class PhotoVisionDatabaseManager: ProgressCheckingPhotoSyncProtocol {
         updateProgressOfCurrentFile(0.5, "Uploaded image to Filen...")
         var compressedThumbnailUrl: URL?
         
-        let passthroughStruct = FinalRecognitionPassthroughResults(
-            asset: asset,
-            retrieveAndUploadedAssets: retrieveAndUploadedAssets,
-            updateProgressOfCurrentFile: updateProgressOfCurrentFile,
-            onNewDBPhotoInserted: onNewDBPhotoInserted
-        )
-        
         if let targetClassfyFileURL = retrieveAndUploadedAssets.assetsToCloud.first?.tmpLoc, let mediaTypeOfClassificationFile = retrieveAndUploadedAssets.assetsToCloud.first?.phAssetResource.type, FileManager.default.fileExists(atPath: targetClassfyFileURL.path) {
             do {
                 if !FileManager.default.fileExists(atPath: thumbnailsDirectory.path) {
                     try FileManager.default.createDirectory(at: thumbnailsDirectory, withIntermediateDirectories: true)
                 }
                 compressedThumbnailUrl = thumbnailsDirectory.appendingPathComponent(targetClassfyFileURL.lastPathComponent, conformingTo: .jpeg)
+                let isImage: Bool
                 switch mediaTypeOfClassificationFile {
                 case .photo, .adjustmentBasePhoto, .alternatePhoto, .fullSizePhoto:
-                    ImageVision.classifyAndTextRecognize(image: targetClassfyFileURL) { results, err in
-                        if let recognizedClassifyObject = results {
-                            Task(priority: .high) { [recognizedClassifyObject] in
-                                try await ImageCompressor.compressImage(from: targetClassfyFileURL, outputDestination: compressedThumbnailUrl!)
-                                try FileManager.default.removeItem(at: targetClassfyFileURL)
-                                self.insertFinalDataIntoDatabase(passthroughStruct, classificationResults: recognizedClassifyObject, compressedThumbnailUrl: compressedThumbnailUrl)
-                                
-                                self.deleteResources(retrieveAndUploadedAssets: retrieveAndUploadedAssets)
-                            }
-                        } else {
-                            self.logger.error("Failed to classify with error \(err)")
-                            self.insertFinalDataIntoDatabase(passthroughStruct, classificationResults: ([], []), compressedThumbnailUrl: compressedThumbnailUrl)
-                            self.deleteResources(retrieveAndUploadedAssets: retrieveAndUploadedAssets)
-                        }
-                    }
-                    break
+                    isImage = true
                 case .video, .adjustmentBaseVideo, .fullSizeVideo, .pairedVideo:
-//                    if let vidRecogRes =
-                    ImageVision.classifyAndTextRecognize(video: targetClassfyFileURL) { results, err in
-                        if let vidRecogRes = results {
-                            Task(priority: .high) { [vidRecogRes] in
-                                try await ImageCompressor.compressImage(from: vidRecogRes.generatedCGImage, outputDestination: compressedThumbnailUrl!)
-                                try FileManager.default.removeItem(at: targetClassfyFileURL)
-                                
-                                self.insertFinalDataIntoDatabase(passthroughStruct, classificationResults: vidRecogRes.photoRecog, compressedThumbnailUrl: compressedThumbnailUrl)
-                                self.deleteResources(retrieveAndUploadedAssets: retrieveAndUploadedAssets)
-                            }
-                        } else {
-                            // TODO: Warn user that cannot insert video
-                            self.logger.error("Failed to classify with error \(err)")
-                            self.deleteResources(retrieveAndUploadedAssets: retrieveAndUploadedAssets)
-                        }
-                    }
-                    break
+                    isImage = false
                 default:
-                    break
+                    throw PhotoSyncError.unknown("media type")
                 }
                 
+                ImageVision.classifyAndTextRecognize(file: targetClassfyFileURL, isImage: isImage) { [weak self] result in
+                    /// TMP folder containing resources will be cleaned every sync
+                    guard let self = self else { return }
+                    do {
+                        let unwrappedResult = try result.get()
+                        let classificationResults = unwrappedResult.photoRecog
+                        updateProgressOfCurrentFile(0.75, "Identified image contents...")
+                        Task { [weak self] in
+                            guard let self = self else { return }
+                            
+                            try await ImageCompressor.compressImage(from: unwrappedResult.generatedCGImage, outputDestination: compressedThumbnailUrl!)
+                            
+                            switch PhotoDatabase.shared.insertPhoto(asset: asset, resources: retrieveAndUploadedAssets.assetsToCloud, imageClassificationResults: classificationResults.0, textResultClassificationResults: classificationResults.1, thumbnailLocation: compressedThumbnailUrl ?? FileManager.default.temporaryDirectory) {
+                            case .exists:
+                                logger.error("Photo already exists in database")
+                                updateProgressOfCurrentFile(1.0, "Photo already exists on the cloud")
+                            case .failed:
+                                logger.error("Failed to insert into database")
+                                updateProgressOfCurrentFile(1.0, "Failure! This isn't supposed to happen")
+                            case .success(let dbPhoto, let shouldCallNewInsertedEvent):
+                                logger.info("Inserted photo into database")
+                                updateProgressOfCurrentFile(1.0, "Finished inserting into database")
+                                if shouldCallNewInsertedEvent {
+                                    onNewDBPhotoInserted(dbPhoto)
+                                }
+                            }
+                            
+                            deleteResources(retrieveAndUploadedAssets: retrieveAndUploadedAssets)
+                        }
+                    } catch {
+                        // TODO: Handle failed
+                        logger.error("Failed to classify with error \(error)")
+                        deleteResources(retrieveAndUploadedAssets: retrieveAndUploadedAssets)
+                    }
+                }
             } catch {
                 if FileManager.default.fileExists(atPath: targetClassfyFileURL.path) {
                     compressedThumbnailUrl = thumbnailsDirectory.appendingPathComponent(targetClassfyFileURL.lastPathComponent, conformingTo: .jpeg)
                     try FileManager.default.copyItem(at: targetClassfyFileURL, to: compressedThumbnailUrl!)
                 }
-                logger.warning("Unable to create thumbnail remove classification file at \(targetClassfyFileURL.path)")
+                // TODO: Handle failed
+                logger.error("Unable to create thumbnail remove classification file at \(targetClassfyFileURL.path)")
+                deleteResources(retrieveAndUploadedAssets: retrieveAndUploadedAssets)
             }
+        } else {
+            // TODO: Handle failed
+            logger.error("Could not find classification file for \(asset.localIdentifier)")
+            deleteResources(retrieveAndUploadedAssets: retrieveAndUploadedAssets)
         }
     }
     
@@ -413,32 +433,6 @@ class PhotoVisionDatabaseManager: ProgressCheckingPhotoSyncProtocol {
                 logger.info("Couldn't remove \(error)")
             }
         }
-    }
-    
-    private func insertFinalDataIntoDatabase(_ passthrough: FinalRecognitionPassthroughResults, classificationResults: ([VNClassificationObservation], [VNRecognizedTextObservation]), compressedThumbnailUrl: URL?) {
-        passthrough.updateProgressOfCurrentFile(0.75, "Identified image contents...")
-        
-        switch PhotoDatabase.shared.insertPhoto(asset: passthrough.asset, resources: passthrough.retrieveAndUploadedAssets.assetsToCloud, imageClassificationResults: classificationResults.0, textResultClassificationResults: classificationResults.1, thumbnailLocation: compressedThumbnailUrl ?? FileManager.default.temporaryDirectory) {
-        case .exists:
-            logger.error("Photo already exists in database")
-            passthrough.updateProgressOfCurrentFile(1.0, "Photo already exists on the cloud")
-        case .failed:
-            logger.error("Failed to insert into database")
-            passthrough.updateProgressOfCurrentFile(1.0, "Failure! This isn't supposed to happen")
-        case .success(let dbPhoto, let shouldCallNewInsertedEvent):
-            logger.info("Inserted photo into database")
-            passthrough.updateProgressOfCurrentFile(1.0, "Finished inserting into database")
-            if shouldCallNewInsertedEvent {
-                passthrough.onNewDBPhotoInserted(dbPhoto)
-            }
-        }
-    }
-    
-    private struct FinalRecognitionPassthroughResults {
-        let asset: PHAsset
-        let retrieveAndUploadedAssets: PhotoAssetFilenResults
-        let updateProgressOfCurrentFile: (Double, String) -> Void
-        let onNewDBPhotoInserted: (DBPhotoAsset) -> Void
     }
 }
 

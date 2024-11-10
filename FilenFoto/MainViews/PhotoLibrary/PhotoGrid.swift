@@ -51,12 +51,6 @@ struct LazyPhotoGrid : View {
                 let dbPhotoAsset = PhotoDatabase.shared.getDBPhotoSync(
                     atOffset: index
                 )!
-//                NavigationLink {
-//                    NavigationStack {
-//                        FullImageView(animation: animation)
-//                    }
-//                    .navigationTransition(.zoom(sourceID: "Foto", in: animation))
-//                } label: {
                     Color.clear.background(
                         Image(
                             uiImage: UIImage(contentsOfFile: dbPhotoAsset.thumbnailURL.path) ?? UIImage()
@@ -83,73 +77,11 @@ struct LazyPhotoGrid : View {
                     .onTapGesture {
                         withAnimation {
                             photoEnvironment.setCurrentSelectedDbPhotoAsset(dbPhotoAsset, index: index)
-//                            photoEnvironment.shouldShowFullImageView = true
                             keyboardFocus = false
                         }
                     }
                 }
-//            }
         }
         .frame(maxHeight: .infinity, alignment: .bottom)
-    }
-}
-
-struct DBImage : View {
-    let index: Int
-    @State var dbPhotoAsset: DBPhotoAsset? = nil
-    
-    @State var curTask: Task<Void, Never>? = nil
-    
-    var body: some View {
-        let thumbnailUrl = dbPhotoAsset?.thumbnailURL
-        return Color.clear.background(
-            (
-thumbnailUrl != nil ?
-Image(
-    uiImage: UIImage(contentsOfFile: thumbnailUrl!.path) ?? UIImage()
-) :
-    Image(uiImage: UIImage())
-            )
-            .resizable()
-            .scaledToFill()
-            .clipped()
-        )
-        .contentShape(Rectangle())
-        .aspectRatio(1, contentMode: .fit)
-        .clipped()
-        .onAppear {
-            //            curTask = Task {
-            //                print("getting \(index)")
-            //                dbPhotoAsset = PhotoDatabase.shared.getDBPhoto(atOffset: index)
-            //            }
-        }
-        .onDisappear {
-            print("cancelling \(index)")
-            curTask?.cancel()
-            curTask = nil
-        }
-        //        .overlay (alignment: .topLeading) {
-        //            if dbPhotoAsset.isBurst {
-        //                Image(systemName: "laser.burst")
-        //            }
-        //        }
-        //        .opacity(imageOpacity(dbPhotoAsset) ? 0 : 1)
-        //        .onTapGesture {
-        //            withAnimation {
-        //                photoEnvironment.selectedDbPhotoAsset = dbPhotoAsset
-        //                photoEnvironment.shouldShowFullImageView = true
-        //                keyboardFocus = false
-        //            }
-        //        }
-        //        .matchedGeometryEffect(
-        //            id: "thumbnailImageTransition"
-        //            + dbPhotoAsset.localIdentifier + (photoEnvironment.shouldShowFullImageView ? ".fullImage" : ""), in: animation)
-        //        .onAppear {
-        //            if dbPhotoAsset.localIdentifier == photoEnvironment.lazyArray.sortedArray.last?.localIdentifier {
-        //                Task {
-        //                    await photoEnvironment.addMoreToLazyArray()
-        //                }
-        //            }
-        //        }
     }
 }

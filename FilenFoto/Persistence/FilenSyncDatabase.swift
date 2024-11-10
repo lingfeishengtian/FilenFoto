@@ -15,32 +15,33 @@ struct FailedStatus {
     let statusMessage: String
 }
 
-fileprivate typealias Expression = SQLite.Expression
-// idColumn
-let statusTable = Table("status")
-let statusNumber = Expression<Int64>("statusNumber")
-
-let filenFileTable = Table("filenFile")
-let filenUUIDColumn = Expression<String>("filenUUID")
-let fileNameColumn = Expression<String>("fileName")
-let fileImportedColumn = Expression<Bool>("imported")
-
-let insertedFilenames = Table("exifIds")
-let contentId = Expression<String?>("contentId") // livePhoto content identifier in exif
-let cleanedFileIdentifier = Expression<String>("cleanedFileIdentifier") // filen name without extension and BURSTID
-let insertedAssetIdentifier = Expression<Int64>("insertedAssetIdentifier") // asset identifier in Photos
-
-let failedFiles = Table("failedFiles")
-let failedFileUUID = Expression<String>("failedFileUUID")
-let failedFileName = Expression<String?>("failedFileName")
-let failedStatusMessage = Expression<String>("failedStatusMessage")
-
 enum SyncStatusCode: Int64 {
     case error = -1
     case started = 0
     case finishIdentification = 1
     case finished = 2
 }
+
+
+fileprivate typealias Expression = SQLite.Expression
+fileprivate let idColumn = Expression<Int64>("id")
+fileprivate let statusTable = Table("status")
+fileprivate let statusNumber = Expression<Int64>("statusNumber")
+
+fileprivate let filenFileTable = Table("filenFile")
+fileprivate let filenUUIDColumn = Expression<String>("filenUUID")
+fileprivate let fileNameColumn = Expression<String>("fileName")
+fileprivate let fileImportedColumn = Expression<Bool>("imported")
+
+fileprivate let insertedFilenames = Table("exifIds")
+fileprivate let contentId = Expression<String?>("contentId") // livePhoto content identifier in exif
+fileprivate let cleanedFileIdentifier = Expression<String>("cleanedFileIdentifier") // filen name without extension and BURSTID
+fileprivate let insertedAssetIdentifier = Expression<Int64>("insertedAssetIdentifier") // asset identifier in Photos
+
+fileprivate let failedFiles = Table("failedFiles")
+fileprivate let failedFileUUID = Expression<String>("failedFileUUID")
+fileprivate let failedFileName = Expression<String?>("failedFileName")
+fileprivate let failedStatusMessage = Expression<String>("failedStatusMessage")
 
 class FileSyncDatabase {
     private let databaseConnection: Connection?
@@ -99,8 +100,8 @@ class FileSyncDatabase {
         let _ = try? databaseConnection?.run(statusTable.update(statusNumber <- 1))
     }
     
-    func failedImportStream() -> RowIterator {
-        return try! databaseConnection!.prepareRowIterator(failedFiles)
+    func failedImportStream() -> FailedFileQueueStreamer {
+        return FailedFileQueueStreamer(streamer: try! databaseConnection!.prepareRowIterator(failedFiles))
     }
         
     func localIdentifier(livePhotoId: String?, localIdentifier: String) -> Int64? {
@@ -168,6 +169,18 @@ class FileSyncDatabase {
         func next() -> FilenFile? {
             if let row = streamer.next() {
                 return FilenFile(filenUUID: row[filenUUIDColumn], fileName: row[fileNameColumn])
+            }
+            
+            return nil
+        }
+    }
+    
+    struct FailedFileQueueStreamer {
+        let streamer: RowIterator
+        
+        func next() -> FailedStatus? {
+            if let row = streamer.next() {
+                return FailedStatus(fileUUID: row[failedFileUUID], fileName: row[failedFileName], statusMessage: row[failedStatusMessage])
             }
             
             return nil

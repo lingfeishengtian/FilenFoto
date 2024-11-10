@@ -18,7 +18,7 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
     private let logger = Logger(subsystem: "com.filen.filenfoto", category: "FilenSync")
     private let maxConcurrentThreads = 4
     @Published private var failedFileStatuses = [FailedStatus]()
-    private var failedStatusesDatabaseStream: RowIterator?
+    private var failedStatusesDatabaseStream: FileSyncDatabase.FailedFileQueueStreamer?
     
     var dbFilePath: URL {
         return syncDatabase.dbFilePath
@@ -34,6 +34,7 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
         return countOfPhotos
     }
     
+    // TODO: Add this to protocol
     /// Newly added failed statuses will not be added
     var failedImports: [FailedStatus] {
 #if targetEnvironment(simulator)
@@ -56,8 +57,8 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
     func addMoreFailedImportsFromStream() {
         var cnt = 20
         while cnt > 0 {
-            if let failedStatus = try? failedStatusesDatabaseStream?.failableNext() {
-                failedFileStatuses.append(FailedStatus(fileUUID: failedStatus[failedFileUUID], fileName: failedStatus[failedFileName], statusMessage: failedStatus[failedStatusMessage]))
+            if let failedStatus = failedStatusesDatabaseStream?.next() {
+                failedFileStatuses.append(failedStatus)
                 cnt -= 1
             } else {
                 break
@@ -200,70 +201,35 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
             try? FileManager.default.createDirectory(at: self.thumbnailsDirectory, withIntermediateDirectories: true)
         }
         
-        // TODO: Make this code better
-        if photoResourceTypes.contains(extractedImageDetails.resourceType) {
-            ImageVision.classifyAndTextRecognize(image: tmpLocation, completionHandler: { obs, err in
-                if let err = err {
-                    self.fileFailure(filenFile: filenFile, message: "Could not classify image \(err)")
-                    return
-                } else {
-                    Task {
-                        let compressedThumbnailUrl = self.thumbnailsDirectory.appendingPathComponent(tmpLocation.lastPathComponent, conformingTo: .jpeg)
-                        
-                        do {
-                            try await ImageCompressor.compressImage(from: tmpLocation, outputDestination: compressedThumbnailUrl)
-                            let result = PhotoDatabase.shared.insertPhoto(asset: extractedImageDetails, filenUUID: uploadFileResults.uuid, fileName: filenFile.fileName, assetRowId: assetId, imageClassificationResults: obs!.0, textResultClassificationResults: obs!.1, thumbnailLocation: compressedThumbnailUrl)
-                            self.handleInsertResult(result: result, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded, filenFile: filenFile)
-                            
-                            self.syncDatabase.finishImport(filenUUID: filenFile.filenUUID)
-                            try FileManager.default.removeItem(at: tmpLocation)
-                        } catch {
-                            self.fileFailure(filenFile: filenFile, message: "Could not insert photo into database \(error)")
-                            return
+        ImageVision.classifyAndTextRecognize(file: tmpLocation, isImage: photoResourceTypes.contains(extractedImageDetails.resourceType)) { [weak self] result in
+            guard let self = self else { return }
+            do {
+                let classification = try result.get()
+                let compressedThumbnailUrl = thumbnailsDirectory.appendingPathComponent(tmpLocation.lastPathComponent, conformingTo: .jpeg)
+                
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    try await ImageCompressor.compressImage(from: tmpLocation, outputDestination: compressedThumbnailUrl)
+                    
+                    let result = PhotoDatabase.shared.insertPhoto(asset: extractedImageDetails, filenUUID: uploadFileResults.uuid, fileName: filenFile.fileName, assetRowId: assetId, imageClassificationResults: classification.photoRecog.0, textResultClassificationResults: classification.photoRecog.1, thumbnailLocation: compressedThumbnailUrl)
+                    
+                    switch result {
+                    case .success(let dbPhotoAsset, let shouldCallNewPhotoAdded):
+                        if shouldCallNewPhotoAdded {
+                            onNewDatabasePhotoAdded(dbPhotoAsset)
                         }
+                        syncProgress?.updateImageProgress(progress: 1.0, message: "Imported \(filenFile.filenUUID)", localIdentifier: filenFile.filenUUID)
+                    case .failed:
+                        syncProgress?.updateImageProgress(progress: 1.0, message: "Failed to import \(filenFile.filenUUID)", localIdentifier: filenFile.filenUUID)
+                    case .exists:
+                        fatalError("Should not exist")
                     }
                 }
-            })
-        } else {
-            ImageVision.classifyAndTextRecognize(video: tmpLocation, completionHandler: { res, err in
-                if let err = err {
-                    self.fileFailure(filenFile: filenFile, message: "Could not classify video \(err)")
-                    return
-                } else {
-                    Task {
-                        let compressedThumbnailUrl = self.thumbnailsDirectory.appendingPathComponent(tmpLocation.lastPathComponent, conformingTo: .jpeg)
-                        
-                        do {
-                            try await ImageCompressor.compressImage(from: res!.generatedCGImage, outputDestination: compressedThumbnailUrl)
-                            let result = PhotoDatabase.shared.insertPhoto(asset: extractedImageDetails, filenUUID: filenFile.filenUUID, fileName: filenFile.fileName, assetRowId: assetId, imageClassificationResults: res!.photoRecog.0, textResultClassificationResults: res!.photoRecog.1, thumbnailLocation: compressedThumbnailUrl)
-                            self.handleInsertResult(result: result, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded, filenFile: filenFile)
-                            
-                            self.syncDatabase.finishImport(filenUUID: filenFile.filenUUID)
-                            try FileManager.default.removeItem(at: tmpLocation)
-                        } catch {
-                            self.fileFailure(filenFile: filenFile, message: "Could not insert photo into database \(error)")
-                            return
-                        }
-                    }
-                }
-            })
-        }
-    }
-    
-    func handleInsertResult(result: PhotoDatabase.InsertPhotoResult, onNewDatabasePhotoAdded: @escaping (DBPhotoAsset) -> Void, filenFile: FilenFile) {
-        switch result {
-        case .success(let dbPhotoAsset, let shouldCallNewPhotoAdded):
-            if shouldCallNewPhotoAdded {
-                onNewDatabasePhotoAdded(dbPhotoAsset)
+            } catch {
+                self.fileFailure(filenFile: filenFile, message: "Could not classify image \(error)")
             }
-            syncProgress?.updateImageProgress(progress: 1.0, message: "Imported \(filenFile.filenUUID)", localIdentifier: filenFile.filenUUID)
-        case .failed:
-            syncProgress?.updateImageProgress(progress: 1.0, message: "Failed to import \(filenFile.filenUUID)", localIdentifier: filenFile.filenUUID)
-        case .exists:
-            fatalError("Should not exist")
         }
     }
-        
     
     let syncDispatchQueue = DispatchQueue(label: "com.hunterhan.FilenFoto.syncDispatchQueue", qos: .background)
 

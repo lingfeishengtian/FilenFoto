@@ -2190,9 +2190,9 @@
             filePath = "FilenFoto/Utils/PhotoSyncUtils/ImageVision.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "77"
-            endingLineNumber = "77"
-            landmarkName = "classifyAndTextRecognize(image:completionHandler:)"
+            startingLineNumber = "91"
+            endingLineNumber = "91"
+            landmarkName = "classifyAndTextRecognize(image:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -2206,9 +2206,9 @@
             filePath = "FilenFoto/Utils/PhotoSyncUtils/ImageVision.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "95"
-            endingLineNumber = "95"
-            landmarkName = "classifyAndTextRecognize(image:completionHandler:)"
+            startingLineNumber = "109"
+            endingLineNumber = "109"
+            landmarkName = "classifyAndTextRecognize(image:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -2321,38 +2321,6 @@
             startingLineNumber = "140"
             endingLineNumber = "140"
             landmarkName = "updateImageProgress(progress:message:localIdentifier:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "8BB43F64-C18C-4D48-88BB-7FCB595A0F8F"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/Utils/PhotoSyncUtils/ImageVision.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "27"
-            endingLineNumber = "27"
-            landmarkName = "classifyAndTextRecognize(image:completionHandler:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "045C567B-1DB1-4F17-ADC2-1CC1997CF8F0"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/Utils/PhotoSyncUtils/ImageVision.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "115"
-            endingLineNumber = "115"
-            landmarkName = "classifyAndTextRecognize(video:completionHandler:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -2510,24 +2478,8 @@
             filePath = "FilenFoto/MainViews/PhotoLibrary/ContentView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "239"
-            endingLineNumber = "239"
-            landmarkName = "body"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "7F82B12C-4B0E-4667-945C-0056BC616CCD"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/MainViews/PhotoLibrary/PhotoGrid.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "123"
-            endingLineNumber = "123"
+            startingLineNumber = "240"
+            endingLineNumber = "240"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>
@@ -2750,8 +2702,8 @@
             filePath = "FilenFoto/MainViews/StateManagement/PhotoEnvironment.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "135"
-            endingLineNumber = "135"
+            startingLineNumber = "116"
+            endingLineNumber = "116"
             landmarkName = "getCurrentPhotoAssetIndex()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2990,8 +2942,8 @@
             filePath = "FilenFoto/Utils/PhotoSyncUtils/FilenImporter.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "180"
-            endingLineNumber = "180"
+            startingLineNumber = "181"
+            endingLineNumber = "181"
             landmarkName = "downloadAndIdentifyPhoto(_:onNewDatabasePhotoAdded:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3006,8 +2958,8 @@
             filePath = "FilenFoto/Persistence/PhotoDatabase.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "828"
-            endingLineNumber = "828"
+            startingLineNumber = "729"
+            endingLineNumber = "729"
             landmarkName = "insertPhoto(asset:filenUUID:fileName:assetRowId:imageClassificationResults:textResultClassificationResults:thumbnailLocation:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3022,8 +2974,8 @@
             filePath = "FilenFoto/Persistence/PhotoDatabase.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "887"
-            endingLineNumber = "887"
+            startingLineNumber = "769"
+            endingLineNumber = "769"
             landmarkName = "insertPhoto(asset:filenUUID:fileName:assetRowId:imageClassificationResults:textResultClassificationResults:thumbnailLocation:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3038,8 +2990,8 @@
             filePath = "FilenFoto/Persistence/PhotoDatabase.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "813"
-            endingLineNumber = "813"
+            startingLineNumber = "714"
+            endingLineNumber = "714"
             landmarkName = "insertPhoto(asset:filenUUID:fileName:assetRowId:imageClassificationResults:textResultClassificationResults:thumbnailLocation:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3054,8 +3006,8 @@
             filePath = "FilenFoto/Persistence/PhotoDatabase.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "819"
-            endingLineNumber = "819"
+            startingLineNumber = "720"
+            endingLineNumber = "720"
             landmarkName = "insertPhoto(asset:filenUUID:fileName:assetRowId:imageClassificationResults:textResultClassificationResults:thumbnailLocation:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3064,14 +3016,14 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "CEBDEDAB-D7BB-4C75-97B3-3D9DC9B4620F"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FilenFoto/Persistence/PhotoDatabase.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "780"
-            endingLineNumber = "780"
+            startingLineNumber = "695"
+            endingLineNumber = "695"
             landmarkName = "insertPhoto(asset:filenUUID:fileName:assetRowId:imageClassificationResults:textResultClassificationResults:thumbnailLocation:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3086,8 +3038,8 @@
             filePath = "FilenFoto/Utils/PhotoSyncUtils/FilenImporter.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "129"
-            endingLineNumber = "129"
+            startingLineNumber = "130"
+            endingLineNumber = "130"
             landmarkName = "startSync(onComplete:onNewDatabasePhotoAdded:progressInfo:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3134,8 +3086,8 @@
             filePath = "FilenFoto/Utils/PhotoSyncUtils/FilenImporter.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "132"
-            endingLineNumber = "132"
+            startingLineNumber = "133"
+            endingLineNumber = "133"
             landmarkName = "startSync(onComplete:onNewDatabasePhotoAdded:progressInfo:)"
             landmarkType = "7">
          </BreakpointContent>
