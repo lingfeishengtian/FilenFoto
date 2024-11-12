@@ -232,37 +232,14 @@ class PhotoVisionDatabaseManager: ProgressCheckingPhotoSyncProtocol {
                         break
                     }
                     
-                    index += 1
                     
-                    group.addTask {
-                        await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: index - 1), progressInfo: progressInfo, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
+                    group.addTask { [index] in
+                        print("Starting task for \(index)")
+                        await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: index), progressInfo: progressInfo, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
                     }
+                    
+                    index += 1
                 }
-//                for _ in 0 ..< PhotoVisionDatabaseManager.maxConcurrentTasks {
-//                    if index >= allPhotos.count {
-//                        break
-//                    }
-//                    let curInd = index
-//                    index += 1
-//                    group.addTask {
-//                        await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
-//                    }
-//                }
-//                while let _ = await group.next() {
-//                    if index >= allPhotos.count {
-//                        break
-//                    }
-//                    if !self.cancelOperation {
-//                        let curInd = index
-//                        index += 1
-//                        
-//                        group.addTask {
-//                            await self.initiateAssetUploadAndVisionTasks(allPhotos.object(at: curInd), progressInfo: progressInfo, onNewDatabasePhotoAdded: onNewDatabasePhotoAdded)
-//                        }
-//                    } else {
-//                        self.cancelOperation = false
-//                    }
-//                }
             }
         }
     }

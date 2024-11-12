@@ -93,7 +93,7 @@ struct ContentView: View {
                     animation: animation
                 )
                 .blur(radius: (searchBarShow) ? 10 : 0)
-                .disabled(searchText.count == 0 && searchBarShow)
+                .disabled(searchBarShow)
                 .animation(.easeInOut, value: (searchText.isEmpty && searchBarShow))
             }
             .environmentObject(photoEnvironment)

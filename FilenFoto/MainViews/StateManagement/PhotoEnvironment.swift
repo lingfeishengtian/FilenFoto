@@ -137,6 +137,7 @@ class PhotoEnvironment: SyncProgressInfo {
     /// Database always returns values sorted by creation date, which should allow us to poll n amount of times without worrying about things being out of order.
     func searchStream(searchQuery: String) {
         isSearching = true
+        searchArray.removeAll()
         stream = PhotoDatabase.shared.searchForText(textSearch: searchQuery)
         addMoreSearchResults()
     }

@@ -11,6 +11,7 @@ import SQLite
 import os
 import Vision
 import InternalCollectionsUtilities
+import NaturalLanguage
 
 struct SortedArray {
     private var array: Array<DBPhotoAsset> = []
@@ -125,15 +126,22 @@ fileprivate let resourceType = Expression<Int64>("resourceType")
 fileprivate let resourceName = Expression<String>("resourceName")
 
 // id
-fileprivate let identifiedObjectsTable = Table("identifiedObjects")
+fileprivate let identifiedSearchGroups = Table("identifiedSearchGroups")
+fileprivate let searchGroupNormalized = Expression<String>("tagName")
+fileprivate let categoryColumn = Expression<Int64>("category")
+
+fileprivate let assetGroupRelation = Table("assetGroupRelation")
 fileprivate let assetIdColumn = Expression<Int64>("assetId")
-fileprivate let objectNameColumn = Expression<String>("objectName")
+fileprivate let groupIdColumn = Expression<Int64>("groupId")
+fileprivate let originalTagName = Expression<String>("originalTagName")
 fileprivate let confidenceColumn = Expression<Double>("confidence")
 
-// id
-// assetIdColumn
-fileprivate let recognizedTextTable = Table("recognizedText")
-fileprivate let textColumn = Expression<String>("text")
+enum SearchTagCategory: Int64 {
+    case text = 0
+    case object = 1
+    case location = 2
+    case date = 3
+}
 
 class PhotoDatabase {
     static let shared = PhotoDatabase()
@@ -184,20 +192,34 @@ class PhotoDatabase {
             t.foreignKey(assetIdColumn, references: photoAssetTable, idColumn)
         })
         
-        let _ = try? databaseConnection?.run(identifiedObjectsTable.create(ifNotExists: true) { t in
+//        let _ = try? databaseConnection?.run(identifiedObjectsTable.create(ifNotExists: true) { t in
+//            t.column(idColumn, primaryKey: .autoincrement)
+//            t.column(assetIdColumn)
+//            t.column(objectNameColumn)
+//            t.column(confidenceColumn)
+//            t.foreignKey(assetIdColumn, references: photoAssetTable, idColumn)
+//        })
+//        
+//        let _ = try? databaseConnection?.run(recognizedTextTable.create(ifNotExists: true) { t in
+//            t.column(idColumn, primaryKey: .autoincrement)
+//            t.column(assetIdColumn)
+//            t.column(textColumn)
+//            t.column(confidenceColumn)
+//            t.foreignKey(assetIdColumn, references: photoAssetTable, idColumn)
+//        })
+        let _ = try? databaseConnection?.run(identifiedSearchGroups.create(ifNotExists: true) { t in
             t.column(idColumn, primaryKey: .autoincrement)
-            t.column(assetIdColumn)
-            t.column(objectNameColumn)
-            t.column(confidenceColumn)
-            t.foreignKey(assetIdColumn, references: photoAssetTable, idColumn)
+            t.column(searchGroupNormalized)
+            t.column(categoryColumn)
         })
         
-        let _ = try? databaseConnection?.run(recognizedTextTable.create(ifNotExists: true) { t in
-            t.column(idColumn, primaryKey: .autoincrement)
+        let _ = try? databaseConnection?.run(assetGroupRelation.create(ifNotExists: true) { t in
             t.column(assetIdColumn)
-            t.column(textColumn)
+            t.column(groupIdColumn)
             t.column(confidenceColumn)
+            t.column(originalTagName)
             t.foreignKey(assetIdColumn, references: photoAssetTable, idColumn)
+            t.foreignKey(groupIdColumn, references: identifiedSearchGroups, idColumn)
         })
         
         let _ = try? databaseConnection?.run(photoAssetTable.createIndex(creationDateColumn.desc))
@@ -236,8 +258,9 @@ class PhotoDatabase {
         // Delete thumbnail and resources from filen (Only delete resources if they are not used by other photos)
         // TODO: Implement delete in FilenSDK (Only delete resources if they are not used by other photos)
         let _ = try? databaseConnection?.run(photoResourcesTable.filter(assetIdColumn == rowId).delete())
-        let _ = try? databaseConnection?.run(identifiedObjectsTable.filter(assetIdColumn == rowId).delete())
-        let _ = try? databaseConnection?.run(recognizedTextTable.filter(assetIdColumn == rowId).delete())
+//        let _ = try? databaseConnection?.run(identifiedObjectsTable.filter(assetIdColumn == rowId).delete())
+//        let _ = try? databaseConnection?.run(recognizedTextTable.filter(assetIdColumn == rowId).delete())
+        let _ = try? databaseConnection?.run(assetGroupRelation.filter(assetIdColumn == rowId).delete())
         let _ = try? databaseConnection?.run(photoAssetTable.filter(idColumn == rowId).delete())
         let _ = try? databaseConnection?.run(photoLibrary.filter(idColumn == rowId).delete())
         
@@ -359,9 +382,7 @@ class PhotoDatabase {
         if !perThousandDateCache.isEmpty {
             return
         }
-        
-        databaseConnection?.trace({ print($0) })
-        
+                
         let countOfPhotos = getCountOfPhotos()
         var count = 0
         while count < countOfPhotos {
@@ -425,20 +446,7 @@ class PhotoDatabase {
                     
                     let burstRep = try row.get(burstSelectionTypesColumn)
                     
-                    return (DBPhotoAsset(
-                        id: try row.get(idColumn),
-                        localIdentifier: try row.get(assetColumn),
-                        mediaType: PHAssetMediaType(rawValue: Int(try row.get(mediaTypeColumn)))!,
-                        mediaSubtype: PHAssetMediaSubtype(rawValue: UInt((try row.get(mediaSubtypeColumn)))),
-                        creationDate: try row.get(creationDateColumn),
-                        modificationDate: try row.get(modificationDateColumn),
-                        location: CLLocation(latitude: try row.get(locationLatitudeColumn) ?? 0, longitude: try row.get(locationLongitudeColumn) ?? 0),
-                        favorited: try row.get(favoritedColumn),
-                        hidden: try row.get(hiddenColumn),
-                        thumbnailFileName: try row.get(thumbnailName),
-                        burstIdentifier: try row.get(burstIdentifierColumn),
-                        burstSelectionTypes: PHAssetBurstSelectionType(rawValue: burstRep < 0 ? 0 : UInt(burstRep)))
-                    )
+                    return DBPhotoAsset(row: row)
                 } catch {
                     print("Error \(error)")
                 }
@@ -597,16 +605,16 @@ class PhotoDatabase {
         """
         
         var res = [String]()
-        do {
-            let stream = try databaseConnection?.prepareRowIterator(sql)
-            if let stream {
-                while let row = try stream.failableNext() {
-                    res.append(try row.get(objectNameColumn))
-                }
-            }
-        } catch {
-            logger.error("Failed search \(error)")
-        }
+//        do {
+//            let stream = try databaseConnection?.prepareRowIterator(sql)
+//            if let stream {
+//                while let row = try stream.failableNext() {
+//                    res.append(try row.get(objectNameColumn))
+//                }
+//            }
+//        } catch {
+//            logger.error("Failed search \(error)")
+//        }
         return res
     }
     
@@ -642,33 +650,78 @@ class PhotoDatabase {
         return false
     }
     
+    // replace umlauts or accents
+    private func normalize(tag: String) -> String {
+        tag.strippingDiacritics.lowercased()
+    }
+    
+    private func addTagGroupIfNotExists(_ tagNameUnnormalized: String, category: SearchTagCategory) throws -> Int64 {
+        guard let databaseConnection else { throw PhotoSyncError.unknown("Database connection is nil") }
+        let tagName = normalize(tag: tagNameUnnormalized)
+        
+        let query = identifiedSearchGroups.filter(searchGroupNormalized == tagName && categoryColumn == category.rawValue)
+        let result = try? databaseConnection.pluck(query)
+        
+        if let result {
+            return result[idColumn]
+        } else {
+            let insert = identifiedSearchGroups.insert(searchGroupNormalized <- tagName, categoryColumn <- category.rawValue)
+            return try databaseConnection.run(insert)
+        }
+    }
+    
+    private func relateAssetIdToTag(_ assetId: Int64, tag: String, category: SearchTagCategory, confidence: Double) {
+        do {
+            let tagId = try addTagGroupIfNotExists(tag, category: category)
+            let insert = assetGroupRelation.insert(
+                assetIdColumn <- assetId,
+                groupIdColumn <- tagId,
+                confidenceColumn <- confidence,
+                originalTagName <- tag
+            )
+            
+            let _ = try databaseConnection?.run(insert)
+        } catch {
+            logger.error("Failed to relate asset ID to tag \(error)")
+        }
+    }
+    
     private func insertImageClassifications(_ id: Int64, imageClassificationResults: [VNClassificationObservation]) -> Int {
         var insertedImageClassificationCount = 0
         
         for result in imageClassificationResults {
-            let insert = identifiedObjectsTable.insert(objectNameColumn <- result.identifier,
-                                                       confidenceColumn <- Double(result.confidence),
-                                                       assetIdColumn <- Int64(id))
-            let id = try? databaseConnection?.run(insert)
-            if id != nil {
-                insertedImageClassificationCount += 1
-            }
+            relateAssetIdToTag(id, tag: result.identifier, category: .object, confidence: Double(result.confidence))
+            insertedImageClassificationCount += 1
         }
         
         return insertedImageClassificationCount
     }
     
+    private let tokenizerDispatchQueue = DispatchQueue(label: "com.hunterhan.PhotoDatabase.NaturalLanguageTokenizer")
+    private let tokenizer = NLTokenizer(unit: .word)
+    private func tokenize(for text: String) -> [String] {
+        return tokenizerDispatchQueue.sync {
+            tokenizer.string = text
+            return tokenizer.tokens(for: text.startIndex..<text.endIndex).map { String(text[$0]) }
+        }
+    }
+    
     private func insertTextClassifications(_ id: Int64, textClassificationResults: [VNRecognizedTextObservation]) -> Int {
         var insertedTextResultClassificationCount = 0
         for result in textClassificationResults {
-            for observation in result.topCandidates(10) {
-                let insert = recognizedTextTable.insert(textColumn <- observation.string,
-                                                        confidenceColumn <- Double(observation.confidence),
-                                                        assetIdColumn <- Int64(id))
-                let id = try? databaseConnection?.run(insert)
-                if id != nil {
-                    insertedTextResultClassificationCount += 1
+            let topCandidates = result.topCandidates(10)
+            let maxConfidence = topCandidates.first?.confidence ?? 0.0
+            let wordCandidates = topCandidates.filter { $0.confidence == maxConfidence }
+            
+            // Select longest candidate
+            let longestCandidate = wordCandidates.max { $0.string.count < $1.string.count }
+            
+            if let longestCandidate {
+                let tokens = tokenize(for: longestCandidate.string)
+                for token in tokens {
+                    relateAssetIdToTag(id, tag: token, category: .text, confidence: Double(longestCandidate.confidence))
                 }
+                insertedTextResultClassificationCount += 1
             }
         }
         
@@ -750,11 +803,8 @@ class PhotoDatabase {
                 
                 if shouldUpdateAssetStats {
                     // Remove all previous image and text classification results
-                    let deleteIdentifiedObjects = identifiedObjectsTable.filter(assetIdColumn == Int64(id)).delete()
-                    let deleteRecognizedText = recognizedTextTable.filter(assetIdColumn == Int64(id)).delete()
-                    
+                    let deleteIdentifiedObjects = assetGroupRelation.filter(assetIdColumn == id).delete()
                     let _ = try? databaseConnection?.run(deleteIdentifiedObjects)
-                    let _ = try? databaseConnection?.run(deleteRecognizedText)
                     
                     insertedImageClassificationCount = insertImageClassifications(id, imageClassificationResults: imageClassificationResults)
                     insertedTextResultClassificationCount = insertTextClassifications(id, textClassificationResults: textResultClassificationResults)
@@ -882,5 +932,11 @@ extension DBPhotoAsset {
         self.thumbnailFileName = row[thumbnailName]
         self.burstIdentifier = row[burstIdentifierColumn]
         self.burstSelectionTypes = PHAssetBurstSelectionType(rawValue: UInt(row[burstSelectionTypesColumn]))
+    }
+}
+
+extension StringProtocol {
+    var strippingDiacritics: String {
+        applyingTransform(.stripDiacritics, reverse: false)!
     }
 }

@@ -45,46 +45,54 @@ struct SearchView : View {
                         }
                     })
             } else {
-                ScrollView {
-                    LazyVGrid(columns: [.init(.adaptive(minimum: 80, maximum: .infinity), spacing: 3)]) {
-                        ForEach(photoEnvironment.searchArray, id: \.self) { dbPhotoAsset in
-                            Color.clear.background(
-                                Image(
-                                    uiImage: UIImage(contentsOfFile: dbPhotoAsset.thumbnailURL.path) ?? UIImage()
+                if photoEnvironment.searchArray.isEmpty {
+                    Spacer()
+                    Text("検索結果がありません")
+                        .font(.title2)
+                        .bold()
+                    Spacer()
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: [.init(.adaptive(minimum: 80, maximum: .infinity), spacing: 5)]) {
+                            ForEach(photoEnvironment.searchArray, id: \.self) { dbPhotoAsset in
+                                Color.clear.background(
+                                    Image(
+                                        uiImage: UIImage(contentsOfFile: dbPhotoAsset.thumbnailURL.path) ?? UIImage()
+                                    )
+                                    .resizable()
+                                    .matchedGeometryEffect(
+                                        id: "searchBarThumbnailImageTransition"
+                                        + dbPhotoAsset.localIdentifier,
+                                        in: animation,
+                                        isSource: true
+                                    )
+                                    .scaledToFill()
+                                    .clipped()
                                 )
-                                .resizable()
-                                .matchedGeometryEffect(
-                                    id: "searchBarThumbnailImageTransition"
-                                    + dbPhotoAsset.localIdentifier,
-                                    in: animation,
-                                    isSource: true
-                                )
-                                .scaledToFill()
+                                .aspectRatio(1, contentMode: .fit)
+                                .clipShape(RoundedRectangle(cornerSize: .init(width: 10, height: 10)))
                                 .clipped()
-                            )
-                            .contentShape(Rectangle())
-                            .aspectRatio(1, contentMode: .fit)
-                            .clipped()
-                            .opacity(showingAsset == dbPhotoAsset ? 0 : 1)
-                            .onTapGesture {
-                                withAnimation {
-                                    showingAsset = dbPhotoAsset
-                                    Task {
-                                        await fullImageState.getView(selectedDbPhotoAsset: dbPhotoAsset)
+                                .opacity(showingAsset == dbPhotoAsset ? 0 : 1)
+                                .onTapGesture {
+                                    withAnimation {
+                                        showingAsset = dbPhotoAsset
+                                        Task {
+                                            await fullImageState.getView(selectedDbPhotoAsset: dbPhotoAsset)
+                                        }
+                                        keyboardFocus = false
                                     }
-                                    keyboardFocus = false
                                 }
-                            }
-                            .onAppear {
-                                if dbPhotoAsset == photoEnvironment.searchArray.last {
-                                    Task {
-                                        photoEnvironment.addMoreSearchResults()
+                                .onAppear {
+                                    if dbPhotoAsset == photoEnvironment.searchArray.last {
+                                        Task {
+                                            photoEnvironment.addMoreSearchResults()
+                                        }
                                     }
                                 }
                             }
                         }
+                        Spacer()
                     }
-                    Spacer()
                 }
             }
             TextField("Search", text: $searchText)
