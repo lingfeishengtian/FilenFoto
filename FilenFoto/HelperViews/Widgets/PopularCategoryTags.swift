@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct PopularCategoryTags: View {
+    let category: SearchTagCategory
     @State var tags: [String] = []
     // TODO: Make multi tag search
     
@@ -26,11 +27,11 @@ struct PopularCategoryTags: View {
             }
         }
         .onAppear {
-            tags = PhotoDatabase.shared.getMostPopularObjects()
+            tags = PhotoDatabase.shared.mostPopular(category: category)
         }
     }
 }
 
 #Preview {
-    PopularCategoryTags()
+    PopularCategoryTags(category: .date)
 }

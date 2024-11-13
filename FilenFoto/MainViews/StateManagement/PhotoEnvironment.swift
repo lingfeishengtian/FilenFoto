@@ -139,7 +139,9 @@ class PhotoEnvironment: SyncProgressInfo {
         isSearching = true
         searchArray.removeAll()
         stream = PhotoDatabase.shared.searchForText(textSearch: searchQuery)
-        addMoreSearchResults()
+        Task {
+            addMoreSearchResults()
+        }
     }
     
     func addMoreSearchResults() {

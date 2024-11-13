@@ -139,8 +139,10 @@ fileprivate let confidenceColumn = Expression<Double>("confidence")
 enum SearchTagCategory: Int64 {
     case text = 0
     case object = 1
-    case location = 2
-    case date = 3
+    case date = 2
+    case locationCity = 3
+    case locationCountry = 4
+    case locationAdmin = 5
 }
 
 class PhotoDatabase {
@@ -180,8 +182,6 @@ class PhotoDatabase {
             t.foreignKey(idColumn, references: photoAssetTable, idColumn)
         })
         
-        let _ = try? databaseConnection?.run(photoLibrary.createIndex(idColumn, creationDateColumn))
-        
         let _ = try? databaseConnection?.run(photoResourcesTable.create(ifNotExists: true) { t in
             t.column(idColumn, primaryKey: .autoincrement)
             t.column(assetIdColumn)
@@ -192,21 +192,6 @@ class PhotoDatabase {
             t.foreignKey(assetIdColumn, references: photoAssetTable, idColumn)
         })
         
-//        let _ = try? databaseConnection?.run(identifiedObjectsTable.create(ifNotExists: true) { t in
-//            t.column(idColumn, primaryKey: .autoincrement)
-//            t.column(assetIdColumn)
-//            t.column(objectNameColumn)
-//            t.column(confidenceColumn)
-//            t.foreignKey(assetIdColumn, references: photoAssetTable, idColumn)
-//        })
-//        
-//        let _ = try? databaseConnection?.run(recognizedTextTable.create(ifNotExists: true) { t in
-//            t.column(idColumn, primaryKey: .autoincrement)
-//            t.column(assetIdColumn)
-//            t.column(textColumn)
-//            t.column(confidenceColumn)
-//            t.foreignKey(assetIdColumn, references: photoAssetTable, idColumn)
-//        })
         let _ = try? databaseConnection?.run(identifiedSearchGroups.create(ifNotExists: true) { t in
             t.column(idColumn, primaryKey: .autoincrement)
             t.column(searchGroupNormalized)
@@ -222,7 +207,9 @@ class PhotoDatabase {
             t.foreignKey(groupIdColumn, references: identifiedSearchGroups, idColumn)
         })
         
-        let _ = try? databaseConnection?.run(photoAssetTable.createIndex(creationDateColumn.desc))
+        let _ = try? databaseConnection?.run(photoAssetTable.createIndex(creationDateColumn.desc, idColumn.desc))
+        let _ = try? databaseConnection?.run(photoLibrary.createIndex(creationDateColumn.desc, idColumn.desc))
+        let _ = try? databaseConnection?.run(identifiedSearchGroups.createIndex(searchGroupNormalized.asc))
     }
     
     func filenUUID(for sha256: String) -> String? {
@@ -342,41 +329,6 @@ class PhotoDatabase {
         }
     }
     
-    @available(*, deprecated, message: "ID based indexing deprecated")
-    func getIndexFromId(id: Int) -> Int? {
-        let query = """
-        WITH RankedPhotos AS (
-            SELECT 
-                photoLibrary.*, 
-                ROW_NUMBER() OVER (ORDER BY photoLibrary."creationDate" DESC, photoLibrary."id" DESC) AS RowIndex
-            FROM 
-                photoLibrary
-            JOIN
-                photoAsset ON photoAsset.id = photoLibrary.id
-        )
-        SELECT 
-            RowIndex, id
-        FROM 
-            RankedPhotos
-        WHERE 
-            id = ?;
-        """
-        do {
-            let result = try databaseConnection?.prepareRowIterator(query, bindings: [id])
-            if let result {
-                while let row = try result.failableNext() {
-                    if let f = try row.get(Expression<Int?>("RowIndex")) {
-                        return f - 1
-                    }
-                }
-            }
-        } catch {
-            logger.error("Failed to get index from id \(error)")
-        }
-        return nil
-    }
-    
-    // TODO: Fix burst support
     // TODO: Store this in a table cache
     @MainActor private func initiateThousandIndexing() {
         if !perThousandDateCache.isEmpty {
@@ -435,16 +387,19 @@ class PhotoDatabase {
         getDateIDOffsettedQuery(index: atOffset)
         //        getBasePhotoLibraryListingQuery().where(creationDateColumn < lastDate).limit(1, offset: atOffset % cacheOffset)
         
+        databaseConnection?.trace { sql in
+            print("SQL: \(sql)")
+        }
         
         if let result = query {
             while let row = result.next() {
                 //            for row in result {
                 do {
-                    if Date.now.timeIntervalSince(dateStart) > pow(10, -4) {
+                    if Date.now.timeIntervalSince(dateStart) > pow(10, -3) {
                         logger.error("\(atOffset) photo retrieval took too long. \(Date.now.timeIntervalSince(dateStart))")
                     }
                     
-                    let burstRep = try row.get(burstSelectionTypesColumn)
+//                    let burstRep = try row.get(burstSelectionTypesColumn)
                     
                     return DBPhotoAsset(row: row)
                 } catch {
@@ -456,35 +411,31 @@ class PhotoDatabase {
         return nil
     }
     
+    
     func searchForText(textSearch: String) -> RowIterator? {
-        let sql = """
-            SELECT *, MAX(confidence) as maxConfidence
-                FROM (
-                    SELECT assetId, objectName as object, confidence
-                    FROM identifiedObjects
-                    WHERE objectName LIKE '%' || ? || '%'
-                    UNION
-                    SELECT assetId, "text" as object, confidence
-                    FROM recognizedText 
-                    WHERE "text" LIKE '%' || ? || '%'
-                )
-                JOIN photoAsset ON assetId = photoAsset.id
-                GROUP BY assetId
-                ORDER BY creationDate DESC;
-        """
+        let startTime = Date.now
+        
+        let tokens = tokenize(for: textSearch)
+        var query = identifiedSearchGroups
+        for token in tokens {
+            query = query.filter(searchGroupNormalized.like("\(normalize(tag: token))%"))
+        }
+        query = query.join(assetGroupRelation, on: groupIdColumn == identifiedSearchGroups[idColumn])
+            .join(photoAssetTable, on: assetIdColumn == photoAssetTable[idColumn])
+            .group(photoAssetTable[idColumn])
+            .order(photoAssetTable[creationDateColumn].desc, photoAssetTable[idColumn].desc)
+            
         do {
-            let modifiedTextSearch = textSearch.replacingOccurrences(of: " ", with: "_")
-#if DEBUG
-            let streamScalar = try databaseConnection?.scalar(sql, [modifiedTextSearch, modifiedTextSearch])
-            print("\(String(describing: streamScalar)) results found for search \(textSearch)")
-#endif
-            let stream = try databaseConnection?.prepareRowIterator(sql, bindings: [modifiedTextSearch, modifiedTextSearch])
+            let stream = try databaseConnection?.prepareRowIterator(query)
+            print("Search took \(Date.now.timeIntervalSince(startTime))")
             return stream
         } catch {
             logger.error("Failed search \(error)")
         }
+        
         return nil
     }
+    
     
     func insertPhoto(asset: PHAsset, resources: [FilenEquivelentAsset], imageClassificationResults: [VNClassificationObservation], textResultClassificationResults: [VNRecognizedTextObservation], thumbnailLocation: URL) -> InsertPhotoResult {
         return dispatchQueue.sync {
@@ -548,6 +499,8 @@ class PhotoDatabase {
                 
                 let didInsertNewLibrary = insertIntoPhotoLibrary(burstIdentifier: asset.burstIdentifier, burstSelectionTypes: asset.burstSelectionTypes, id: id, creationDate: creationDate)
                 
+                insertPhotoMetadataTags(id, creationDate: creationDate, location: asset.location)
+                
                 resetPhotoIndexCache()
                 
                 return .success(DBPhotoAsset(
@@ -595,26 +548,28 @@ class PhotoDatabase {
         return stringResult
     }
     
-    func getMostPopularObjects() -> [String] {
-        let sql = """
-            SELECT objectName, SUM(confidence) as totalConfidence
-            FROM identifiedObjects
-            GROUP BY objectName
-            ORDER BY SUM(confidence) DESC
-            LIMIT 15;
-        """
+    func mostPopular(category: SearchTagCategory) -> [String] {
+        let query = identifiedSearchGroups.select(searchGroupNormalized, confidenceColumn.sum)
+            .join(assetGroupRelation, on: groupIdColumn == identifiedSearchGroups[idColumn])
+            .where(categoryColumn == category.rawValue)
+            .group(searchGroupNormalized)
+            .order(confidenceColumn.sum.desc)
+            .limit(15)
         
+        let dateTime = Date.now
         var res = [String]()
-//        do {
-//            let stream = try databaseConnection?.prepareRowIterator(sql)
-//            if let stream {
-//                while let row = try stream.failableNext() {
-//                    res.append(try row.get(objectNameColumn))
-//                }
-//            }
-//        } catch {
-//            logger.error("Failed search \(error)")
-//        }
+        do {
+            let result = try databaseConnection?.prepare(query)
+            
+            if let result {
+                for row in result {
+                    res.append(try row.get(searchGroupNormalized))
+                }
+            }
+        } catch {
+            logger.error("Failed to get most popular objects \(error)")
+        }
+        print("Most popular search for \(category) took \(Date.now.timeIntervalSince(dateTime))")
         return res
     }
     
@@ -652,7 +607,7 @@ class PhotoDatabase {
     
     // replace umlauts or accents
     private func normalize(tag: String) -> String {
-        tag.strippingDiacritics.lowercased()
+        tag.strippingDiacritics.lowercased().replacingOccurrences(of: " ", with: "_")
     }
     
     private func addTagGroupIfNotExists(_ tagNameUnnormalized: String, category: SearchTagCategory) throws -> Int64 {
@@ -726,6 +681,46 @@ class PhotoDatabase {
         }
         
         return insertedTextResultClassificationCount
+    }
+    
+    private func season(for date: Date) -> String {
+        let calendar = Calendar.current
+        let year = calendar.component(.year, from: date)
+        
+        // Define the start dates for each season
+        let winterStart = calendar.date(from: DateComponents(year: year, month: 12, day: 21))!
+        let springStart = calendar.date(from: DateComponents(year: year, month: 3, day: 21))!
+        let summerStart = calendar.date(from: DateComponents(year: year, month: 6, day: 21))!
+        let fallStart = calendar.date(from: DateComponents(year: year, month: 9, day: 21))!
+        
+        // Check which season the date falls into
+        if date >= winterStart || date < springStart {
+            return "Winter"
+        } else if date >= springStart && date < summerStart {
+            return "Spring"
+        } else if date >= summerStart && date < fallStart {
+            return "Summer"
+        } else {
+            return "Fall"
+        }
+    }
+    
+    private func insertPhotoMetadataTags(_ id: Int64, creationDate: Date, location: CLLocation?) {
+        if let location, let (cityName, adminName, countryName) = ReverseGeolocator.shared.reverseGeolocate(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude) {
+            relateAssetIdToTag(id, tag: cityName, category: .locationCity, confidence: 1.0)
+            relateAssetIdToTag(id, tag: adminName, category: .locationAdmin, confidence: 1.0)
+            relateAssetIdToTag(id, tag: countryName, category: .locationCountry, confidence: 1.0)
+        }
+        
+        // Month, Year, and Season
+        let calendar = Calendar.current
+        let month = calendar.component(.month, from: creationDate)
+        let year = calendar.component(.year, from: creationDate)
+        let season = season(for: creationDate)
+        
+        relateAssetIdToTag(id, tag: "\(month)", category: .date, confidence: 1.0)
+        relateAssetIdToTag(id, tag: "\(year)", category: .date, confidence: 1.0)
+        relateAssetIdToTag(id, tag: season, category: .date, confidence: 1.0)
     }
     
     func insertPhoto(asset: ExtractedFilenAssetInfo, filenUUID: String, fileName: String, assetRowId: Int64, imageClassificationResults: [VNClassificationObservation], textResultClassificationResults: [VNRecognizedTextObservation], thumbnailLocation: URL) -> InsertPhotoResult {
@@ -820,6 +815,8 @@ class PhotoDatabase {
                 
                 let didInsertNewLibrary = insertIntoPhotoLibrary(burstIdentifier: asset.burstIdentifier, burstSelectionTypes: asset.burstSelectionTypes, id: Int64(id), creationDate: creationDate)
                 
+                insertPhotoMetadataTags(Int64(id), creationDate: creationDate, location: asset.location)
+
                 resetPhotoIndexCache()
                 
                 return .success(DBPhotoAsset(
@@ -920,7 +917,7 @@ class PhotoDatabase {
 
 extension DBPhotoAsset {
     init(row: Row) {
-        self.id = row[idColumn]
+        self.id = (try? row.get(photoAssetTable[idColumn])) ?? row[idColumn]
         self.localIdentifier = row[assetColumn]
         self.mediaType = PHAssetMediaType(rawValue: Int(row[mediaTypeColumn]))!
         self.mediaSubtype = PHAssetMediaSubtype(rawValue: UInt(row[mediaSubtypeColumn]))
