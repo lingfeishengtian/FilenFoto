@@ -14,6 +14,8 @@ struct LazyPhotoGrid : View {
     @FocusState.Binding var keyboardFocus: Bool
     let animation: Namespace.ID
     
+    @State private var scalingAdjust: CGFloat = 0
+    
     private func asyncUrlImageViewGenerator(thumbnailURL: URL, cancelledErrorView: some View = Color.red) -> some View {
         AsyncImage(url: thumbnailURL) { phase in
             if let image = phase.image {
@@ -41,7 +43,7 @@ struct LazyPhotoGrid : View {
     var body: some View {
         LazyVGrid(
             columns: [
-                .init(.adaptive(minimum: 100, maximum: .infinity), spacing: 3)
+                .init(.adaptive(minimum: 100 + scalingAdjust, maximum: .infinity), spacing: 3)
             ], spacing: 3
         ) {
             ForEach(
@@ -83,5 +85,18 @@ struct LazyPhotoGrid : View {
                 }
         }
         .frame(maxHeight: .infinity, alignment: .bottom)
+        .gesture(MagnificationGesture()
+            .onEnded { value in
+                print(value.magnitude)
+                if (value.magnitude > 3.0) {
+                    withAnimation {
+                        scalingAdjust = 0
+                    }
+                } else if (value.magnitude < 0.5) {
+                    withAnimation {
+                        scalingAdjust = -20
+                    }
+                }
+            })
     }
 }
