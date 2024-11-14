@@ -9,6 +9,7 @@ import Foundation
 import Vision
 import AVFoundation
 import os
+import UIKit
 
 class ImageVision {
     enum ImageVisionError : Error {
@@ -59,13 +60,15 @@ class ImageVision {
     }
 
     private static func classifyAndTextRecognize(image imageURL: URL) throws -> ClassificationResults {
-        let image = CGImageSourceCreateWithURL(imageURL as CFURL, nil)
-        let cgImage = CGImageSourceCreateImageAtIndex(image!, 0, nil)
+        let uiImage = UIImage(contentsOfFile: imageURL.path)
+//        let image = CGImageSourceCreateWithURL(imageURL as CFURL, nil)
+//        let cgImage = CGImageSourceCreateImageAtIndex(image!, 0, nil)
+        let cgImage = uiImage?.cgImage
         
         print("Vision request for \(imageURL)")
         
         let results = try classifyAndTextRecognize(image: cgImage!)
-        return ClassificationResults(photoRecog: results, generatedCGImage: cgImage!)
+        return ClassificationResults(photoRecog: results, generatedCGImage: cgImage!, cgImageOrientation: uiImage?.imageOrientation)
     }
     
     fileprivate let dispatchGroup = DispatchGroup()
@@ -122,11 +125,12 @@ class ImageVision {
         let img = try assetImgGenerate.copyCGImage(at: time, actualTime: nil)
         let results = try classifyAndTextRecognize(image: img)
         
-        return ClassificationResults(photoRecog: results, generatedCGImage: img)
+        return ClassificationResults(photoRecog: results, generatedCGImage: img, cgImageOrientation: nil)
     }
 }
 
 struct ClassificationResults {
     let photoRecog: ([VNClassificationObservation], [VNRecognizedTextObservation])
     let generatedCGImage: CGImage
+    let cgImageOrientation: UIImage.Orientation?
 }

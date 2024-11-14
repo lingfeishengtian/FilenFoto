@@ -179,7 +179,7 @@ class FileSyncDatabase {
         let streamer: RowIterator
         
         func next() -> FailedStatus? {
-            if let row = streamer.next() {
+            if let row = try? streamer.failableNext() {
                 return FailedStatus(fileUUID: row[failedFileUUID], fileName: row[failedFileName], statusMessage: row[failedStatusMessage])
             }
             

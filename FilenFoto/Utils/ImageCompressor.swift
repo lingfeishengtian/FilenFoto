@@ -133,8 +133,8 @@ class ImageCompressor {
     }
     
     @available(iOS 15.0, *)
-    static func compressImage(from cgImage: CGImage, outputDestination: URL) async throws {
-        let image = UIImage(cgImage: cgImage)
+    static func compressImage(from cgImage: CGImage, orientation: UIImage.Orientation, outputDestination: URL) async throws {
+        let image = UIImage(cgImage: cgImage, scale: 1.0, orientation: orientation)
         
         // Compress the image
         if let compressedData = ImageCompressor.compressImage(image, format: .jpg) {

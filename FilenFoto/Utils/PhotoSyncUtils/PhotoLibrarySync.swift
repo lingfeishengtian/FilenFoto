@@ -361,7 +361,7 @@ class PhotoVisionDatabaseManager: ProgressCheckingPhotoSyncProtocol {
                         Task { [weak self] in
                             guard let self = self else { return }
                             
-                            try await ImageCompressor.compressImage(from: unwrappedResult.generatedCGImage, outputDestination: compressedThumbnailUrl!)
+                            try await ImageCompressor.compressImage(from: unwrappedResult.generatedCGImage, orientation: unwrappedResult.cgImageOrientation ?? .up, outputDestination: compressedThumbnailUrl!)
                             
                             switch PhotoDatabase.shared.insertPhoto(asset: asset, resources: retrieveAndUploadedAssets.assetsToCloud, imageClassificationResults: classificationResults.0, textResultClassificationResults: classificationResults.1, thumbnailLocation: compressedThumbnailUrl ?? FileManager.default.temporaryDirectory) {
                             case .exists:

@@ -156,8 +156,12 @@ func imageNameExifExtractor(url: URL) async throws -> ExtractedFilenAssetInfo
         }
         if let gpsDict = dict[kCGImagePropertyGPSDictionary as String] as? [String:Any] {
             if let latitude = gpsDict[kCGImagePropertyGPSLatitude as String] as? Double,
-               let longitude = gpsDict[kCGImagePropertyGPSLongitude as String] as? Double {
-                location = CLLocation(latitude: latitude, longitude: longitude)
+               let longitude = gpsDict[kCGImagePropertyGPSLongitude as String] as? Double,
+               let latitudeRef = gpsDict[kCGImagePropertyGPSLatitudeRef as String] as? String,
+               let longitudeRef = gpsDict[kCGImagePropertyGPSLongitudeRef as String] as? String {
+                let latitudeDegrees = latitudeRef == "S" ? -latitude : latitude
+                let longitudeDegrees = longitudeRef == "W" ? -longitude : longitude
+                location = CLLocation(latitude: latitudeDegrees, longitude: longitudeDegrees)
             }
         }
     } else if (type.conforms(to: .movie) || type.conforms(to: .audio)) {

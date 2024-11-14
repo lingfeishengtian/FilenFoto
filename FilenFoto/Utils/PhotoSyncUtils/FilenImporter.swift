@@ -209,7 +209,7 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
                 
                 Task { [weak self] in
                     guard let self = self else { return }
-                    try await ImageCompressor.compressImage(from: tmpLocation, outputDestination: compressedThumbnailUrl)
+                    try await ImageCompressor.compressImage(from: classification.generatedCGImage, orientation: classification.cgImageOrientation ?? .up, outputDestination: compressedThumbnailUrl)
                     
                     let result = PhotoDatabase.shared.insertPhoto(asset: extractedImageDetails, filenUUID: uploadFileResults.uuid, fileName: filenFile.fileName, assetRowId: assetId, imageClassificationResults: classification.photoRecog.0, textResultClassificationResults: classification.photoRecog.1, thumbnailLocation: compressedThumbnailUrl)
                     
@@ -220,7 +220,7 @@ class FilenSync : ProgressCheckingPhotoSyncProtocol {
                         }
                         syncProgress?.updateImageProgress(progress: 1.0, message: "Imported \(filenFile.filenUUID)", localIdentifier: filenFile.filenUUID)
                     case .failed:
-                        syncProgress?.updateImageProgress(progress: 1.0, message: "Failed to import \(filenFile.filenUUID)", localIdentifier: filenFile.filenUUID)
+                        self.fileFailure(filenFile: filenFile, message: "Could not insert photo into database \(result)")
                     case .exists:
                         fatalError("Should not exist")
                     }

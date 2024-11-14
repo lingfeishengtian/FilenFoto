@@ -917,13 +917,19 @@ class PhotoDatabase {
 
 extension DBPhotoAsset {
     init(row: Row) {
+        var location: CLLocation?
+        
+        if let lat = row[locationLatitudeColumn], let long = row[locationLongitudeColumn] {
+            location = CLLocation(latitude: lat, longitude: long)
+        }
+        
         self.id = (try? row.get(photoAssetTable[idColumn])) ?? row[idColumn]
         self.localIdentifier = row[assetColumn]
         self.mediaType = PHAssetMediaType(rawValue: Int(row[mediaTypeColumn]))!
         self.mediaSubtype = PHAssetMediaSubtype(rawValue: UInt(row[mediaSubtypeColumn]))
         self.creationDate = row[creationDateColumn]
         self.modificationDate = row[modificationDateColumn]
-        self.location = CLLocation(latitude: row[locationLatitudeColumn] ?? 0, longitude: row[locationLongitudeColumn] ?? 0)
+        self.location = location
         self.favorited = row[favoritedColumn]
         self.hidden = row[hiddenColumn]
         self.thumbnailFileName = row[thumbnailName]
