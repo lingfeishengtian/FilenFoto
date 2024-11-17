@@ -29,16 +29,21 @@ struct ImageViewGenerationData {
         storedAssetView != nil && dbPhotoAsset != nil && assetId == dbPhotoAsset?.id
     }
     
+    func getImageURL() -> URL? {
+        storedAssetView as? URL
+    }
+    
+    @available(*, deprecated, message: "Use respective get functions instead")
     func generateView(dbPhotoAsset: DBPhotoAsset?, scale: Binding<CGFloat>, offset: Binding<CGSize>, scrolling: Binding<Bool>, onSwipeUp: @escaping () -> Void, onSwipeDown: @escaping () -> Void) -> AnyView {
 #if targetEnvironment(simulator)
         if let isPrev = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"], isPrev == "1" {
             return AnyView(ZoomablePhoto(
-                scale: scale,
-                offset: offset,
-                scrolling: scrolling,
+//                scale: scale,
+//                offset: offset,
+//                scrolling: scrolling,
                 onSwipeUp: onSwipeUp,
                 onSwipeDown: onSwipeDown,
-                image: .constant(UIImage(named: "IMG_3284")!)))
+                image: (UIImage(named: "IMG_3284")!)))
         }
 #endif
         var asset = storedAssetView
@@ -49,12 +54,12 @@ struct ImageViewGenerationData {
         case let uiImage as UIImage:
             return AnyView(
                 ZoomablePhoto(
-                    scale: scale,
-                    offset: offset,
-                    scrolling: scrolling,
+//                    scale: scale,
+//                    offset: offset,
+//                    scrolling: scrolling,
                     onSwipeUp: onSwipeUp,
                     onSwipeDown: onSwipeDown,
-                    image: .constant(uiImage)))
+                    image: (uiImage)))
         case let livePhoto as PHLivePhoto:
             return AnyView(
                 ZoomableLivePhoto(
@@ -82,12 +87,12 @@ struct ImageViewGenerationData {
             }
             return AnyView(
                 ZoomablePhoto(
-                    scale: scale,
-                    offset: offset,
-                    scrolling: scrolling,
+//                    scale: scale,
+//                    offset: offset,
+//                    scrolling: scrolling,
                     onSwipeUp: onSwipeUp,
                     onSwipeDown: onSwipeDown,
-                    image: .constant(uiImage)))
+                    image: (uiImage)))
         }
     }
 }

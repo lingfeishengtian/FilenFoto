@@ -28,7 +28,9 @@ struct FilenAsyncImage: View {
     }
     
     var body: some View {
-        return (
+        if let img = fullImageState.imageViewGeneration.getImageURL() {
+            ZoomableImage(onSwipeUp: onSwipeUp, onSwipeDown: onSwipeDown, imageURL: img)
+        } else {
             fullImageState.imageViewGeneration.generateView(
                 dbPhotoAsset: dbAsset,
                 scale: $fullImageState.scale,
@@ -47,6 +49,7 @@ struct FilenAsyncImage: View {
                         )
                         .allowsHitTesting(false)
                 }
-            })
+            }
+        }
     }
 }

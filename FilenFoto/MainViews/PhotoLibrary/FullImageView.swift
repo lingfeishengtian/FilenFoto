@@ -1,12 +1,13 @@
 import CoreLocation
 import MapKit
 import SwiftUI
-import SwiftUIPager
 
 struct FullImageView: View {
     @EnvironmentObject var photoEnvironment: PhotoEnvironment
     @StateObject var fullImageState: FullImageViewState = FullImageViewState()
     @State var sheetTopAnchor: CGPoint = .zero
+    
+    @State var localScale: CGFloat = 1.0
     
     let animation: Namespace.ID
     
@@ -58,6 +59,10 @@ struct FullImageView: View {
         }
     }
     
+    var isImageDismissMode: Bool {
+        fullImageState.shouldHideBars || localScale != 1.0
+    }
+    
 //    func getBurstImageArray() -> [DBPhotoAsset] {
 //        let bImages = photoEnvironment.lazyArray.burstAssets(for: photoEnvironment.selectedDbPhotoAsset?.burstIdentifier ?? "")
 //        if bImages.isEmpty {
@@ -92,16 +97,36 @@ struct FullImageView: View {
             } else {
                 VStack {
                     FullImageViewTopBar()
-                        .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
-                        .opacity(fullImageState.shouldHideBars ? 0 : 1)
+                        .frame(maxHeight: isImageDismissMode ? 0 : nil)
+                        .opacity(isImageDismissMode ? 0 : 1)
                     Spacer()
                     GeometryReader { reader in
-                        PagedImageView(animation: animation, page: .withIndex(photoEnvironment.getCurrentPhotoAssetIndex() ?? 0))
+                        PagedImageView(animation: animation, currentIndex: photoEnvironment.getCurrentPhotoAssetIndex() ?? 0, globalScale: $localScale)
                             .offset(
                                 fullImageState.showDetail || fullImageState.offset.height < 0
                                 ? .init(width: 0, height: getHeightOffset(reader.size.height)) : .zero
                             )
+//                            .offset(
+//                                localOffset
+//                            )
 //                            .scaleEffect(fullImageState.showDetail ? getImageRatio() : 1.0)
+//                        if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {
+//                            ZoomablePhoto(
+//                                scale: $fullImageState.scale,
+//                                offset: $fullImageState.offset,
+//                                scrolling: $fullImageState.scrolling,
+//                                onSwipeUp: {
+//                                    withAnimation {
+//                                        fullImageState.showDetail = true
+//                                    }
+//                                },
+//                                onSwipeDown: {
+//                                    withAnimation {
+//                                        photoEnvironment.shouldShowFullImageView = false
+//                                    }
+//                                },
+//                                image: .constant(UIImage(contentsOfFile: selectedDbPhotoAsset.thumbnailURL.path)!))
+//                        }
                     }
                     Spacer()
                     PhotoScrubberView(itemsToShow: 5, spacing: 10) {
@@ -112,28 +137,30 @@ struct FullImageView: View {
                     }
                     .frame(height: 60)
                     .opacity(
-                        fullImageState.shouldHideBars ? 0 : 1
+                        isImageDismissMode ? 0 : 1
                     )
-                    .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
-                    .opacity(fullImageState.shouldHideBars ? 0 : 1)
-                    .disabled(fullImageState.shouldHideBars)
+                    .frame(maxHeight: isImageDismissMode ? 0 : nil)
+                    .opacity(isImageDismissMode ? 0 : 1)
+                    .disabled(isImageDismissMode)
                     FullImageViewQuickActions()
-                        .frame(maxHeight: fullImageState.shouldHideBars ? 0 : nil)
-                        .opacity(fullImageState.shouldHideBars ? 0 : 1)
+                        .frame(maxHeight: isImageDismissMode ? 0 : nil)
+                        .opacity(isImageDismissMode ? 0 : 1)
                     //                         }
                     //                 }
                     //                 .ignoresSafeArea(.all)
                 }
                 // TODO: MAKE THIS DEPEND ON SCREEN HEIGHT
-                .statusBarHidden(fullImageState.offset.height * 2 < -550)
+                // TODO: DEPRECATE OLD WAY OF DRAGGING
+                .statusBarHidden(localScale != 1.0)
                 .background {
                     Color.black.opacity(
-                        Double(1 - (fullImageState.offset.height / fullImageState.dismissThreshold))
+//                        Double(1 - (localOffset.height / fullImageState.dismissThreshold))
+                        Double(localScale != 1.0 ? 0.5 : 1.0)
                     )
                     .ignoresSafeArea(.all)
                     .allowsHitTesting(photoEnvironment.shouldShowFullImageView)
                 }
-                .ignoresSafeArea(fullImageState.shouldHideBars ? .all : .keyboard)
+                .ignoresSafeArea(isImageDismissMode ? .all : .keyboard)
                 .sheet(
                     isPresented: .constant(fullImageState.offset.height < 0 || fullImageState.showDetail),
                     onDismiss: {

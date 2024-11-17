@@ -257,8 +257,10 @@ class PhotoDatabase {
     }
     
     func getCountOfPhotos() -> Int {
-        let query = getBasePhotoLibraryListingQuery().count
+        let dateNow = Date.now
+        let query = photoLibrary.count
         let result = try? databaseConnection?.scalar(query)
+        print("Counting took \(Date.now.timeIntervalSince(dateNow))")
         return (result) ?? 0
     }
     
@@ -279,14 +281,56 @@ class PhotoDatabase {
         if ind >= perThousandIDCache.count || ind >= perThousandDateCache.count {
             return try? databaseConnection?.prepareRowIterator(getBasePhotoLibraryListingQuery().limit(1, offset: index))
         }
+//        return try? databaseConnection?.prepareRowIterator("""
+//        SELECT "photoAsset".*
+//        FROM "photoLibrary"
+//        JOIN photoAsset ON photoAsset.id = photoLibrary.id
+//        WHERE (photoLibrary."creationDate", photoLibrary."id") <= ('\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))', \(perThousandIDCache[ind]))
+//        ORDER BY photoLibrary."creationDate" DESC, photoLibrary.id ASC
+//        LIMIT 1
+//        OFFSET \(index % cacheOffset + -1 * offset * cacheOffset);
+//        """)
+
+//        return try? databaseConnection?.prepareRowIterator("""
+//        SELECT "photoAsset".*
+//        FROM "photoLibrary"
+//        JOIN photoAsset ON photoAsset.id = photoLibrary.id
+//        WHERE photoLibrary."creationDate" < '\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))'
+//        OR (photoLibrary."creationDate" == '\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))' AND photoLibrary."id" >= \(perThousandIDCache[ind]))
+//        ORDER BY photoLibrary."creationDate" DESC, photoLibrary.id ASC
+//        LIMIT 1
+//        OFFSET \(index % cacheOffset + -1 * offset * cacheOffset);
+//        """)
+        
+        /*
+         WITH res AS (SELECT *
+         FROM "photoLibrary"
+         WHERE (photoLibrary."creationDate" = '2023-07-02T15:30:06.000' AND photoLibrary.id <= 339064)
+         UNION ALL
+         SELECT *
+         FROM "photoLibrary"
+         WHERE photoLibrary."creationDate" < '2023-07-02T15:30:06.000'
+         ORDER BY photoLibrary."creationDate" DESC, photoLibrary.id DESC
+         LIMIT 1
+         OFFSET 642)
+         SELECT photoAsset.*
+         FROM res
+         JOIN photoAsset ON photoAsset.id = res.id;
+         */
         return try? databaseConnection?.prepareRowIterator("""
-        SELECT "photoAsset".*
+        WITH res AS (SELECT *
         FROM "photoLibrary"
-        JOIN photoAsset ON photoAsset.id = photoLibrary.id
-        WHERE (photoLibrary."creationDate", photoLibrary."id") <= ('\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))', \(perThousandIDCache[ind]))
+        WHERE (photoLibrary."creationDate" = '\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))' AND photoLibrary.id <= \(perThousandIDCache[ind]))
+        UNION ALL
+        SELECT *
+        FROM "photoLibrary"
+        WHERE photoLibrary."creationDate" < '\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))'
         ORDER BY photoLibrary."creationDate" DESC, photoLibrary.id DESC
         LIMIT 1
-        OFFSET \(index % cacheOffset + -1 * offset * cacheOffset);
+        OFFSET \(index % cacheOffset + -1 * offset * cacheOffset))
+        SELECT photoAsset.*
+        FROM res
+        JOIN photoAsset ON photoAsset.id = res.id;
         """)
     }
     
@@ -308,7 +352,7 @@ class PhotoDatabase {
             """
         }
         let query = """
-            SELECT 
+            SELECT
                 COUNT(*)
             FROM photoLibrary
             WHERE ("creationDate", "id") > ('\(SQLite.dateFormatter.string(from: dbPhotoAsset.creationDate))', \(dbPhotoAsset.id))
@@ -334,18 +378,19 @@ class PhotoDatabase {
         if !perThousandDateCache.isEmpty {
             return
         }
-                
+        
+//        try? self.databaseConnection?.trace { print($0) }
+        
         let countOfPhotos = getCountOfPhotos()
         var count = 0
         while count < countOfPhotos {
             let now = Date.now
             if count == 0 {
-                let query =
-                //            (count == 0) ?
-                getBasePhotoLibraryListingQuery().limit(1, offset: count)
-                //            : getDateIDOffsettedQuery(id: count, offset: -1)
+                let query = (count == 0) ?
+                try? self.databaseConnection?.prepareRowIterator(getBasePhotoLibraryListingQuery().limit(1, offset: count))
+                : getDateIDOffsettedQuery(index: count, offset: -1)
                 
-                let result = try? self.databaseConnection?.prepare(query)
+                let result = query
                 
                 guard let result else {
                     continue
@@ -353,7 +398,8 @@ class PhotoDatabase {
                 
                 
                 do {
-                    for row in result {
+                    if let row = try? result.failableNext() {
+//                    for row in result {
                         perThousandDateCache.append(try row.get(photoAssetTable[creationDateColumn]))
                         perThousandIDCache.append(Int(try row.get(photoAssetTable[idColumn])))
                     }
@@ -379,17 +425,17 @@ class PhotoDatabase {
         }
     }
     
+    @MainActor var photoCache: [Int: DBPhotoAsset] = [:]
+    
     @MainActor func getDBPhotoSync(atOffset: Int) -> DBPhotoAsset? {
+        if let cachedPhoto = photoCache[atOffset] {
+            return cachedPhoto
+        }
+        print("Cache no hit Getting photo at \(atOffset)")
+        initiateThousandIndexing()
         let dateStart = Date.now
         //        let lastDate = perThousandDateCache[atOffset / cacheOffset]
-        let query =
-        //        try? databaseConnection?.prepare(getBasePhotoLibraryListingQuery().limit(1, offset: atOffset))
-        getDateIDOffsettedQuery(index: atOffset)
-        //        getBasePhotoLibraryListingQuery().where(creationDateColumn < lastDate).limit(1, offset: atOffset % cacheOffset)
-        
-        databaseConnection?.trace { sql in
-            print("SQL: \(sql)")
-        }
+        let query = getDateIDOffsettedQuery(index: atOffset)
         
         if let result = query {
             while let row = result.next() {
@@ -399,9 +445,14 @@ class PhotoDatabase {
                         logger.error("\(atOffset) photo retrieval took too long. \(Date.now.timeIntervalSince(dateStart))")
                     }
                     
+                    let dbPhotoAsset = DBPhotoAsset(row: row)
 //                    let burstRep = try row.get(burstSelectionTypesColumn)
-                    
-                    return DBPhotoAsset(row: row)
+                    photoCache[atOffset] = dbPhotoAsset
+#if DEBUG
+//                    let ind = index(of: dbPhotoAsset)
+//                    assert(ind == atOffset, "Indexing error \(ind) != \(atOffset)")
+#endif
+                    return dbPhotoAsset
                 } catch {
                     print("Error \(error)")
                 }
@@ -844,6 +895,7 @@ class PhotoDatabase {
         DispatchQueue.main.sync {
             perThousandIDCache.removeAll()
             perThousandDateCache.removeAll()
+            photoCache.removeAll()
             initiateThousandIndexing()
         }
     }

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-var shouldAppear: [Int: Bool] = [:]
+var shouldAppear: [Int] = []
 
 struct LazyPhotoGrid : View {
     @EnvironmentObject var photoEnvironment: PhotoEnvironment
@@ -35,11 +35,18 @@ struct LazyPhotoGrid : View {
         }
     }
     
+    var countArray: [Int] {
+        if shouldAppear.count != photoEnvironment.countOfPhotos {
+            shouldAppear = Array(0..<photoEnvironment.countOfPhotos)
+        }
+        return shouldAppear
+    }
+    
     /// Always inline due to the way SwiftUI creates these views
     @inline(__always) private func imageOpacity(_ dbPhotoAsset: DBPhotoAsset) -> Bool {
         photoEnvironment.selectedDbPhotoAsset == dbPhotoAsset && photoEnvironment.shouldShowFullImageView == true
     }
-    
+        
     var body: some View {
         LazyVGrid(
             columns: [
@@ -47,29 +54,25 @@ struct LazyPhotoGrid : View {
             ], spacing: 3
         ) {
             ForEach(
-                0..<PhotoDatabase.shared.getCountOfPhotos(),
+                countArray,
                 id: \.self
             ) { index in
                 let dbPhotoAsset = PhotoDatabase.shared.getDBPhotoSync(
                     atOffset: index
                 )!
-                    Color.clear.background(
-                        Image(
-                            uiImage: UIImage(contentsOfFile: dbPhotoAsset.thumbnailURL.path) ?? UIImage()
-                        )
-                        .resizable()
-                        .matchedGeometryEffect(
-                            id: "thumbnailImageTransition"
-                            + dbPhotoAsset.localIdentifier,
-                            in: animation,
-                            isSource: true
-                        )
-                        .scaledToFill()
-                        .clipped()
+                Image(uiImage: UIImage(contentsOfFile: dbPhotoAsset.thumbnailURL.path) ?? UIImage())
+                    .resizable()
+                    .matchedGeometryEffect(
+                        id: "thumbnailImageTransition"
+                        + dbPhotoAsset.localIdentifier,
+                        in: animation
                     )
-                    .contentShape(Rectangle())
-                    .aspectRatio(1, contentMode: .fit)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                     .clipped()
+                    .aspectRatio(1, contentMode: .fit)
+                    .contentShape(Rectangle())
+                    .zIndex(self.photoEnvironment.selectedDbPhotoAsset == dbPhotoAsset ? 1 : 0)
                     .overlay (alignment: .topLeading) {
                         if dbPhotoAsset.isBurst {
                             Image(systemName: "laser.burst")
@@ -77,11 +80,12 @@ struct LazyPhotoGrid : View {
                     }
                     .opacity(imageOpacity(dbPhotoAsset) ? 0 : 1)
                     .onTapGesture {
-                        withAnimation {
+                        withAnimation(.easeInOut(duration: 0.2)) {
                             photoEnvironment.setCurrentSelectedDbPhotoAsset(dbPhotoAsset, index: index)
                             keyboardFocus = false
                         }
                     }
+                    .id(index)
                 }
         }
         .frame(maxHeight: .infinity, alignment: .bottom)

@@ -27,6 +27,7 @@ where Coordinator == ZoomablePannableViewContentCoordinator {
 
 class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDelegate {
     var parent: ZoomablePannable
+    var urlAssociated: [URL] = []
 
     init(_ parent: some ZoomablePannable) {
         self.parent = parent
@@ -64,7 +65,13 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch)
         -> Bool
     {
-        return true
+        if let pinch = gestureRecognizer as? UIPinchGestureRecognizer {
+            return true
+        } else if let pan = gestureRecognizer as? UIPanGestureRecognizer {
+            return parent.scale != 1.0
+        } else {
+            return true
+        }
     }
 
     @objc func handDoubleTap(_ gesture: UITapGestureRecognizer) {
@@ -153,6 +160,8 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
             let velocity = gesture.velocity(in: gesture.view)
 
             if !isPinching {
+                return;
+                
                 // call swipeup or swipedown
                 if abs(velocity.x) > abs(velocity.y) {
                     scrollState = .cancelScroll
@@ -212,6 +221,7 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
                 view.transform = view.transform.translatedBy(x: translation.x, y: translation.y)
                 gesture.setTranslation(.zero, in: gesture.view)
             } else if scrollState == .scrollDown {
+                return
                 // center of user touch
                 let center = CGPoint(
                     x: view.frame.origin.x - view.frame.width / 4,  // scaled by 0.5
@@ -243,6 +253,7 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
                     }
                 }
             } else if scrollState == .scrollUp {
+                return
                 // slowly scale up to 1.5 and slowly offset x (should depend on distance from 0)
                 let maximumNegation = -view.frame.height / 3
                 let maximumScaleMagnitude = 0.3
@@ -278,6 +289,9 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
             }
 
         default:
+            if scrollState != .normalPan {
+                return
+            }
             let velocity = gesture.velocity(in: gesture.view)
             
             withAnimation {
@@ -333,6 +347,7 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
                 }
                 if velocity.y > 250 && scrollState == .scrollDown && oldFrame.midY > 50 {
                     self.parent.onSwipeDown()
+                    self.parent.scrolling = true
                 }
                 //                else if velocity.y < -250 && scrollState != .scrollDown {
                 //                    view.frame = newViewFrame

@@ -113,6 +113,10 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
             if index != selectedIndexPath?.item {
                 collectionView.scrollToItem(
                     at: indexPath, at: .centeredHorizontally, animated: false)
+                //animate the change
+//                UIView.animate(withDuration: 0.3) {
+//                    self.collectionView.collectionViewLayout.invalidateLayout()
+//                }
                 //                startWithIndexPath = nil
             }
         }
@@ -211,6 +215,10 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
                     selectedCell.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
                 }
             }
+            
+            // haptic feedback
+            let generator = UISelectionFeedbackGenerator()
+            generator.selectionChanged()
 
             selectedIndexPath = indexPath
         }
@@ -221,10 +229,10 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         _ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout,
         sizeForItemAt indexPath: IndexPath
     ) -> CGSize {
-        let itemWidth = indexPath.item == photoEnvironment.getCurrentPhotoAssetIndex() ?
-        calculateSizeOfSingle(collectionView.bounds.size) * scaleEffectSelected :
-        calculateSizeOfSingle(collectionView.bounds.size)
-        return CGSize(width: itemWidth, height: 100)
+//        let itemWidth = indexPath.item == photoEnvironment.getCurrentPhotoAssetIndex() ?
+//        calculateSizeOfSingle(collectionView.bounds.size) * scaleEffectSelected :
+//        calculateSizeOfSingle(collectionView.bounds.size)
+        return CGSize(width: 40, height: 40)
     }
 
     // MARK: - Helper Methods
@@ -315,6 +323,10 @@ class ThumbnailCell: UICollectionViewCell {
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // rounded
+        imageView.layer.cornerRadius = 5
+        
         contentView.addSubview(imageView)
         
         NSLayoutConstraint.activate([
@@ -416,10 +428,6 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
 //                uiViewController.scrollToSelected()
                 uiViewController.performingUpdates = false
             })
-        }
-        //animate the change
-        UIView.animate(withDuration: 0.3) {
-            uiViewController.collectionView.collectionViewLayout.invalidateLayout()
         }
     }
 

@@ -15,7 +15,7 @@ struct ContentView: View {
     @StateObject var photoEnvironment: PhotoEnvironment = PhotoEnvironment()
     @State var showProgressMenu: Bool = false
     @State var inAnimation: Bool = false
-    @State var searchBarShow: Bool = true
+    @State var searchBarShow: Bool = false
     @State var searchText: String = ""
     @FocusState var keyboardFocus: Bool
     
@@ -100,11 +100,13 @@ struct ContentView: View {
             .overlay {
                 if photoEnvironment.shouldShowFullImageView && photoEnvironment.selectedDbPhotoAsset != nil {
                     FullImageView(animation: animation)
-                        .environmentObject(photoEnvironment)
+//                    TestImageFull(dbAsset: photoEnvironment.selectedDbPhotoAsset!, animation: animation, shouldShowFullImageView: $photoEnvironment.shouldShowFullImageView)
+                       .environmentObject(photoEnvironment)
                 }
             }
         }
         .onAppear {
+//            photoEnvironment.countOfPhotos = 2000
             photoEnvironment.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
             initiateSyncTask()
         }
@@ -185,12 +187,13 @@ struct PhotoScroller: View {
                     }.bold()
                         .hidden()
                         .padding([.top])
-                }.scrollPosition($scrollPosition, anchor: .top)
-                    .onChange(of: photoEnvironment.shouldShowFullImageView) {
-                        if let selected = photoEnvironment.selectedDbPhotoAsset?.localIdentifier, !photoEnvironment.shouldShowFullImageView, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
-                            scrollPosition.scrollTo(y: (reader.size.width) * CGFloat((ind / 3 - 1)))
-                        }
-                    }
+                }
+//                .scrollPosition($scrollPosition, anchor: .top)
+//                    .onChange(of: photoEnvironment.shouldShowFullImageView) {
+//                        if let selected = photoEnvironment.selectedDbPhotoAsset?.localIdentifier, !photoEnvironment.shouldShowFullImageView, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
+//                            scrollPosition.scrollTo(y: (reader.size.width) * CGFloat((ind / 3 - 1)))
+//                        }
+//                    }
             }
         }
     }

@@ -43,7 +43,6 @@ class PhotoEnvironment: SyncProgressInfo {
         
         super.init()
         self.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
-        
     }
     
     var baseFolderUUID: String? {
@@ -82,8 +81,8 @@ class PhotoEnvironment: SyncProgressInfo {
         }
         
         countOfPhotos += 1
-        DispatchQueue.main.sync {
-            photoInsertQueue.append(IndexPath(item: PhotoDatabase.shared.index(of: dbPhotoAsset), section: 0))
+        DispatchQueue.main.async {
+            self.photoInsertQueue.append(IndexPath(item: PhotoDatabase.shared.index(of: dbPhotoAsset), section: 0))
         }
 #if DEBUG
         assert(PhotoDatabase.shared.getCountOfPhotos() == countOfPhotos)
@@ -96,20 +95,10 @@ class PhotoEnvironment: SyncProgressInfo {
         return queue
     }
     
-    func setCurrentSelectedDbPhotoAsset(_ dbPhotoAsset: DBPhotoAsset, index: Int, animate: Bool = true) {
-        DispatchQueue.main.async {
-            if animate {
-                withAnimation {
-                    self.selectedDBPhotoAssetIndex = index
-                    self.pairedSelectedDbPhotoAsset = dbPhotoAsset
-                    self.shouldShowFullImageView = true
-                }
-            } else {
-                self.selectedDBPhotoAssetIndex = index
-                self.pairedSelectedDbPhotoAsset = dbPhotoAsset
-                self.shouldShowFullImageView = true
-            }
-        }
+    @MainActor func setCurrentSelectedDbPhotoAsset(_ dbPhotoAsset: DBPhotoAsset, index: Int, animate: Bool = true) {
+        self.selectedDBPhotoAssetIndex = index
+        self.pairedSelectedDbPhotoAsset = dbPhotoAsset
+        self.shouldShowFullImageView = true
     }
     
     func getCurrentPhotoAssetIndex() -> Int? {
