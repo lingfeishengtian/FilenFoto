@@ -95,19 +95,14 @@ struct ContentView: View {
                 .blur(radius: (searchBarShow) ? 10 : 0)
                 .disabled(searchBarShow)
                 .animation(.easeInOut, value: (searchText.isEmpty && searchBarShow))
-            }
-            .environmentObject(photoEnvironment)
-            .overlay {
                 if photoEnvironment.shouldShowFullImageView && photoEnvironment.selectedDbPhotoAsset != nil {
                     FullImageView(animation: animation)
-//                    TestImageFull(dbAsset: photoEnvironment.selectedDbPhotoAsset!, animation: animation, shouldShowFullImageView: $photoEnvironment.shouldShowFullImageView)
-                       .environmentObject(photoEnvironment)
+                        .environmentObject(photoEnvironment)
+                        .zIndex(10)
                 }
             }
-        }
-        .onAppear {
-//            photoEnvironment.countOfPhotos = 2000
-            photoEnvironment.countOfPhotos = PhotoDatabase.shared.getCountOfPhotos()
+            .environmentObject(photoEnvironment)
+        }.onAppear {
             initiateSyncTask()
         }
     }

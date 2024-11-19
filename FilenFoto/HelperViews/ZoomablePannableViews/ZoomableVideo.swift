@@ -2,11 +2,7 @@ import SwiftUI
 import AVKit
 
 struct ZoomableVideo: ZoomablePannableViewControllerContent {
-    @Binding var scale: CGFloat
-    @Binding var offset: CGSize
-    @Binding var scrolling: Bool
-    var onSwipeUp: () -> Void
-    var onSwipeDown: () -> Void
+    @Binding var isPinching: Bool
     var video: AVPlayer
     @State var associatedView: UIView = UIView()
     @State private var isFullScreenObserver: NSKeyValueObservation?

@@ -3,14 +3,8 @@ import AVKit
 import SwiftUI
 import UIKit
 
-
-
 struct ZoomableImage: ZoomablePannableViewContent {
-    var scale: CGFloat = 1.0
-    var offset: CGSize = .zero
-    var scrolling: Bool = false
-    var onSwipeUp: () -> Void
-    var onSwipeDown: () -> Void
+    @Binding var isPinching: Bool
     var imageURL: URL
     @State var associatedView: UIView = UIView()
 
@@ -54,7 +48,7 @@ struct ZoomableImage: ZoomablePannableViewContent {
 
     func updateUIView(_ uiView: UIView, context: Context) {
         guard let view = uiView.subviews.first as? UIImageView else { return }
-//        guard let view = uiView as? UIImageView else { return }
+        
         if context.coordinator.urlAssociated.contains(imageURL) {
             return
         }
@@ -69,73 +63,8 @@ struct ZoomableImage: ZoomablePannableViewContent {
     }
 }
 
-@available(*, deprecated, message: "Use ZoomableImage instead")
-struct ZoomablePhoto: ZoomablePannableViewContent {
-    var scale: CGFloat = 1.0
-    var offset: CGSize = .zero
-    var scrolling: Bool = false
-    var onSwipeUp: () -> Void
-    var onSwipeDown: () -> Void
-    var image: UIImage
-    @State var associatedView: UIView = UIView()
-
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
-        view.backgroundColor = .clear
-
-        let imageView = UIImageView(image: image)
-        imageView.contentMode = .scaleAspectFit
-        imageView.clipsToBounds = true
-        
-        imageView.setContentHuggingPriority(.defaultLow, for: .vertical)
-        imageView.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        imageView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
-        imageView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-
-        view.addSubview(imageView)
-
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: view.topAnchor),
-            imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            imageView.heightAnchor.constraint(equalTo: view.heightAnchor),
-        ])
-
-        ZoomablePannableViewContentCoordinator.assignGestures(to: view, in: context.coordinator)
-        imageView.isUserInteractionEnabled = true
-
-        view.sizeToFit()
-
-        DispatchQueue.main.async {
-            self.associatedView = imageView
-        }
-        
-        return view
-    }
-
-    func updateUIView(_ uiView: UIView, context: Context) {
-        guard let view = uiView.subviews.first as? UIImageView else { return }
-//        guard let view = uiView as? UIImageView else { return }
-        if image != view.image {
-            view.image = image
-        }
-    }
-
-    func makeCoordinator() -> ZoomablePannableViewContentCoordinator {
-        ZoomablePannableViewContentCoordinator(self)
-    }
-}
-
 struct ZoomableLivePhoto: ZoomablePannableViewContent {
-    @Binding var scale: CGFloat
-    @Binding var offset: CGSize
-    @Binding var scrolling: Bool
-    var onSwipeUp: () -> Void
-    var onSwipeDown: () -> Void
-    // TODO: Can this not be binding?
+    @Binding var isPinching: Bool
     @Binding var livePhoto: PHLivePhoto
     
     @State var associatedView: UIView = UIView()

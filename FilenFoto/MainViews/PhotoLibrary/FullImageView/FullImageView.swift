@@ -8,6 +8,7 @@ struct FullImageView: View {
     @State var sheetTopAnchor: CGPoint = .zero
     
     @State var localScale: CGFloat = 1.0
+    @State var localOffset: CGSize = .zero
     
     let animation: Namespace.ID
     
@@ -51,8 +52,8 @@ struct FullImageView: View {
     }
     
     func getHeightOfSheet() -> PresentationDetent {
-        let photoEnvHeight = abs(fullImageState.offset.height) + sheetSizeOffset
-        if abs(fullImageState.offset.height) == 0 || fullImageState.showDetail {
+        let photoEnvHeight = abs(localOffset.height) + sheetSizeOffset
+        if abs(localOffset.height) == 0 || fullImageState.showDetail {
             return .medium
         } else {
             return .height(photoEnvHeight)
@@ -60,7 +61,7 @@ struct FullImageView: View {
     }
     
     var isImageDismissMode: Bool {
-        fullImageState.shouldHideBars || localScale != 1.0
+        fullImageState.shouldHideBars || localScale != 1.0 || localOffset.height < 0
     }
     
 //    func getBurstImageArray() -> [DBPhotoAsset] {
@@ -101,34 +102,10 @@ struct FullImageView: View {
                         .opacity(isImageDismissMode ? 0 : 1)
                     Spacer()
                     GeometryReader { reader in
-                        PagedImageView(animation: animation, currentIndex: photoEnvironment.getCurrentPhotoAssetIndex() ?? 0, globalScale: $localScale)
-                            .offset(
-                                fullImageState.showDetail || fullImageState.offset.height < 0
-                                ? .init(width: 0, height: getHeightOffset(reader.size.height)) : .zero
-                            )
-//                            .offset(
-//                                localOffset
-//                            )
-//                            .scaleEffect(fullImageState.showDetail ? getImageRatio() : 1.0)
-//                        if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset {
-//                            ZoomablePhoto(
-//                                scale: $fullImageState.scale,
-//                                offset: $fullImageState.offset,
-//                                scrolling: $fullImageState.scrolling,
-//                                onSwipeUp: {
-//                                    withAnimation {
-//                                        fullImageState.showDetail = true
-//                                    }
-//                                },
-//                                onSwipeDown: {
-//                                    withAnimation {
-//                                        photoEnvironment.shouldShowFullImageView = false
-//                                    }
-//                                },
-//                                image: .constant(UIImage(contentsOfFile: selectedDbPhotoAsset.thumbnailURL.path)!))
-//                        }
+                        PagedImageView(animation: animation, currentIndex: photoEnvironment.getCurrentPhotoAssetIndex() ?? 0, globalScale: $localScale, localOffset: $localOffset)
                     }
                     Spacer()
+                    // TODO: scrubber causing lag during update..
                     PhotoScrubberView(itemsToShow: 5, spacing: 10) {
                         Task {
                             await self.fullImageState.getView(
@@ -139,11 +116,9 @@ struct FullImageView: View {
                     .opacity(
                         isImageDismissMode ? 0 : 1
                     )
-                    .frame(maxHeight: isImageDismissMode ? 0 : nil)
-                    .opacity(isImageDismissMode ? 0 : 1)
-                    .disabled(isImageDismissMode)
+//                    .disabled(isImageDismissMode)
                     FullImageViewQuickActions()
-                        .frame(maxHeight: isImageDismissMode ? 0 : nil)
+//                        .frame(maxHeight: isImageDismissMode ? 0 : nil)
                         .opacity(isImageDismissMode ? 0 : 1)
                     //                         }
                     //                 }
@@ -160,40 +135,40 @@ struct FullImageView: View {
                     .ignoresSafeArea(.all)
                     .allowsHitTesting(photoEnvironment.shouldShowFullImageView)
                 }
-                .ignoresSafeArea(isImageDismissMode ? .all : .keyboard)
-                .sheet(
-                    isPresented: .constant(fullImageState.offset.height < 0 || fullImageState.showDetail),
-                    onDismiss: {
-                        withAnimation {
-                            fullImageState.offset.height = 0
-                            fullImageState.showDetail = false
-                        }
-                    }
-                ) {
-                    GeometryReader { reader in
-                        VStack {
-                            PhotoDetails(animation: animation)
-                        }.environmentObject(fullImageState)
-                        
-                    }
-                    //TODO: Deal with this
-//                    .onGeometryChange(for: CGRect.self) {
-//                      $0.frame(in: .global)
-//                    } action: { newValue in
+//                .sheet(
+//                    isPresented: .constant(localOffset.height < 0 || fullImageState.showDetail),
+//                    onDismiss: {
 //                        withAnimation {
-//                            fullImageState.sheetTopAnchor = CGPoint(x: newValue.midX, y: newValue.minY - 80)
+//                            localOffset.height = 0
+//                            localScale = 1.0
+//                            fullImageState.showDetail = false
 //                        }
 //                    }
-                    .onGeometryChange(for: CGRect.self) {
-                        $0.frame(in: .global)
-                    } action: { newValue in
-                        withAnimation {
-                            sheetTopAnchor = CGPoint(x: newValue.midX, y: newValue.minY - 80)
-                        }
-                    }
-                    .presentationDetents([getHeightOfSheet()])
-                    .presentationBackgroundInteraction(.disabled)
-                }
+//                ) {
+//                    GeometryReader { reader in
+//                        VStack {
+//                            PhotoDetails(animation: animation)
+//                        }.environmentObject(fullImageState)
+//                        
+//                    }
+//                    //TODO: Deal with this
+////                    .onGeometryChange(for: CGRect.self) {
+////                      $0.frame(in: .global)
+////                    } action: { newValue in
+////                        withAnimation {
+////                            fullImageState.sheetTopAnchor = CGPoint(x: newValue.midX, y: newValue.minY - 80)
+////                        }
+////                    }
+//                    .onGeometryChange(for: CGRect.self) {
+//                        $0.frame(in: .global)
+//                    } action: { newValue in
+//                        withAnimation {
+//                            sheetTopAnchor = CGPoint(x: newValue.midX, y: newValue.minY - 80)
+//                        }
+//                    }
+//                    .presentationDetents([getHeightOfSheet()])
+//                    .presentationBackgroundInteraction(.disabled)
+//                }
                 .onAppear {
                     Task {
                         await fullImageState.getView(
@@ -207,8 +182,8 @@ struct FullImageView: View {
 }
 
 struct PhotoDetails: View {
-    @EnvironmentObject var photoEnvironment: PhotoEnvironment
-    @EnvironmentObject var fullImageState: FullImageViewState
+//    @EnvironmentObject var photoEnvironment: PhotoEnvironment
+//    @EnvironmentObject var fullImageState: FullImageViewState
     
     fileprivate let fullDateTimeFormatter: Date.FormatStyle = {
         Date.FormatStyle()
@@ -224,27 +199,26 @@ struct PhotoDetails: View {
             .locale(Locale(identifier: "ja_JP"))
     }()
     
+    let currentDbPhotoAsset: DBPhotoAsset
     let animation: Namespace.ID
     
     func generateTagsFromMediaSubtype() -> [String] {
         var includedSubtypes = [String]()
         
-        if let subTypes = photoEnvironment.selectedDbPhotoAsset?.mediaSubtype {
-            for s in subTypes.includedTypes {
-                switch s.0 {
-                case .photoHDR:
-                    includedSubtypes.append("HDR")
-                case .photoLive:
-                    includedSubtypes.append("Live")
-                case .photoScreenshot:
-                    includedSubtypes.append("Screenshot")
-                case .videoTimelapse:
-                    includedSubtypes.append("Timelapse")
-                case .videoHighFrameRate:
-                    includedSubtypes.append("Slo-Mo")
-                default:
-                    break
-                }
+        for s in currentDbPhotoAsset.mediaSubtype.includedTypes {
+            switch s.0 {
+            case .photoHDR:
+                includedSubtypes.append("HDR")
+            case .photoLive:
+                includedSubtypes.append("Live")
+            case .photoScreenshot:
+                includedSubtypes.append("Screenshot")
+            case .videoTimelapse:
+                includedSubtypes.append("Timelapse")
+            case .videoHighFrameRate:
+                includedSubtypes.append("Slo-Mo")
+            default:
+                break
             }
         }
         
@@ -252,7 +226,7 @@ struct PhotoDetails: View {
     }
     
     var isMediaImage: Bool {
-        photoEnvironment.selectedDbPhotoAsset?.mediaType == .image
+        currentDbPhotoAsset.mediaType == .image
     }
     
     var body: some View {
@@ -275,8 +249,7 @@ struct PhotoDetails: View {
                         }
                     } icon: {
                         if isMediaImage {
-                            if let hasLive = photoEnvironment.selectedDbPhotoAsset?.mediaSubtype
-                                .contains(.photoLive), hasLive
+                            if currentDbPhotoAsset.mediaSubtype.contains(.photoLive)
                             {
                                 Image(systemName: "livephoto")
                             } else {
@@ -288,22 +261,22 @@ struct PhotoDetails: View {
                     }
                     Label {
                         Text(
-                            photoEnvironment.selectedDbPhotoAsset?.creationDate.formatted(
+                            currentDbPhotoAsset.creationDate.formatted(
                                 fullDateTimeFormatter) ?? "")
                         Text(
-                            "Last modified: \(photoEnvironment.selectedDbPhotoAsset?.modificationDate.formatted(fullDateTimeFormatter) ?? "")"
+                            "Last modified: \(currentDbPhotoAsset.modificationDate.formatted(fullDateTimeFormatter) ?? "")"
                         )
                     } icon: {
                         
                     }
                     
-                    if let location = photoEnvironment.selectedDbPhotoAsset?.location {
+                    if let location = currentDbPhotoAsset.location {
                         MapView(location: location)
                             .frame(height: 200)
                             .cornerRadius(20)
                     }
                 }
-            }.scrollDisabled(false)
+            }.scrollDisabled(true)
                 .frame(maxWidth: .infinity)
                 .transition(.move(edge: .bottom))
         }

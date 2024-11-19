@@ -31,7 +31,7 @@ struct PagedImageView: View {
     let animation: Namespace.ID
     
     func swipeDownOnImage () {
-        if fullImageState.showDetail || fullImageState.offset.height < 0 {
+        if fullImageState.showDetail {
             withAnimation {
                 fullImageState.showDetail = false
             }
@@ -44,28 +44,27 @@ struct PagedImageView: View {
     }
     
     func swipeUpOnImage () {
-        DispatchQueue.main.async {
-            withAnimation {
-                fullImageState.showDetail = true
-            }
+        withAnimation {
+            fullImageState.showDetail = true
         }
     }
     
-    init(animation: Namespace.ID, currentIndex: Int, globalScale: Binding<CGFloat>) {
+    init(animation: Namespace.ID, currentIndex: Int, globalScale: Binding<CGFloat>, localOffset: Binding<CGSize>) {
         let startIndex = max(currentIndex - maxPageSize / 2, 0)
         
         self.animation = animation
         self._page = StateObject(wrappedValue: .withIndex(currentIndex - startIndex))
         self._globalScale = globalScale
+        self._localOffset = localOffset
     }
     
     @StateObject var page: Page
     @State private var location: CGPoint = .zero
-    @State var localOffset: CGSize = .zero
+    @Binding var localOffset: CGSize
     @State var localScale: CGFloat = 1.0
     @Binding var globalScale: CGFloat
     
-    let maxPageSize = 5
+    let maxPageSize = 3
     
     // TODO: Make this a separate class or struct
     var currentElementsIndexSlice: [IndexedDBPhotoAsset] {
@@ -96,14 +95,18 @@ struct PagedImageView: View {
     }
     
     var isScrolling: Bool {
-        fullImageState.scrolling || localOffset != .zero
+        fullImageState.isPinching || localOffset != .zero || startedVerticalDrag
     }
     
     enum DragState {
         case inactive
+        case dragHorizontal
         case beginSwipeUp
+        case beginSwipeDown
+        case beginSwipeDetailsScreen(originalOffset: CGSize)
     }
     
+    @State var startedVerticalDrag: Bool = false
     @GestureState private var dragState: DragState = .inactive
 
     var body: some View {
@@ -126,47 +129,84 @@ struct PagedImageView: View {
                         )
                         .offset(localOffset)
                         .scaleEffect(localScale)
+                        .modifier(InlineSheetProgressModifier(progress: (-localOffset.height) / reader.size.height) {
+                            PhotoDetails(currentDbPhotoAsset: dbAsset, animation: animation)
+                        })
                         .gesture(
                             DragGesture()
-                                .updating($dragState) { value, state, _ in
+                                .updating($dragState) { value, state, transaction in
                                     switch state {
                                     case .inactive:
                                         if abs(value.translation.height) > abs(value.translation.width) {
-                                            state = .beginSwipeUp
-                                            withAnimation {
-                                                globalScale = 2.0
+                                            if fullImageState.showDetail {
+                                                state = .beginSwipeDetailsScreen(originalOffset: localOffset)
+                                            } else if value.translation.height > 0 {
+                                                state = .beginSwipeDown
+                                                
+                                                withAnimation {
+                                                    globalScale = 2.0
+                                                }
+                                            } else {
+                                                state = .beginSwipeUp
                                             }
+                                            
+                                            startedVerticalDrag = true
+                                        } else {
+                                            state = .dragHorizontal
                                         }
                                     case .beginSwipeUp:
-//                                        withAnimation {
-                                            localOffset = value.translation
-                                            localScale = 1.0 - min(max(localOffset.height / 800, 0), 1)
-//                                        }
+                                        withAnimation {
+                                            localOffset = .init(width: 0, height: value.translation.height)
+                                        }
+                                    case .beginSwipeDown:
+                                        localOffset = value.translation
+                                        localScale = 1.0 - min(max(localOffset.height / 800, 0), 1)
+                                    case .beginSwipeDetailsScreen(let originalOffset):
+                                        localOffset = .init(width: originalOffset.width, height: originalOffset.height + value.translation.height)
+                                    case .dragHorizontal:
+                                        break
                                     }
                                 }
                                 .onEnded { value in
-                                    if localOffset.height > 100 {
-                                        swipeDownOnImage()
-                                    } else if localOffset.height < -100 {
+                                    if !startedVerticalDrag {
+                                        return
+                                    }
+                                    
+                                    if value.translation.height > 100 {
+                                        if fullImageState.showDetail {
+                                            withAnimation {
+                                                fullImageState.showDetail = false
+                                                localOffset = .zero
+                                                globalScale = 1.0
+                                            }
+                                        } else {
+                                            swipeDownOnImage()
+                                        }
+                                    } else if value.translation.height < -100 {
                                         swipeUpOnImage()
                                     } else {
-                                        withAnimation {
-                                            localScale = 1.0
-                                            globalScale = 1.0
-                                            localOffset = .zero
+                                        if !fullImageState.showDetail {
+                                            withAnimation {
+                                                localScale = 1.0
+                                                globalScale = 1.0
+                                                localOffset = .zero
+                                            }
                                         }
                                     }
+                                    
+                                    startedVerticalDrag = false
                                 }
                         )
 //                    .frame(width: reader.size.width, height: reader.size.height)
                 } else {
-                    ZoomablePhoto(
-//                        scale: $fullImageState.scale,
-//                        offset: $fullImageState.offset,
-//                        scrolling: $fullImageState.scrolling,
-                        onSwipeUp: swipeUpOnImage,
-                        onSwipeDown: swipeDownOnImage,
-                        image: (UIImage(contentsOfFile: dbAsset.thumbnailURL.path) ?? UIImage()))
+                    ZoomableImage(
+                        isPinching: $fullImageState.isPinching,
+                        imageURL: dbAsset.thumbnailURL)
+                    .offset(localOffset)
+                    .scaleEffect(localScale)
+                    .modifier(InlineSheetProgressModifier(progress: (-localOffset.height) / reader.size.height) {
+                        PhotoDetails(currentDbPhotoAsset: dbAsset, animation: animation)
+                    })
 //                    .frame(width: reader.size.width, height: reader.size.height)
                 }
             }
@@ -175,7 +215,6 @@ struct PagedImageView: View {
                 photoEnvironment.setCurrentSelectedDbPhotoAsset(PhotoDatabase.shared.getDBPhotoSync(
                     atOffset: newIndex
                 )!, index: newIndex, animate: false)
-//                page.index = convertToLocalIndex(currentIndex: newIndex)
                 Task {
                     await fullImageState.getView(selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset!)
                 }
@@ -183,16 +222,14 @@ struct PagedImageView: View {
             .sensitivity(.low)
             .preferredItemSize(.init(width: reader.size.width, height: reader.size.height))
             .interactive(scale: 0.8)
-            .allowsDragging(!isScrolling)
+            .allowsDragging(!isScrolling || fullImageState.showDetail)
             .pagingPriority(.simultaneous)
-//            .onAppear {
-//                page.index = convertToLocalIndex(currentIndex: photoEnvironment.getCurrentPhotoAssetIndex() ?? 0)
-//            }
-        .onChange(of: photoEnvironment.getCurrentPhotoAssetIndex()) {
-            if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
-                self.page.update(.new(index: convertToLocalIndex(currentIndex: ind)))
+            .onChange(of: photoEnvironment.getCurrentPhotoAssetIndex()) {
+                if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
+                    self.page.update(.new(index: convertToLocalIndex(currentIndex: ind)))
+                }
             }
-        }
+            .ignoresSafeArea(.all)
         }
     }
 }

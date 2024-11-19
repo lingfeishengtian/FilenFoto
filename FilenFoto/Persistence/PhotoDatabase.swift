@@ -276,47 +276,12 @@ class PhotoDatabase {
     
     private var prePrepStmt: Statement? = nil
     
-    @MainActor private func getDateIDOffsettedQuery(index: Int, offset: Int = 0) -> RowIterator? {
+    @MainActor private func getDateIDOffsettedQuery(index: Int, offset: Int = 0, limit: Int = 1) -> RowIterator? {
         let ind = index / cacheOffset + offset
         if ind >= perThousandIDCache.count || ind >= perThousandDateCache.count {
             return try? databaseConnection?.prepareRowIterator(getBasePhotoLibraryListingQuery().limit(1, offset: index))
         }
-//        return try? databaseConnection?.prepareRowIterator("""
-//        SELECT "photoAsset".*
-//        FROM "photoLibrary"
-//        JOIN photoAsset ON photoAsset.id = photoLibrary.id
-//        WHERE (photoLibrary."creationDate", photoLibrary."id") <= ('\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))', \(perThousandIDCache[ind]))
-//        ORDER BY photoLibrary."creationDate" DESC, photoLibrary.id ASC
-//        LIMIT 1
-//        OFFSET \(index % cacheOffset + -1 * offset * cacheOffset);
-//        """)
-
-//        return try? databaseConnection?.prepareRowIterator("""
-//        SELECT "photoAsset".*
-//        FROM "photoLibrary"
-//        JOIN photoAsset ON photoAsset.id = photoLibrary.id
-//        WHERE photoLibrary."creationDate" < '\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))'
-//        OR (photoLibrary."creationDate" == '\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))' AND photoLibrary."id" >= \(perThousandIDCache[ind]))
-//        ORDER BY photoLibrary."creationDate" DESC, photoLibrary.id ASC
-//        LIMIT 1
-//        OFFSET \(index % cacheOffset + -1 * offset * cacheOffset);
-//        """)
         
-        /*
-         WITH res AS (SELECT *
-         FROM "photoLibrary"
-         WHERE (photoLibrary."creationDate" = '2023-07-02T15:30:06.000' AND photoLibrary.id <= 339064)
-         UNION ALL
-         SELECT *
-         FROM "photoLibrary"
-         WHERE photoLibrary."creationDate" < '2023-07-02T15:30:06.000'
-         ORDER BY photoLibrary."creationDate" DESC, photoLibrary.id DESC
-         LIMIT 1
-         OFFSET 642)
-         SELECT photoAsset.*
-         FROM res
-         JOIN photoAsset ON photoAsset.id = res.id;
-         */
         return try? databaseConnection?.prepareRowIterator("""
         WITH res AS (SELECT *
         FROM "photoLibrary"
@@ -326,7 +291,7 @@ class PhotoDatabase {
         FROM "photoLibrary"
         WHERE photoLibrary."creationDate" < '\(SQLite.dateFormatter.string(from: perThousandDateCache[ind]))'
         ORDER BY photoLibrary."creationDate" DESC, photoLibrary.id DESC
-        LIMIT 1
+        LIMIT \(limit)
         OFFSET \(index % cacheOffset + -1 * offset * cacheOffset))
         SELECT photoAsset.*
         FROM res
@@ -425,8 +390,28 @@ class PhotoDatabase {
         }
     }
     
-    @MainActor var photoCache: [Int: DBPhotoAsset] = [:]
     
+    @MainActor var streamDict: [Int: [DBPhotoAsset]] = [:]
+    @MainActor func getDBPhotoStreamOptimized(index: Int) -> DBPhotoAsset? {
+        initiateThousandIndexing()
+        
+        let offset = (index / cacheOffset) * cacheOffset
+        
+        if streamDict[offset] == nil {
+            let query = getDateIDOffsettedQuery(index: offset, limit: cacheOffset)
+            streamDict[offset] = []
+            
+            while let row = query?.next() {
+                let dbPhotoAsset = DBPhotoAsset(row: row)
+                streamDict[offset]?.append(dbPhotoAsset)
+            }
+        }
+        
+        return streamDict[offset]?[index % cacheOffset]
+    }
+    
+    @MainActor var photoCache: [Int: DBPhotoAsset] = [:]
+    @available(*, deprecated, message: "Use getDBPhotoStreamOptimized instead")
     @MainActor func getDBPhotoSync(atOffset: Int) -> DBPhotoAsset? {
         if let cachedPhoto = photoCache[atOffset] {
             return cachedPhoto
@@ -896,6 +881,7 @@ class PhotoDatabase {
             perThousandIDCache.removeAll()
             perThousandDateCache.removeAll()
             photoCache.removeAll()
+            streamDict.removeAll()
             initiateThousandIndexing()
         }
     }

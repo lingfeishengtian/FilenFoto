@@ -9,19 +9,19 @@ import Foundation
 import SQLite
 import Photos
 
-struct DBPhotoAsset : Comparable, Hashable, Identifiable {
-    static func < (lhs: DBPhotoAsset, rhs: DBPhotoAsset) -> Bool {
+public struct DBPhotoAsset : Comparable, Hashable, Identifiable {
+    public static func < (lhs: DBPhotoAsset, rhs: DBPhotoAsset) -> Bool {
         if lhs.creationDate == rhs.creationDate {
             return lhs.localIdentifier < rhs.localIdentifier
         }
         return lhs.creationDate < rhs.creationDate
     }
     
-    static func == (lhs: DBPhotoAsset, rhs: DBPhotoAsset) -> Bool {
+    public static func == (lhs: DBPhotoAsset, rhs: DBPhotoAsset) -> Bool {
         lhs.hashValue == rhs.hashValue
     }
     
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(localIdentifier)
     }
     
@@ -39,7 +39,7 @@ struct DBPhotoAsset : Comparable, Hashable, Identifiable {
         burstIdentifier != nil
     }
     
-    let id: Int64
+    public let id: Int64
     let localIdentifier: String
     let mediaType: PHAssetMediaType
     let mediaSubtype: PHAssetMediaSubtype

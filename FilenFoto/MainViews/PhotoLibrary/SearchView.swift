@@ -144,11 +144,7 @@ struct SearchView : View {
         .padding()
         .overlay{
             if showingAsset != nil {
-                fullImageState.imageViewGeneration.generateView(dbPhotoAsset: showingAsset, scale: .constant(1.0), offset: .constant(.init()), scrolling: .constant(false), onSwipeUp: {}, onSwipeDown: {
-                    withAnimation {
-                        showingAsset = nil
-                    }
-                })
+                fullImageState.imageViewGeneration.generateView(dbPhotoAsset: showingAsset, isPinching: $fullImageState.isPinching)
                 .matchedGeometryEffect(
                     id: "searchBarThumbnailImageTransition"
                     + (showingAsset?.localIdentifier ?? ""),

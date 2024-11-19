@@ -157,6 +157,7 @@ class FullSizeImageRetrieval {
 //                }
 //                
 //                urls.append(FullSizeImageCache.getURLForIdInCache(for: Int(uuid.id)))
+                
                 if let successfullyDownloaded = await FullSizeImageCache.downloadResourceInCache(for: uuid) {
                     urls.append((URL(filePath: successfullyDownloaded), uuid.sha256))
                 } else {

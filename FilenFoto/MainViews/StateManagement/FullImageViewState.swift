@@ -29,81 +29,40 @@ struct ImageViewGenerationData {
         storedAssetView != nil && dbPhotoAsset != nil && assetId == dbPhotoAsset?.id
     }
     
-    func getImageURL() -> URL? {
-        storedAssetView as? URL
-    }
-    
-    @available(*, deprecated, message: "Use respective get functions instead")
-    func generateView(dbPhotoAsset: DBPhotoAsset?, scale: Binding<CGFloat>, offset: Binding<CGSize>, scrolling: Binding<Bool>, onSwipeUp: @escaping () -> Void, onSwipeDown: @escaping () -> Void) -> AnyView {
-#if targetEnvironment(simulator)
-        if let isPrev = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"], isPrev == "1" {
-            return AnyView(ZoomablePhoto(
-//                scale: scale,
-//                offset: offset,
-//                scrolling: scrolling,
-                onSwipeUp: onSwipeUp,
-                onSwipeDown: onSwipeDown,
-                image: (UIImage(named: "IMG_3284")!)))
-        }
-#endif
+    func generateView(dbPhotoAsset: DBPhotoAsset?, isPinching: Binding<Bool>) -> AnyView {
         var asset = storedAssetView
         if assetId != dbPhotoAsset?.id {
             asset = nil
         }
         switch asset {
-        case let uiImage as UIImage:
-            return AnyView(
-                ZoomablePhoto(
-//                    scale: scale,
-//                    offset: offset,
-//                    scrolling: scrolling,
-                    onSwipeUp: onSwipeUp,
-                    onSwipeDown: onSwipeDown,
-                    image: (uiImage)))
         case let livePhoto as PHLivePhoto:
             return AnyView(
                 ZoomableLivePhoto(
-                    scale: scale,
-                    offset: offset,
-                    scrolling: scrolling,
-                    onSwipeUp: onSwipeUp,
-                    onSwipeDown: onSwipeDown,
+                    isPinching: isPinching,
                     livePhoto: .constant(livePhoto)))
         case let avPlayer as AVPlayer:
             return AnyView(ZoomableVideo(
-                scale: scale,
-                offset: offset,
-                scrolling: scrolling,
-                onSwipeUp: onSwipeUp,
-                onSwipeDown: onSwipeDown,
+                isPinching: isPinching,
                 video: avPlayer))
         default:
-            var uiImage = UIImage()
-            if let dbPhotoAsset, let image = UIImage(contentsOfFile: dbPhotoAsset.thumbnailURL.path) {
-                uiImage = image
-            }
-            if let url = asset as? URL, let image = UIImage(contentsOfFile: url.path) {
-                uiImage = image
+            let imageURL: URL
+            if let url = asset as? URL, isLoaded(dbPhotoAsset: dbPhotoAsset) {
+                imageURL = url
+            } else if let dbPhotoAsset {
+                imageURL = dbPhotoAsset.thumbnailURL
+            } else {
+                return AnyView(EmptyView())
             }
             return AnyView(
-                ZoomablePhoto(
-//                    scale: scale,
-//                    offset: offset,
-//                    scrolling: scrolling,
-                    onSwipeUp: onSwipeUp,
-                    onSwipeDown: onSwipeDown,
-                    image: (uiImage)))
+                ZoomableImage(
+                    isPinching: isPinching,
+                    imageURL: imageURL))
         }
     }
 }
 
 class FullImageViewState: ObservableObject {
-    @Published var scale: CGFloat = 1.0
-    @Published var offset: CGSize = .zero
-//    @Published var sheetTopAnchor: CGPoint = .zero
-    @Published var scrolling: Bool = false
-    //    @Published var sheetOffset: CGSize = .zero
-    @Published private var isDragging = false
+    @Published var isPinching = false
     let dismissThreshold: CGFloat = 600
     
     @Published var showDetail: Bool = false
@@ -112,31 +71,8 @@ class FullImageViewState: ObservableObject {
     @Published var showBurstImages: Bool = false
     
     var assetFileUrl: URL?
-    
-    var hasUserStoppedScrolling: Bool {
-        !scrolling
-    }
-    
     var shouldHideBars: Bool {
-        scrolling || showDetail || scale != 1.0
-    }
-    
-    var adjustedScale: CGFloat {
-        var scale_calculation = scale
-        //  == 1.0 ? (offset.height < 0 ? (1.0 + (abs(offset.height) / 400)) : (1.0 - (abs(offset.height) / 400))) : scale
-        
-        if scale == 1.0 {
-            if offset.height < 0 {
-                scale_calculation = 1.0 + (abs(offset.height) / 400)
-            } else {
-                scale_calculation = 1.0 - (abs(offset.height) / 400)
-            }
-        }
-        
-        if scale_calculation < 0.8 {
-            scale_calculation = 0.8
-        }
-        return scale_calculation
+        isPinching || showDetail
     }
     
     var curTask: Task<Void, Never>? = nil

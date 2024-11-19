@@ -28,16 +28,12 @@ struct FilenAsyncImage: View {
     }
     
     var body: some View {
-        if let img = fullImageState.imageViewGeneration.getImageURL() {
-            ZoomableImage(onSwipeUp: onSwipeUp, onSwipeDown: onSwipeDown, imageURL: img)
-        } else {
+//        if let dbAsset, let img = fullImageState.imageViewGeneration.getImageURL(for: dbAsset) {
+//            ZoomableImage(onSwipeUp: onSwipeUp, onSwipeDown: onSwipeDown, imageURL: img)
+//        } else {
             fullImageState.imageViewGeneration.generateView(
                 dbPhotoAsset: dbAsset,
-                scale: $fullImageState.scale,
-                offset: $fullImageState.offset,
-                scrolling: $fullImageState.scrolling,
-                onSwipeUp: onSwipeUp,
-                onSwipeDown: onSwipeDown
+                isPinching: $fullImageState.isPinching
             )
             .overlay {
                 if !fullImageState.imageViewGeneration.isLoaded(dbPhotoAsset: dbAsset) {
@@ -51,5 +47,5 @@ struct FilenAsyncImage: View {
                 }
             }
         }
-    }
+//    }
 }

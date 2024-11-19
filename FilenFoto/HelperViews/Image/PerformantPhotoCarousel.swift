@@ -90,6 +90,13 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         // Initial load of photo assets
         loadInitialPhotoAssets()
     }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        let targetSize = CGSize(width: view.bounds.width, height: UIView.layoutFittingCompressedSize.height)
+        self.preferredContentSize = view.systemLayoutSizeFitting(targetSize)
+    }
 
     // MARK: - Lazy loading of photo assets
     func loadInitialPhotoAssets() {
@@ -156,9 +163,11 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
 
     // MARK: - UICollectionViewDelegate
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let selectedItem = PhotoDatabase.shared.getDBPhotoSync(atOffset: indexPath.item)!
-        photoEnvironment.setCurrentSelectedDbPhotoAsset(selectedItem, index: indexPath.item, animate: false)
-        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+        if indexPath.item != photoEnvironment.getCurrentPhotoAssetIndex() {
+            let selectedItem = PhotoDatabase.shared.getDBPhotoSync(atOffset: indexPath.item)!
+            photoEnvironment.setCurrentSelectedDbPhotoAsset(selectedItem, index: indexPath.item, animate: false)
+            collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+        }
     }
 
     // MARK: - UIScrollViewDelegate
@@ -232,7 +241,7 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
 //        let itemWidth = indexPath.item == photoEnvironment.getCurrentPhotoAssetIndex() ?
 //        calculateSizeOfSingle(collectionView.bounds.size) * scaleEffectSelected :
 //        calculateSizeOfSingle(collectionView.bounds.size)
-        return CGSize(width: 40, height: 40)
+        return CGSize(width: 30, height: 30)
     }
 
     // MARK: - Helper Methods
@@ -392,41 +401,47 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
     let spacing: CGFloat
     let onLoadFullImage: () -> Void
 
-    func makeUIViewController(context: Context) -> PhotoScrubberViewController {
+    func makeUIViewController(context: Context) -> UIViewController {
         let viewController = PhotoScrubberViewController(
             photoEnvironment: photoEnvironment,
             dbAssetForFirstIndex: photoEnvironment.selectedDbPhotoAsset,
             onShouldFullImageLoad: onLoadFullImage
             )
+        
         return viewController
     }
 
-    func updateUIViewController(_ uiViewController: PhotoScrubberViewController, context: Context) {
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         // Update the view controller with new data or state changes if needed
+        let photoScrubberController = uiViewController as! PhotoScrubberViewController
+        if photoScrubberController.collectionView == nil {
+            return
+        }
+        
         let numPhotos = photoEnvironment.countOfPhotos
-        let changeItemsCount = uiViewController.collectionView.numberOfItems(inSection: 0) - numPhotos
+        let changeItemsCount = photoScrubberController.collectionView.numberOfItems(inSection: 0) - numPhotos
         
         // TODO: Fix indexing insert
         if changeItemsCount == 0 {
-            uiViewController.scrollToSelected()
+            photoScrubberController.scrollToSelected()
         } else {
-            uiViewController.performingUpdates = true
-            uiViewController.collectionView.performBatchUpdates({
+            photoScrubberController.performingUpdates = true
+            photoScrubberController.collectionView.performBatchUpdates({
                 if changeItemsCount > 0 {
                     // generate changeitemscount number of indexpaths to delete
                     let indexPathsToDelete = (0..<abs(changeItemsCount)).map { IndexPath(item: $0, section: 0) }
-                    uiViewController.collectionView.deleteItems(at: indexPathsToDelete)
+                    photoScrubberController.collectionView.deleteItems(at: indexPathsToDelete)
                 } else {
                     // generate changeitemscount number of indexpaths to insert
                     let indexPathsToInsert = photoEnvironment.retrieveAndClearPhotoInsertQueue()
-                    uiViewController.collectionView.insertItems(at: indexPathsToInsert)
+                    photoScrubberController.collectionView.insertItems(at: indexPathsToInsert)
                 }
                 
-                uiViewController.numberOfPhotos = numPhotos
+                photoScrubberController.numberOfPhotos = numPhotos
 //                uiViewController.collectionView.reloadData()
             }, completion: { _ in
 //                uiViewController.scrollToSelected()
-                uiViewController.performingUpdates = false
+                photoScrubberController.performingUpdates = false
             })
         }
     }
