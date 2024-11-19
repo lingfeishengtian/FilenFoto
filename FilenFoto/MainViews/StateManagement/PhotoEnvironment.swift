@@ -30,7 +30,7 @@ class PhotoEnvironment: SyncProgressInfo {
     private let pollingLimit: Int
     private var isSearching = false
     @Published var searchHistoryCache: [String]
-    @Published var shouldShowFullImageView: Bool = false
+    @Published private(set) var shouldShowFullImageView: Bool = false
     @Published var countOfPhotos: Int = 0
     @Published private var pairedSelectedDbPhotoAsset: DBPhotoAsset? = nil
     private var selectedDBPhotoAssetIndex: Int = 0
@@ -101,6 +101,25 @@ class PhotoEnvironment: SyncProgressInfo {
         self.shouldShowFullImageView = true
     }
     
+    @MainActor func clearSelectedDbPhotoAsset() {
+        self.pairedSelectedDbPhotoAsset = nil
+        self.shouldShowFullImageView = false
+    }
+    
+    /// This will always retrieve an index, but may not be the selected idnex if the index was cleared. AVOID USING
+    var preservedDbPhotoAssetIndex: Int {
+        selectedDBPhotoAssetIndex
+    }
+    
+    var currentSelectedDbPhotoAssetIndex: Int? {
+        guard selectedDbPhotoAsset != nil else {
+            return nil
+        }
+        
+        return selectedDBPhotoAssetIndex
+    }
+    
+    @available(*, deprecated, message: "Use currentSelectedDbPhotoAssetIndex instead")
     func getCurrentPhotoAssetIndex() -> Int? {
         guard selectedDbPhotoAsset != nil else {
             return nil

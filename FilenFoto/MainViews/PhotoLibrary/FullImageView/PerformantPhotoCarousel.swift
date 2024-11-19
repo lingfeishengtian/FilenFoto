@@ -5,7 +5,6 @@ import UIKit
 class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     UICollectionViewDelegateFlowLayout, UIScrollViewDelegate
 {
-
     var collectionView: UICollectionView!
     let itemsToShow = 10
     let spacing: CGFloat = 5
@@ -14,7 +13,6 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     var isLoading = false
 
     var photoEnvironment: PhotoEnvironment
-    var startWithIndexPath: IndexPath?
     let onShouldFullImageLoad: () -> Void
     var numberOfPhotos: Int
 
@@ -23,13 +21,6 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         onShouldFullImageLoad: @escaping () -> Void
     ) {
         self.photoEnvironment = photoEnvironment
-        if let dbAssetForFirstIndex {
-            self.startWithIndexPath = .init(
-                item: photoEnvironment.getCurrentPhotoAssetIndex() ?? 0, section: 0
-            )
-        } else {
-            self.startWithIndexPath = nil
-        }
         self.onShouldFullImageLoad = onShouldFullImageLoad
         self.numberOfPhotos = photoEnvironment.countOfPhotos
         super.init(nibName: nil, bundle: nil)
@@ -44,13 +35,13 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         forItemAt indexPath: IndexPath
     ) {
 
-        if let startWithIndexPath = startWithIndexPath {
-            //           if collectionView.isValidIndexPath(indexpath: startWithIndexPath) {
-            self.collectionView.scrollToItem(at: startWithIndexPath, at: .left, animated: false)
-            //            self.scrollToSelected()
-            //           }
-            self.startWithIndexPath = nil
-        }
+//        if let startWithIndexPath = startWithIndexPath {
+//            //           if collectionView.isValidIndexPath(indexpath: startWithIndexPath) {
+//            self.collectionView.scrollToItem(at: startWithIndexPath, at: .left, animated: false)
+//            //            self.scrollToSelected()
+//            //           }
+//            self.startWithIndexPath = nil
+//        }
     }
 
     override func viewDidLoad() {
@@ -86,9 +77,6 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         let leadingInset = (view.frame.width - itemWidth) / 2
         collectionView.contentInset = UIEdgeInsets(
             top: 0, left: leadingInset, bottom: 0, right: leadingInset)
-
-        // Initial load of photo assets
-        loadInitialPhotoAssets()
     }
     
     override func viewDidLayoutSubviews() {
@@ -96,35 +84,33 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
 
         let targetSize = CGSize(width: view.bounds.width, height: UIView.layoutFittingCompressedSize.height)
         self.preferredContentSize = view.systemLayoutSizeFitting(targetSize)
-    }
-
-    // MARK: - Lazy loading of photo assets
-    func loadInitialPhotoAssets() {
-        collectionView.reloadData()
-    }
-
-    func loadMorePhotoAssets(startIndex: Int, direction: Int) {
-        guard !isLoading else { return }
-        isLoading = true
-
-        collectionView.reloadData()
-        isLoading = false
+        
+        performingUpdates = false
+        
+        /// Or else the subviews refuse to center when first initialized
+        selectedIndexPath = nil
+        scrollToSelected()
     }
 
     func scrollToSelected() {
-        if let selectedDbPhotoAsset = photoEnvironment.selectedDbPhotoAsset
-            //, startWithIndexPath != nil
+        if performingUpdates {
+            return
+        }
+        
+        if let index = photoEnvironment.getCurrentPhotoAssetIndex()
         {
-            let index = photoEnvironment.getCurrentPhotoAssetIndex() ?? 0
             let indexPath = IndexPath(item: index, section: 0)
             if index != selectedIndexPath?.item {
-                collectionView.scrollToItem(
-                    at: indexPath, at: .centeredHorizontally, animated: false)
-                //animate the change
-//                UIView.animate(withDuration: 0.3) {
-//                    self.collectionView.collectionViewLayout.invalidateLayout()
-//                }
-                //                startWithIndexPath = nil
+                if let originalIndexPath = selectedIndexPath {
+                    let cellAtOriginalIndex = collectionView.cellForItem(at: originalIndexPath)
+                    cellAtOriginalIndex?.transform = CGAffineTransform.identity
+                }
+                performingUpdates = true
+                collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
+                performingUpdates = false
+                selectedIndexPath = indexPath
+                let cellAtSelectedIndex = collectionView.cellForItem(at: indexPath)
+                cellAtSelectedIndex?.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
             }
         }
     }
@@ -142,13 +128,12 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         let cell =
             collectionView.dequeueReusableCell(withReuseIdentifier: "ThumbnailCell", for: indexPath)
             as! ThumbnailCell
-        let item = PhotoDatabase.shared.getDBPhotoSync(atOffset: indexPath.item)!
+        let item = PhotoDatabase.shared.getDBPhotoStreamOptimized(index: indexPath.item)!
         cell.configure(with: item)
 
         if let selectedAsset = photoEnvironment.selectedDbPhotoAsset,
            indexPath.item == photoEnvironment.getCurrentPhotoAssetIndex()
         {
-            selectedIndexPath = indexPath
             cell.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
         } else {
             cell.transform = CGAffineTransform.identity
@@ -164,9 +149,9 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     // MARK: - UICollectionViewDelegate
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if indexPath.item != photoEnvironment.getCurrentPhotoAssetIndex() {
-            let selectedItem = PhotoDatabase.shared.getDBPhotoSync(atOffset: indexPath.item)!
+            let selectedItem = PhotoDatabase.shared.getDBPhotoStreamOptimized(index: indexPath.item)!
             photoEnvironment.setCurrentSelectedDbPhotoAsset(selectedItem, index: indexPath.item, animate: false)
-            collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+//            collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
         }
     }
 
@@ -188,6 +173,9 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if performingUpdates {
+            return
+        }
         selectCenteredItem()
     }
 
@@ -196,12 +184,13 @@ class PhotoScrubberViewController: UIViewController, UICollectionViewDataSource,
         onShouldFullImageLoad()
     }
     
-    var performingUpdates: Bool = false
+    var performingUpdates: Bool = true
 
     private func selectCenteredItem() {
         if performingUpdates {
             return
         }
+        
         let centerPoint = view.convert(collectionView.center, to: collectionView)
         if let indexPath = collectionView.indexPathForItem(at: centerPoint),
             indexPath != selectedIndexPath
@@ -420,12 +409,13 @@ struct PhotoScrubberView: UIViewControllerRepresentable {
         
         let numPhotos = photoEnvironment.countOfPhotos
         let changeItemsCount = photoScrubberController.collectionView.numberOfItems(inSection: 0) - numPhotos
-        
+
         // TODO: Fix indexing insert
         if changeItemsCount == 0 {
             photoScrubberController.scrollToSelected()
         } else {
             photoScrubberController.performingUpdates = true
+
             photoScrubberController.collectionView.performBatchUpdates({
                 if changeItemsCount > 0 {
                     // generate changeitemscount number of indexpaths to delete

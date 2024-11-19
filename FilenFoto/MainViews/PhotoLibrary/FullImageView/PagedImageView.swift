@@ -38,7 +38,7 @@ struct PagedImageView: View {
         } else {
 //            fullImageState.offset.height = fullImageState.dismissThreshold
             withAnimation(.easeInOut(duration: 0.2)) {
-                photoEnvironment.shouldShowFullImageView = false
+                photoEnvironment.clearSelectedDbPhotoAsset()
             }
         }
     }
@@ -68,7 +68,7 @@ struct PagedImageView: View {
     
     // TODO: Make this a separate class or struct
     var currentElementsIndexSlice: [IndexedDBPhotoAsset] {
-        let startIndex = max((photoEnvironment.getCurrentPhotoAssetIndex() ?? 0) - maxPageSize / 2, 0)
+        let startIndex = max((photoEnvironment.getCurrentPhotoAssetIndex() ?? photoEnvironment.preservedDbPhotoAssetIndex) - maxPageSize / 2, 0)
         let endIndex = min(startIndex + maxPageSize, photoEnvironment.countOfPhotos)
         
         if currentElementsIndexTempStorage.count != maxPageSize || currentElementsIndexTempStorage.first?.index != startIndex || currentElementsIndexTempStorage.last?.index != endIndex {
@@ -89,7 +89,7 @@ struct PagedImageView: View {
     }
     
     func convertToCurrentIndex(localIndex: Int) -> Int {
-        let startIndex = max((photoEnvironment.getCurrentPhotoAssetIndex() ?? 0) - maxPageSize / 2, 0)
+        let startIndex = max((photoEnvironment.getCurrentPhotoAssetIndex() ?? photoEnvironment.preservedDbPhotoAssetIndex) - maxPageSize / 2, 0)
         
         return startIndex + localIndex
     }
@@ -120,12 +120,12 @@ struct PagedImageView: View {
 //                )!
                 let index = indexedDBPhotoAsset.index
                 let dbAsset = indexedDBPhotoAsset.dbAsset
-                if index == photoEnvironment.getCurrentPhotoAssetIndex() {
-                    FilenAsyncImage(dbAsset: photoEnvironment.selectedDbPhotoAsset, onSwipeUp: swipeUpOnImage, onSwipeDown: swipeDownOnImage)
+                if index == photoEnvironment.getCurrentPhotoAssetIndex() ?? photoEnvironment.preservedDbPhotoAssetIndex {
+                    FilenAsyncImage(dbAsset: dbAsset, onSwipeUp: swipeUpOnImage, onSwipeDown: swipeDownOnImage)
 //                    Image(uiImage: UIImage(contentsOfFile: dbAsset.thumbnailURL.path) ?? UIImage())
                         .matchedGeometryEffect(
                             id: "thumbnailImageTransition"
-                            + dbAsset.localIdentifier,
+                            + String(dbAsset.id),
                             in: animation
                         )
                         .offset(localOffset)

@@ -7,13 +7,26 @@
 
 import Foundation
 
+extension DBPhotoAsset {
+    init(id: Int) {
+        self.init(id: Int64(id), localIdentifier: UUID().uuidString, mediaType: .image, mediaSubtype: [], creationDate: .now, modificationDate: .now, location: nil, favorited: false, hidden: false, thumbnailFileName: "", burstIdentifier: nil, burstSelectionTypes: .userPick)
+    }
+}
+
+fileprivate var latestAccessedID = -1
+
 public class LazyDBPhotoAsset: Identifiable, Equatable {
     public let id: Int
     lazy var dbPhotoAsset: DBPhotoAsset = {
         MainActor.assumeIsolated {
-            PhotoDatabase.shared.getDBPhotoStreamOptimized(index: id)!
+            latestAccessedID = id
+            return PhotoDatabase.shared.getDBPhotoStreamOptimized(index: id)!
         }
     }()
+    
+    static var lastAccessed: Int {
+        latestAccessedID
+    }
     
     public init(id: Int) {
         self.id = id

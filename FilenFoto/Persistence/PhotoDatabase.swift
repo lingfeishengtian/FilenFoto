@@ -281,7 +281,7 @@ class PhotoDatabase {
         if ind >= perThousandIDCache.count || ind >= perThousandDateCache.count {
             return try? databaseConnection?.prepareRowIterator(getBasePhotoLibraryListingQuery().limit(1, offset: index))
         }
-        
+                
         return try? databaseConnection?.prepareRowIterator("""
         WITH res AS (SELECT *
         FROM "photoLibrary"
@@ -405,8 +405,14 @@ class PhotoDatabase {
                 let dbPhotoAsset = DBPhotoAsset(row: row)
                 streamDict[offset]?.append(dbPhotoAsset)
             }
+            
         }
         
+//#if DEBUG
+//        var tmp = streamDict[offset]!
+//        let ind = self.index(of: tmp[index % cacheOffset])
+//        assert(ind == index, "Indexing error \(ind) != \(index)")
+//#endif
         return streamDict[offset]?[index % cacheOffset]
     }
     

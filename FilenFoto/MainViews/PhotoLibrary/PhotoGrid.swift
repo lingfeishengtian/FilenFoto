@@ -36,9 +36,11 @@ struct LazyPhotoGrid : View {
     }
     
     /// Always inline due to the way SwiftUI creates these views
-    @inline(__always) private func imageOpacity(_ dbPhotoAsset: DBPhotoAsset) -> Bool {
-        photoEnvironment.selectedDbPhotoAsset == dbPhotoAsset && photoEnvironment.shouldShowFullImageView == true
+    @inline(__always) private func matchedGeometryHide(_ dbPhotoAsset: DBPhotoAsset) -> Bool {
+        photoEnvironment.selectedDbPhotoAsset?.id == dbPhotoAsset.id && photoEnvironment.shouldShowFullImageView
     }
+    
+    @State private var savedUUIDForFullImageTransition: UUID?
     
     var body: some View {
         LazyVGrid(
@@ -50,14 +52,14 @@ struct LazyPhotoGrid : View {
                 LazyDBAssetArray(endIndex: photoEnvironment.countOfPhotos)
             ) { lazyDbPhotoAsset in
                 let dbPhotoAsset = lazyDbPhotoAsset.dbPhotoAsset
-                if imageOpacity(dbPhotoAsset) {
+                if matchedGeometryHide(dbPhotoAsset) {
                     Color.clear
                 } else {
                     Image(uiImage: UIImage(contentsOfFile: dbPhotoAsset.thumbnailURL.path) ?? UIImage())
                     .resizable()
                     .matchedGeometryEffect(
                         id: "thumbnailImageTransition"
-                        + dbPhotoAsset.localIdentifier,
+                        + String(dbPhotoAsset.id),
                         in: animation
                     )
                     .aspectRatio(contentMode: .fill)
@@ -65,13 +67,11 @@ struct LazyPhotoGrid : View {
                     .clipped()
                     .aspectRatio(1, contentMode: .fit)
                     .contentShape(Rectangle())
-                    .zIndex(self.photoEnvironment.selectedDbPhotoAsset == dbPhotoAsset ? 10 : 0)
                     .overlay (alignment: .topLeading) {
                         if dbPhotoAsset.isBurst {
                             Image(systemName: "laser.burst")
                         }
                     }
-                    .opacity(imageOpacity(dbPhotoAsset) ? 0 : 1)
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             photoEnvironment.setCurrentSelectedDbPhotoAsset(dbPhotoAsset, index: PhotoDatabase.shared.index(of: dbPhotoAsset))
@@ -79,10 +79,10 @@ struct LazyPhotoGrid : View {
                         }
                     }
                 }
-            }.id(UUID())
+            }
             /// The index code from the database is so efficient versus ID generation from SwiftUI, it's laggier to compare IDs from previous ForEach loops rather than just making a new one every single refresh
             /// .id(lazyDBAssetArray.id) would actually be slower since SwiftUI has to make O(n) comparisons when n views are loaded in
-        }.id("photosGridWithCount\(photoEnvironment.countOfPhotos)")
+        }.id(UUID())
             .frame(maxHeight: .infinity, alignment: .bottom)
             .gesture(MagnificationGesture()
                 .onEnded { value in

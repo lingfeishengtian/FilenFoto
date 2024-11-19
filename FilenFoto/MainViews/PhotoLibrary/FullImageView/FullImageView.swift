@@ -355,7 +355,7 @@ struct FullImageViewTopBar: View {
             Spacer()
             Button {
                 withAnimation {
-                    photoEnvironment.shouldShowFullImageView = false
+                    photoEnvironment.clearSelectedDbPhotoAsset()
                 }
             } label: {
                 IconView(size: .small, iconSystemName: "xmark")

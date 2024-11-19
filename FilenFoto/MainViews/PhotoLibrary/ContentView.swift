@@ -183,12 +183,12 @@ struct PhotoScroller: View {
                         .hidden()
                         .padding([.top])
                 }
-//                .scrollPosition($scrollPosition, anchor: .top)
-//                    .onChange(of: photoEnvironment.shouldShowFullImageView) {
-//                        if let selected = photoEnvironment.selectedDbPhotoAsset?.localIdentifier, !photoEnvironment.shouldShowFullImageView, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
-//                            scrollPosition.scrollTo(y: (reader.size.width) * CGFloat((ind / 3 - 1)))
-//                        }
-//                    }
+                .scrollPosition($scrollPosition, anchor: .top)
+                    .onChange(of: photoEnvironment.shouldShowFullImageView) {
+                        if let selected = photoEnvironment.selectedDbPhotoAsset, !photoEnvironment.shouldShowFullImageView, let ind = photoEnvironment.getCurrentPhotoAssetIndex() {
+                            scrollPosition.scrollTo(y: (reader.size.width) * CGFloat((ind / 3 - 1)))
+                        }
+                    }
             }
         }
     }
