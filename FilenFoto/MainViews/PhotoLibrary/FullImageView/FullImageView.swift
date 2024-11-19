@@ -32,45 +32,9 @@ struct FullImageView: View {
         }
     }
     
-    private let sheetSizeOffset: CGFloat = 220
-    
-    func getHeightOffset(_ height: CGFloat) -> CGFloat {
-        if let selected = photoEnvironment.selectedDbPhotoAsset,
-           let uiImage = UIImage(contentsOfFile: selected.thumbnailURL.path)
-        {
-            let sheetTopAnchorAdjustment = sheetTopAnchor.y - sheetSizeOffset > 0 ? height - sheetTopAnchor.y - sheetSizeOffset : 0
-            // if height is greater than width
-            return -sheetTopAnchorAdjustment
-//            if uiImage.size.height > uiImage.size.width {
-//                return -height / 12 - sheetTopAnchorAdjustment
-//            } else {
-//                return -height / 7 - sheetTopAnchorAdjustment
-//            }
-        } else {
-            return 1.0
-        }
-    }
-    
-    func getHeightOfSheet() -> PresentationDetent {
-        let photoEnvHeight = abs(localOffset.height) + sheetSizeOffset
-        if abs(localOffset.height) == 0 || fullImageState.showDetail {
-            return .medium
-        } else {
-            return .height(photoEnvHeight)
-        }
-    }
-    
     var isImageDismissMode: Bool {
         fullImageState.shouldHideBars || localScale != 1.0 || localOffset.height < 0
     }
-    
-//    func getBurstImageArray() -> [DBPhotoAsset] {
-//        let bImages = photoEnvironment.lazyArray.burstAssets(for: photoEnvironment.selectedDbPhotoAsset?.burstIdentifier ?? "")
-//        if bImages.isEmpty {
-//            fullImageState.showBurstImages = false
-//        }
-//        return bImages
-//    }
     
     //TODO: Add loading icon on top
     var body: some View {

@@ -64,7 +64,7 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
         if let pinch = gestureRecognizer as? UIPinchGestureRecognizer {
             return true
         } else if let pan = gestureRecognizer as? UIPanGestureRecognizer {
-            return !parent.isPinching
+            return parent.isPinching
         } else {
             return true
         }

@@ -101,6 +101,7 @@ struct PagedImageView: View {
     enum DragState {
         case inactive
         case dragHorizontal
+        case isPinching
         case beginSwipeUp
         case beginSwipeDown
         case beginSwipeDetailsScreen(originalOffset: CGSize)
@@ -137,7 +138,9 @@ struct PagedImageView: View {
                                 .updating($dragState) { value, state, transaction in
                                     switch state {
                                     case .inactive:
-                                        if abs(value.translation.height) > abs(value.translation.width) {
+                                        if fullImageState.isPinching {
+                                            state = .isPinching
+                                        } else if abs(value.translation.height) > abs(value.translation.width) {
                                             if fullImageState.showDetail {
                                                 state = .beginSwipeDetailsScreen(originalOffset: localOffset)
                                             } else if value.translation.height > 0 {
@@ -163,7 +166,7 @@ struct PagedImageView: View {
                                         localScale = 1.0 - min(max(localOffset.height / 800, 0), 1)
                                     case .beginSwipeDetailsScreen(let originalOffset):
                                         localOffset = .init(width: originalOffset.width, height: originalOffset.height + value.translation.height)
-                                    case .dragHorizontal:
+                                    case .dragHorizontal, .isPinching:
                                         break
                                     }
                                 }
