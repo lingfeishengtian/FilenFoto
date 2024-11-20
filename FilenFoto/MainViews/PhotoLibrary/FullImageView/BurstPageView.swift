@@ -24,15 +24,7 @@ struct BurstPageView : View {
     var body: some View {
             GeometryReader { reader in
                 Pager(page: page, data: dbPhotoAssets, id: \.self) { dbPhotoAsset in
-                    FilenAsyncImage(dbAsset: dbPhotoAsset) {
-                        withAnimation {
-                            fullImageState.showBurstImages = false
-                        }
-                    } onSwipeDown: {
-                        withAnimation {
-                            fullImageState.showBurstImages = false
-                        }
-                    }
+                    FilenAsyncImage(dbAsset: dbPhotoAsset)
 //                    .matchedGeometryEffect(
 //                            id: (selectedLocalIdentifier == dbPhotoAsset.localIdentifier ? ("thumbnailImageTransition" + matchedAnimationLocalIdentifier) : dbPhotoAsset.localIdentifier), in: animation)
                     .frame(width: reader.size.width, height: reader.size.height)

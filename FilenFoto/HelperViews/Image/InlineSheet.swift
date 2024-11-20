@@ -15,26 +15,47 @@ private struct DynamicParameters: Equatable {
 struct InlineSheetProgressModifier<C: View>: ViewModifier {
     let progress: Double
     let content: () -> C
+    let shouldShow: Bool
+    
+    init(progress: Double, shouldShow: Bool = false, content: @escaping () -> C) {
+        self.progress = progress
+        self.content = content
+        self.shouldShow = shouldShow
+    }
+    
+    func calculateSheetOffset(screenReader: GeometryProxy, reader: GeometryProxy) -> CGFloat {
+        if shouldShow {
+            let minimumOffset = reader.size.height
+            let offsetAffectedByProgress = screenReader.size.height - minimumOffset
+            
+            print(minimumOffset, offsetAffectedByProgress)
+            if offsetAffectedByProgress < 0 {
+                return reader.size.height
+            } else {
+                return min(minimumOffset, (1 - progress) * screenReader.size.height -  offsetAffectedByProgress * (1 - progress))
+            }
+        } else {
+            return screenReader.size.height
+        }
+    }
     
     func body(content: Content) -> some View {
         let _ = print("Progress: \(progress)")
-        GeometryReader { reader in
-            ZStack {
-                content
-                    .scaleEffect(1 + progress / 2)
-                    .clipped()
-                    .contentShape(Rectangle())
-                    .frame(width: reader.size.width, height: reader.size.height)
-                    .ignoresSafeArea(.all)
-                Color.primary.overlay {
-                    VStack {
-                        self.content()
+        GeometryReader { screenReader in
+            content
+                .scaleEffect(1 + progress / 2)
+                .overlay {
+                    GeometryReader { reader in
+                        Color.primary.overlay {
+                            VStack {
+                                self.content()
+                            }
+                        }
+                        .frame(width: reader.size.width, height: reader.size.height)
+                        .offset(y: calculateSheetOffset(screenReader: screenReader, reader: reader))
                     }
                 }
-                .frame(width: reader.size.width, height: reader.size.height)
-                .offset(y: (1 - progress) * reader.size.height)
-            }
-        }
+        }.ignoresSafeArea(.all)
     }
 }
 
@@ -50,7 +71,7 @@ private struct InlineSheetModifier<C: View>: ViewModifier {
     @Binding var isPresented: Bool
     @State private var progress: Double = 0
     @GestureState private var dynamics: DynamicParameters = .init()
-
+    
     init(isPresented: Binding<Bool>, @ViewBuilder content: @escaping () -> C) {
         self.contentBuilder = content
         _isPresented = isPresented
@@ -58,7 +79,7 @@ private struct InlineSheetModifier<C: View>: ViewModifier {
     
     func body(content: Content) -> some View {
         content
-            .modifier(InlineSheetProgressModifier(progress: progress, content: contentBuilder))
+            .modifier(InlineSheetProgressModifier(progress: progress, shouldShow: progress > 0, content: contentBuilder))
             .onChange(of: isPresented) { value in
                 withAnimation(.easeInOut) {
                     progress = value ? 1 : 0
@@ -68,7 +89,7 @@ private struct InlineSheetModifier<C: View>: ViewModifier {
                 if $0.delta == 0 {
                     return
                 }
-
+                
                 let candidate = progress - $0.delta / UIScreen.main.bounds.height
                 if candidate > 0, candidate < 1 {
                     var transaction = Transaction()
@@ -84,18 +105,19 @@ private struct InlineSheetModifier<C: View>: ViewModifier {
                     .updating($dynamics) { value, state, _ in
                         state.delta = value.translation.height
                     }
-                .onEnded { _ in
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        if progress < 0.7 {
-                            isPresented = false
-                            progress = 0
-                        }
-                        else {
-                            isPresented = true
-                            progress = 1
+                    .onEnded { _ in
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            print("Edned prog: \(progress)")
+                            if progress < 0.7 {
+                                isPresented = false
+                                progress = 0
+                            }
+                            else {
+                                isPresented = true
+                                progress = 1
+                            }
                         }
                     }
-                }
             )
     }
 }

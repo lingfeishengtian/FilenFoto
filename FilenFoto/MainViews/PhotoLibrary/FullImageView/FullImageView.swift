@@ -36,6 +36,9 @@ struct FullImageView: View {
         fullImageState.shouldHideBars || localScale != 1.0 || localOffset.height < 0
     }
     
+    let maxTopHUDHeight: CGFloat = 50
+    let maxBottomHUDHeight: CGFloat = 120
+
     //TODO: Add loading icon on top
     var body: some View {
         //        let selectOrCurrent = photoEnvironment.selectedDbPhotoAsset ?? currentDbPhotoAsset
@@ -60,83 +63,53 @@ struct FullImageView: View {
                     ).ignoresSafeArea(.all)
                 }
             } else {
-                VStack {
-                    FullImageViewTopBar()
-                        .frame(maxHeight: isImageDismissMode ? 0 : nil)
-                        .opacity(isImageDismissMode ? 0 : 1)
-                    Spacer()
+                ZStack {
                     GeometryReader { reader in
-                        PagedImageView(animation: animation, currentIndex: photoEnvironment.getCurrentPhotoAssetIndex() ?? 0, globalScale: $localScale, localOffset: $localOffset)
+                        PagedImageView(animation: animation, currentIndex: photoEnvironment.getCurrentPhotoAssetIndex() ?? 0, globalScale: $localScale, localOffset: $localOffset, baseOffset: maxTopHUDHeight, imageFrameHeight: reader.size.height - maxTopHUDHeight - maxBottomHUDHeight)
+//                            .frame(maxHeight: reader.size.height - maxTopHUDHeight - maxBottomHUDHeight)
+//                            .offset(.init(width: 0, height: maxTopHUDHeight))
                     }
-                    Spacer()
-                    // TODO: scrubber causing lag during update..
-                    PhotoScrubberView(itemsToShow: 5, spacing: 10) {
+                    .ignoresSafeArea(.all)
+                    .zIndex(15)
+                    .alignmentGuide(VerticalAlignment.center) { $0[VerticalAlignment.center] }
+                    VStack {
+                        FullImageViewTopBar()
+                        //                        .frame(maxHeight: isImageDismissMode ? 0 : nil)
+                            .opacity(isImageDismissMode ? 0 : 1)
+                            .frame(maxHeight: maxTopHUDHeight)
+                        Spacer()
+                        // TODO: scrubber causing lag during update..
+                        VStack {
+                            PhotoScrubberView(itemsToShow: 5, spacing: 10) {
+                                Task {
+                                    await self.fullImageState.getView(
+                                        selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset)
+                                }
+                            }
+                            .frame(height: 60)
+                            .opacity(
+                                isImageDismissMode ? 0 : 1
+                            )
+                            FullImageViewQuickActions()
+                                .opacity(isImageDismissMode ? 0 : 1)
+                        }.frame(maxHeight: maxBottomHUDHeight)
+                    }
+                    // TODO: MAKE THIS DEPEND ON SCREEN HEIGHT
+                    // TODO: DEPRECATE OLD WAY OF DRAGGING
+                    .statusBarHidden(localScale != 1.0)
+                    .background {
+                        Color.black.opacity(
+                            //                        Double(1 - (localOffset.height / fullImageState.dismissThreshold))
+                            Double(localScale != 1.0 ? 0.5 : 1.0)
+                        )
+                        .ignoresSafeArea(.all)
+                        .allowsHitTesting(photoEnvironment.shouldShowFullImageView)
+                    }
+                    .onAppear {
                         Task {
-                            await self.fullImageState.getView(
+                            await fullImageState.getView(
                                 selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset)
                         }
-                    }
-                    .frame(height: 60)
-                    .opacity(
-                        isImageDismissMode ? 0 : 1
-                    )
-//                    .disabled(isImageDismissMode)
-                    FullImageViewQuickActions()
-//                        .frame(maxHeight: isImageDismissMode ? 0 : nil)
-                        .opacity(isImageDismissMode ? 0 : 1)
-                    //                         }
-                    //                 }
-                    //                 .ignoresSafeArea(.all)
-                }
-                // TODO: MAKE THIS DEPEND ON SCREEN HEIGHT
-                // TODO: DEPRECATE OLD WAY OF DRAGGING
-                .statusBarHidden(localScale != 1.0)
-                .background {
-                    Color.black.opacity(
-//                        Double(1 - (localOffset.height / fullImageState.dismissThreshold))
-                        Double(localScale != 1.0 ? 0.5 : 1.0)
-                    )
-                    .ignoresSafeArea(.all)
-                    .allowsHitTesting(photoEnvironment.shouldShowFullImageView)
-                }
-//                .sheet(
-//                    isPresented: .constant(localOffset.height < 0 || fullImageState.showDetail),
-//                    onDismiss: {
-//                        withAnimation {
-//                            localOffset.height = 0
-//                            localScale = 1.0
-//                            fullImageState.showDetail = false
-//                        }
-//                    }
-//                ) {
-//                    GeometryReader { reader in
-//                        VStack {
-//                            PhotoDetails(animation: animation)
-//                        }.environmentObject(fullImageState)
-//                        
-//                    }
-//                    //TODO: Deal with this
-////                    .onGeometryChange(for: CGRect.self) {
-////                      $0.frame(in: .global)
-////                    } action: { newValue in
-////                        withAnimation {
-////                            fullImageState.sheetTopAnchor = CGPoint(x: newValue.midX, y: newValue.minY - 80)
-////                        }
-////                    }
-//                    .onGeometryChange(for: CGRect.self) {
-//                        $0.frame(in: .global)
-//                    } action: { newValue in
-//                        withAnimation {
-//                            sheetTopAnchor = CGPoint(x: newValue.midX, y: newValue.minY - 80)
-//                        }
-//                    }
-//                    .presentationDetents([getHeightOfSheet()])
-//                    .presentationBackgroundInteraction(.disabled)
-//                }
-                .onAppear {
-                    Task {
-                        await fullImageState.getView(
-                            selectedDbPhotoAsset: photoEnvironment.selectedDbPhotoAsset)
                     }
                 }
             }
@@ -429,8 +402,7 @@ struct FullImageViewQuickActions: View {
                 .background(.ultraThinMaterial)
                 .clipShape(Circle())
         }
-        .padding()
-        .padding(.horizontal, 10)
+        .padding(.horizontal)
         .confirmationDialog("Trash Item", isPresented: $showDeleteAlert) {
             Button("Confirm (this does nothing rn)", role: .destructive) {
                 

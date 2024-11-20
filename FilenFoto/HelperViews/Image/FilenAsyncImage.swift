@@ -14,13 +14,8 @@ struct FilenAsyncImage: View {
     @EnvironmentObject var fullImageState: FullImageViewState
     var dbAsset: DBPhotoAsset?
     
-    let onSwipeUp: (() -> Void)
-    let onSwipeDown: (() -> Void)
-    
-    init(dbAsset: DBPhotoAsset?, onSwipeUp: @escaping () -> Void = {}, onSwipeDown: @escaping () -> Void = {}) {
+    init(dbAsset: DBPhotoAsset?) {
         self.dbAsset = dbAsset
-        self.onSwipeUp = onSwipeUp
-        self.onSwipeDown = onSwipeDown
     }
     
     func getClipShape() -> any Shape {

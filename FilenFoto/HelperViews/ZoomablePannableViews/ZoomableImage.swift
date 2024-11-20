@@ -45,6 +45,17 @@ struct ZoomableImage: ZoomablePannableViewContent {
         
         return view
     }
+    
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UIView, context: Context) -> CGSize? {
+        guard let imageView = uiView.subviews.first as? UIImageView, let width = proposal.width, let height = proposal.height else { return nil }
+        let imgSize = imageView.sizeThatFits(.init(width: width, height: height))
+        
+        if imgSize.height > height {
+            return .init(width: width, height: height)
+        } else {
+            return imgSize
+        }
+    }
 
     func updateUIView(_ uiView: UIView, context: Context) {
         guard let view = uiView.subviews.first as? UIImageView else { return }
