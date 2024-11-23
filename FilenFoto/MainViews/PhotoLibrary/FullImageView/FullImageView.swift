@@ -70,8 +70,15 @@ struct FullImageView: View {
 //                            .offset(.init(width: 0, height: maxTopHUDHeight))
                     }
                     .ignoresSafeArea(.all)
-                    .zIndex(15)
                     .alignmentGuide(VerticalAlignment.center) { $0[VerticalAlignment.center] }
+                    .background {
+                        Color.black.opacity(
+                            //                        Double(1 - (localOffset.height / fullImageState.dismissThreshold))
+                            Double(localScale != 1.0 ? 0.5 : 1.0)
+                        )
+                        .ignoresSafeArea(.all)
+                        .allowsHitTesting(photoEnvironment.shouldShowFullImageView)
+                    }
                     VStack {
                         FullImageViewTopBar()
                         //                        .frame(maxHeight: isImageDismissMode ? 0 : nil)
@@ -97,14 +104,6 @@ struct FullImageView: View {
                     // TODO: MAKE THIS DEPEND ON SCREEN HEIGHT
                     // TODO: DEPRECATE OLD WAY OF DRAGGING
                     .statusBarHidden(localScale != 1.0)
-                    .background {
-                        Color.black.opacity(
-                            //                        Double(1 - (localOffset.height / fullImageState.dismissThreshold))
-                            Double(localScale != 1.0 ? 0.5 : 1.0)
-                        )
-                        .ignoresSafeArea(.all)
-                        .allowsHitTesting(photoEnvironment.shouldShowFullImageView)
-                    }
                     .onAppear {
                         Task {
                             await fullImageState.getView(

@@ -62,6 +62,7 @@ struct LazyPhotoGrid : View {
                         + String(dbPhotoAsset.id),
                         in: animation
                     )
+                    .transition(.blurReplace)
                     .aspectRatio(contentMode: .fill)
                     .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                     .clipped()
@@ -73,7 +74,7 @@ struct LazyPhotoGrid : View {
                         }
                     }
                     .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.2)) {
+                        withAnimation(.easeInOut(duration: 0.3)) {
                             photoEnvironment.setCurrentSelectedDbPhotoAsset(dbPhotoAsset, index: PhotoDatabase.shared.index(of: dbPhotoAsset))
                             keyboardFocus = false
                         }

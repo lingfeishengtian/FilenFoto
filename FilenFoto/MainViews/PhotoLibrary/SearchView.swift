@@ -16,15 +16,27 @@ struct SearchView : View {
     let animation: Namespace.ID
     
     @State private var showingAsset: DBPhotoAsset? = nil
+    @State private var offset: CGSize = .zero
     
     var body: some View {
         VStack {
-            Text("検索")
-                .font(.largeTitle)
-                .bold()
-                .padding([.leading], 10)
-                .padding([.bottom], 10)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            HStack {
+                Text("検索")
+                    .font(.largeTitle)
+                    .bold()
+                    .padding([.leading], 10)
+                    .padding([.bottom], 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer()
+                Button {
+                    withAnimation {
+                        searchBarShow = false
+                        keyboardFocus = false
+                    }
+                } label: {
+                    IconView(size: .small, iconSystemName: "xmark")
+                }
+            }
             if searchText.count == 0 {
                 Text("Popular Categories")
                     .font(.subheadline)
@@ -149,7 +161,21 @@ struct SearchView : View {
                     id: "searchBarThumbnailImageTransition"
                     + (showingAsset?.localIdentifier ?? ""),
                     in: animation
-                )
+                ).offset(offset)
+                .gesture(DragGesture().onChanged { value in
+                    offset = value.translation
+                }.onEnded { value in
+                    if value.translation.height > 100 {
+                        withAnimation {
+                            showingAsset = nil
+                            offset = .zero
+                        }
+                    } else {
+                        withAnimation {
+                            offset = .zero
+                        }
+                    }
+                })
             }
         }
     }

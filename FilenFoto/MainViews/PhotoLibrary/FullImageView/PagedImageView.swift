@@ -113,6 +113,7 @@ struct PagedImageView: View {
     }
     
     @State var startedVerticalDrag: Bool = false
+    @State var beginSwipeUp: Bool = false
     @GestureState private var dragState: DragState = .inactive
 
     var body: some View {
@@ -128,19 +129,19 @@ struct PagedImageView: View {
                 let index = indexedDBPhotoAsset.index
                 let dbAsset = indexedDBPhotoAsset.dbAsset
                 VStack {
-                    if index == photoEnvironment.getCurrentPhotoAssetIndex() ?? photoEnvironment.preservedDbPhotoAssetIndex {
-                        let _ = print(localOffset, imageFrameHeight, baseOffset, topSafeArea, bottomSafeArea)
+                    if index == photoEnvironment.currentSelectedDbPhotoAssetIndex ?? photoEnvironment.preservedDbPhotoAssetIndex {
                         FilenAsyncImage(dbAsset: dbAsset)
-                        //                    Image(uiImage: UIImage(contentsOfFile: dbAsset.thumbnailURL.path) ?? UIImage())
+//                        Image(uiImage: UIImage(contentsOfFile: dbAsset.thumbnailURL.path) ?? UIImage())
                             .matchedGeometryEffect(
                                 id: "thumbnailImageTransition"
                                 + String(dbAsset.id),
                                 in: animation
                             )
-                            .offset(.init(width: localOffset.width, height: localOffset.height + baseOffset + topSafeArea))
+                            .transition(.blurReplace)
+                            .offset(.init(width: localOffset.width, height: localOffset.height / 1.5 + baseOffset + topSafeArea))
                             .scaleEffect(localScale)
                             .frame(width: reader.size.width, height: imageFrameHeight - topSafeArea - bottomSafeArea)
-                            .modifier(InlineSheetProgressModifier(progress: (-localOffset.height) / reader.size.height, shouldShow: localOffset.height < 0) {
+                            .modifier(InlineSheetProgressModifier(progress: (-localOffset.height) / reader.size.height, shouldShow: (beginSwipeUp || fullImageState.showDetail) && localOffset.height < 0) {
                                 PhotoDetails(currentDbPhotoAsset: dbAsset, animation: animation)
                             })
                             .gesture(
@@ -161,6 +162,7 @@ struct PagedImageView: View {
                                                     }
                                                 } else {
                                                     state = .beginSwipeUp
+                                                    beginSwipeUp = true
                                                 }
                                                 
                                                 startedVerticalDrag = true
@@ -187,7 +189,7 @@ struct PagedImageView: View {
                                             return
                                         }
                                         
-                                        if value.translation.height > 100 {
+                                        if value.translation.height > 100 && !beginSwipeUp {
                                             if fullImageState.showDetail {
                                                 withAnimation {
                                                     fullImageState.showDetail = false
@@ -197,7 +199,7 @@ struct PagedImageView: View {
                                             } else {
                                                 swipeDownOnImage()
                                             }
-                                        } else if value.translation.height < -100 {
+                                        } else if value.translation.height < -100 && beginSwipeUp {
                                             swipeUpOnImage()
                                         } else {
                                             if !fullImageState.showDetail {
@@ -210,17 +212,29 @@ struct PagedImageView: View {
                                         }
                                         
                                         startedVerticalDrag = false
+                                        beginSwipeUp = false
                                     }
                             )
+                            .gesture(TapGesture().onEnded({ value in
+                                if fullImageState.showDetail {
+                                    withAnimation {
+                                        fullImageState.showDetail = false
+                                        
+                                        localScale = 1.0
+                                        globalScale = 1.0
+                                        localOffset = .zero
+                                    }
+                                }
+                            }))
                         //                    .frame(width: reader.size.width, height: reader.size.height)
                     } else {
                         ZoomableImage(
                             isPinching: $fullImageState.isPinching,
                             imageURL: dbAsset.thumbnailURL)
-                        .offset(.init(width: localOffset.width, height: localOffset.height + baseOffset + topSafeArea))
+                        .offset(.init(width: localOffset.width, height: localOffset.height / 1.5 + baseOffset + topSafeArea))
                         .scaleEffect(localScale)
                         .frame(width: reader.size.width, height: imageFrameHeight - topSafeArea - bottomSafeArea)
-                        .modifier(InlineSheetProgressModifier(progress: (-localOffset.height) / reader.size.height, shouldShow: localOffset != .zero) {
+                        .modifier(InlineSheetProgressModifier(progress: (-localOffset.height) / reader.size.height, shouldShow: (beginSwipeUp || fullImageState.showDetail) && localOffset != .zero) {
                             PhotoDetails(currentDbPhotoAsset: dbAsset, animation: animation)
                         })
                         //                    .frame(width: reader.size.width, height: reader.size.height)
