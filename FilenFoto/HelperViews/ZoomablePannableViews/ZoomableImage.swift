@@ -50,7 +50,7 @@ struct ZoomableImage: ZoomablePannableViewContent {
         guard let imageView = uiView.subviews.first as? UIImageView, let width = proposal.width, let height = proposal.height else { return nil }
         let imgSize = imageView.sizeThatFits(.init(width: width, height: height))
         
-        if imgSize.height > height {
+        if imgSize.height > height || (imgSize.height < height && imgSize.width < width) {
             return .init(width: width, height: height)
         } else {
             return imgSize

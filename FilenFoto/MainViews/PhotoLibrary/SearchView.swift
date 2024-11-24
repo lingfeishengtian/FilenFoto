@@ -21,7 +21,7 @@ struct SearchView : View {
     var body: some View {
         VStack {
             HStack {
-                Text("検索")
+                Text("Search")
                     .font(.largeTitle)
                     .bold()
                     .padding([.leading], 10)
@@ -67,7 +67,7 @@ struct SearchView : View {
             } else {
                 if photoEnvironment.searchArray.isEmpty {
                     Spacer()
-                    Text("検索結果がありません")
+                    Text("No Search Results")
                         .font(.title2)
                         .bold()
                     Spacer()

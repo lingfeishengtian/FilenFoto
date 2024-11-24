@@ -56,10 +56,10 @@ struct ContentView: View {
                     if !searchBarShow {
                         HStack {
                             VStack {
-                                Text("ライブラリ")
+                                Text("Library")
                                     .font(.largeTitle)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                Text("\(photoEnvironment.countOfPhotos)項目 ")
+                                Text("\(photoEnvironment.countOfPhotos) Photos")
                                     .font(.subheadline)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }.bold()

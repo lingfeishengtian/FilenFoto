@@ -54,17 +54,17 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
         _ gestureRecognizer: UIGestureRecognizer,
         shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
     ) -> Bool {
-        return true
+        return gestureRecognizer is UITapGestureRecognizer || otherGestureRecognizer is UITapGestureRecognizer
     }
 
     // Allow all gestures to pass through
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch)
         -> Bool
     {
-        if let pinch = gestureRecognizer as? UIPinchGestureRecognizer {
+        if gestureRecognizer is UIPinchGestureRecognizer {
             return true
-        } else if let pan = gestureRecognizer as? UIPanGestureRecognizer {
-            return parent.isPinching
+        } else if gestureRecognizer is UIPanGestureRecognizer {
+            return parent.isPinching && lastPoint == .zero
         } else {
             return true
         }
@@ -77,6 +77,9 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
             parent.isPinching = true
             UIView.animate(withDuration: 0.3) {
                 view.transform = view.transform.scaledBy(x: 2.0, y: 2.0)
+                let tapPoint = gesture.location(in: view)
+                let translation = CGPoint(x: view.frame.midX - tapPoint.x, y: view.frame.midY - tapPoint.y)
+                view.transform = view.transform.translatedBy(x: translation.x, y: translation.y)
             }
         } else {
             parent.isPinching = false
@@ -86,16 +89,26 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
             }
         }
     }
-
+    
+    var lastPoint: CGPoint = .zero
     @objc func handlePinch(_ gesture: UIPinchGestureRecognizer) {
         let view = parent.associatedView
 
         switch gesture.state {
         case .began:
             parent.isPinching = true
+            lastPoint = gesture.location(in: view)
         case .changed:
-            view.transform = view.transform.scaledBy(x: gesture.scale, y: gesture.scale)
-            gesture.scale = 1.0
+            UIView.animate(withDuration: 0.1) {
+                view.transform = view.transform.scaledBy(x: gesture.scale, y: gesture.scale)
+                
+                let currentPoint = gesture.location(in: view)
+                let translation = CGPoint(x: currentPoint.x - self.lastPoint.x, y: currentPoint.y - self.lastPoint.y)
+                
+                view.transform = view.transform.translatedBy(x: translation.x, y: translation.y)
+                print(self.lastPoint, translation, currentPoint)
+                gesture.scale = 1.0
+            }
         case .ended:
             if view.frame.size.width < view.superview!.frame.size.width
                 || view.frame.size.height < view.superview!.frame.size.height
@@ -106,6 +119,7 @@ class ZoomablePannableViewContentCoordinator: NSObject, UIGestureRecognizerDeleg
                 
                 parent.isPinching = false
             }
+            lastPoint = .zero
         default:
             break
         }

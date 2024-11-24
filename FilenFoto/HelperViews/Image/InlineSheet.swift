@@ -43,7 +43,7 @@ struct InlineSheetProgressModifier<C: View>: ViewModifier {
         let _ = print("Progress: \(progress)")
         GeometryReader { screenReader in
             content
-                .scaleEffect(1 + progress / 2)
+                .scaleEffect(1 + progress / 1.5)
                 .overlay {
                     GeometryReader { reader in
                         Color.primary.overlay {

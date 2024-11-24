@@ -16,12 +16,14 @@ enum ImageViewType {
 
 struct ImageViewGenerationData {
     private var storedAssetView: Any? = nil
+    private var imageViewType: ImageViewType
     private var assetId: Int64? = nil
     
     /// Asset should either be a UIImage, PHLivePhoto, AVPlayer, or URL to an Image
     /// Should not be modified by any other file due to this being quite unsafe
-    fileprivate init(asset: Any? = nil, assetId: Int64? = nil) {
+    fileprivate init(asset: Any? = nil, imageViewType: ImageViewType = .image, assetId: Int64? = nil) {
         self.storedAssetView = asset
+        self.imageViewType = imageViewType
         self.assetId = assetId
     }
     
@@ -40,10 +42,21 @@ struct ImageViewGenerationData {
                 ZoomableLivePhoto(
                     isPinching: isPinching,
                     livePhoto: .constant(livePhoto)))
-        case let avPlayer as AVPlayer:
-            return AnyView(ZoomableVideo(
-                isPinching: isPinching,
-                video: avPlayer))
+        case let assetURL as URL:
+            switch imageViewType {
+            case .image:
+                return AnyView(
+                    ZoomableImage(
+                        isPinching: isPinching,
+                        imageURL: assetURL))
+            case .video:
+                return AnyView(
+                    ZoomableVideo(
+                        isPinching: isPinching,
+                        videoURL: assetURL))
+            default:
+                return AnyView(EmptyView())
+            }
         default:
             let imageURL: URL
             if let url = asset as? URL, isLoaded(dbPhotoAsset: dbPhotoAsset) {
@@ -109,7 +122,7 @@ class FullImageViewState: ObservableObject {
             assetFileUrl = videoAssets
             if let vid = videoAssets {
                 DispatchQueue.main.async {
-                    self.imageViewGeneration = .init(asset: AVPlayer(url: vid), assetId: dbAsset.id)
+                    self.imageViewGeneration = .init(asset: vid, imageViewType: .video, assetId: dbAsset.id)
                 }
             }
         }

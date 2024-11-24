@@ -1,0 +1,450 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    " " : {
+
+    },
+    "%lld Photos" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld項目"
+          }
+        }
+      }
+    },
+    "%lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "%lld/%lld Photos Imported" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld Photos Imported"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lldインポートされました"
+          }
+        }
+      }
+    },
+    ">300 KB / image" : {
+
+    },
+    "~10 KB / image (low quality)" : {
+
+    },
+    "~75 KB / image" : {
+
+    },
+    "~100 KB / image" : {
+
+    },
+    "~200 KB / image" : {
+
+    },
+    "Additional Cleanup Options" : {
+
+    },
+    "After selecting a new cache size, the app will attempt to resize the folder by deleting cached images until it is under the new size." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しいキャッシュ最大限を選択すると、キャッシュフォルダーの最古の写真から始まりキャッシュされた写真を消してみます。"
+          }
+        }
+      }
+    },
+    "Backup Database" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Changing compression quality will not affect existing thumbnails." : {
+
+    },
+    "Clean Cached Sync History" : {
+
+    },
+    "Common Text" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "よく使う文字"
+          }
+        }
+      }
+    },
+    "Compares imported photos with Filen and determines new files to import." : {
+
+    },
+    "Completed Import" : {
+
+    },
+    "Confirm (this does nothing rn)" : {
+
+    },
+    "Continue" : {
+
+    },
+    "Continue to Photos" : {
+
+    },
+    "Debug information may include unencrypted information about file names. Your images will not be exported." : {
+
+    },
+    "DebugDatabase" : {
+
+    },
+    "Delete Imported Photos from Filen" : {
+
+    },
+    "E-Mail" : {
+
+    },
+    "Enter name" : {
+
+    },
+    "Extreme" : {
+
+    },
+    "Failed Imports" : {
+
+    },
+    "Filen Account Management" : {
+
+    },
+    "Getting base folder uuid" : {
+
+    },
+    "Hello, World!" : {
+
+    },
+    "High" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高"
+          }
+        }
+      }
+    },
+    "Image" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真"
+          }
+        }
+      }
+    },
+    "Import Images" : {
+
+    },
+    "Importing Photos" : {
+
+    },
+    "Last modified: %@" : {
+
+    },
+    "Library" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリ"
+          }
+        }
+      }
+    },
+    "Login to Filen" : {
+
+    },
+    "Low" : {
+
+    },
+    "Max Cache Size" : {
+
+    },
+    "Medium" : {
+
+    },
+    "New Folder Name" : {
+
+    },
+    "No Search Results" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検索結果がありません"
+          }
+        }
+      }
+    },
+    "None" : {
+
+    },
+    "Notice" : {
+
+    },
+    "OK" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "Password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワード"
+          }
+        }
+      }
+    },
+    "Popular Categories" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人気項目"
+          }
+        }
+      }
+    },
+    "Refresh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新"
+          }
+        }
+      }
+    },
+    "Refresh Import Queue" : {
+
+    },
+    "Search" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検索"
+          }
+        }
+      }
+    },
+    "Separator" : {
+
+    },
+    "Settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定"
+          }
+        }
+      }
+    },
+    "Share Debug Info" : {
+
+    },
+    "Sign In" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サインイン"
+          }
+        }
+      }
+    },
+    "Storage Management" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ストレージ"
+          }
+        }
+      }
+    },
+    "Submit" : {
+
+    },
+    "Sync database debug information" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データベースデバッグ情報"
+          }
+        }
+      }
+    },
+    "Sync Progress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同期状況"
+          }
+        }
+      }
+    },
+    "This folder is not empty." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フォルダーに空ではありません"
+          }
+        }
+      }
+    },
+    "Thumbnail Compression" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サムネイル圧縮"
+          }
+        }
+      }
+    },
+    "Thumbnail Image Compression" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サムネイル圧縮"
+          }
+        }
+      }
+    },
+    "Thumbnails" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サムネイル"
+          }
+        }
+      }
+    },
+    "To conserve storage, please choose an appropriate compression level. High and extreme compression my result in better app performance." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモリを節約するために、自分の習慣によって適当な圧縮レベルを選択してください。"
+          }
+        }
+      }
+    },
+    "Trash Item" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "項目を消す"
+          }
+        }
+      }
+    },
+    "Two-Factor" : {
+
+    },
+    "Video" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "動画"
+          }
+        }
+      }
+    },
+    "WARNING: " : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "注意："
+          }
+        }
+      }
+    },
+    "X" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X"
+          }
+        }
+      }
+    },
+    "You have %lld photos. %@ compression will result in %@ of storage." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You have %1$lld photos. %2$@ compression will result in %3$@ of storage."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld枚の写真があります。%2$@圧縮では%3$@のメモリの必要があります。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

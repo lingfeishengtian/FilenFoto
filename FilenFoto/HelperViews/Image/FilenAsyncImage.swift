@@ -38,7 +38,6 @@ struct FilenAsyncImage: View {
                             ProgressView().progressViewStyle(.circular)
                                 .scaleEffect(1.5)
                         )
-                        .allowsHitTesting(false)
                 }
             }
         }
