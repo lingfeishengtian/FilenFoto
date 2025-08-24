@@ -9,13 +9,13 @@ import SwiftUI
 
 func imageGenerator(named name: String) -> [UIImage] {
     var images: [UIImage] = []
-    
+
     for _ in 1...100 {
         // Generate random size (e.g., between 50x50 and 200x200)
         let width = CGFloat.random(in: 50...200)
         let height = CGFloat.random(in: 50...200)
         let size = CGSize(width: width, height: height)
-        
+
         // Begin image context with random size
         UIGraphicsBeginImageContextWithOptions(size, false, 0)
         let context = UIGraphicsGetCurrentContext()
@@ -37,14 +37,33 @@ func imageGenerator(named name: String) -> [UIImage] {
 
         UIGraphicsEndImageContext()
     }
-    
+
     return images
+}
+
+class PhotoDataSource: PhotoDataSourceProtocol {
+    var photos: [UIImage] = []
+
+    init() {
+        photos = imageGenerator(named: "SampleImage")
+    }
+
+    func numberOfPhotos() -> Int {
+        photos.count
+    }
+
+    func photoAt(index: Int) -> UIImage? {
+        guard index >= 0 && index < photos.count else { return nil }
+        return photos[index]
+    }
 }
 
 struct ContentView: View {
     var body: some View {
         VStack {
-            PhotosViewer(photos: imageGenerator(named: "Test"))
+            PhotosViewer(
+                photoDataSource: PhotoDataSource()
+            )
         }
         .padding()
     }

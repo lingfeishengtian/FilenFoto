@@ -38,6 +38,8 @@ class HeroAnimatedTransition: NSObject, UIViewControllerAnimatedTransitioning {
 
         fromVCDelegate.transitionWillStart()
         toVCDelegate.transitionWillStart()
+        
+        toVC.view.alpha = 0
 
         let toViewAnimationReferences = toVCDelegate.getAnimationReferences()
         let fromViewAnimationReferences = fromVCDelegate.getAnimationReferences()
@@ -69,7 +71,6 @@ class HeroAnimatedTransition: NSObject, UIViewControllerAnimatedTransitioning {
         ) {
             self.transitionImageView.frame = finalTransitionFrame
             toVC.view.alpha = 1
-            fromVC.view.alpha = 0
         } completion: { _ in
             self.transitionImageView.removeFromSuperview()
             toViewAnimationReferences.imageReference.isHidden = false

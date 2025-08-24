@@ -60,3 +60,16 @@ func scale(for view: UIView, with verticalDelta: CGFloat) -> CGFloat {
         endingWith: 0.5
     )
 }
+
+func zoomRectForScale(scale: CGFloat, center: CGPoint, view: UIView) -> CGRect {
+    var zoomRect = CGRect.zero
+    let scrollViewSize = view.bounds.size
+    
+    zoomRect.size.width = scrollViewSize.width / scale
+    zoomRect.size.height = scrollViewSize.height / scale
+    
+    zoomRect.origin.x = center.x - (zoomRect.size.width / 2.0)
+    zoomRect.origin.y = center.y - (zoomRect.size.height / 2.0)
+    
+    return zoomRect
+}

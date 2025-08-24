@@ -9,8 +9,9 @@ import Foundation
 import UIKit
 import os
 
-class PhotosViewerViewController: UIViewController {
-    var photos: [UIImage]!
+class PhotosViewerViewController: UIViewController, PhotoContextHost {
+    var selectedPhotoIndex: Int?
+    var photoDataSource: PhotoDataSourceProtocol?
 
     var collectionView: UICollectionView!
     var itemSize: CGSize!
@@ -18,7 +19,6 @@ class PhotosViewerViewController: UIViewController {
     // TODO: Rename to transitionController
     let transitionDelegate = PhotoHeroAnimationController()
 
-    fileprivate var selectedIndexPath: IndexPath?
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PhotosViewerViewController")
 
     override func viewDidLoad() {
@@ -34,7 +34,6 @@ class PhotosViewerViewController: UIViewController {
 
         collectionView = UICollectionView(frame: self.view.bounds, collectionViewLayout: layout)
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        collectionView.backgroundColor = .white
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(PhotoViewCell.self, forCellWithReuseIdentifier: "PhotoCell")
@@ -42,17 +41,12 @@ class PhotosViewerViewController: UIViewController {
         self.view.addSubview(collectionView)
         self.navigationController?.delegate = transitionDelegate
     }
-
+    
     func getSelectedIndexPath() -> IndexPath {
-        guard let indexPath = selectedIndexPath else {
-            logger.error("Selected index path is nil, returning default IndexPath(item: 0, section: 0)")
-            return IndexPath(item: 0, section: 0)
-        }
-
-        return indexPath
+        return IndexPath(item: selectedPhotoIndex ?? 0, section: 0)
     }
-
-    func setSelectedIndexPath(_ indexPath: IndexPath) {
-        self.selectedIndexPath = indexPath
+    
+    func willUpdateSelectedPhotoIndex(_ index: Int) {
+        focusOnCell(at: getSelectedIndexPath())
     }
 }

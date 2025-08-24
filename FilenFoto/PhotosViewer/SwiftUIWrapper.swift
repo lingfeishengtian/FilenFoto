@@ -9,11 +9,11 @@ import Foundation
 import SwiftUI
 
 struct PhotosViewer : UIViewControllerRepresentable {
-    let photos: [UIImage]
+    let photoDataSource: PhotoDataSourceProtocol
     
     func makeUIViewController(context: Context) -> UINavigationController {
         let rootPhotosViewer = PhotosViewerViewController()
-        rootPhotosViewer.photos = photos
+        rootPhotosViewer.photoDataSource = photoDataSource
         
         let navigationController = UINavigationController(rootViewController: rootPhotosViewer)
         navigationController.navigationBar.isHidden = true

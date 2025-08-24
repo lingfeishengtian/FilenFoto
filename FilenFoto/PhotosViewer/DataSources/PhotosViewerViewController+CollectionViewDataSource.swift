@@ -10,13 +10,13 @@ import UIKit
 
 extension PhotosViewerViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        self.photos.count
+        self.photoDataSource?.numberOfPhotos() ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCell", for: indexPath) as! PhotoViewCell
         
-        let photo = self.photos[indexPath.item]
+        let photo = self.photoDataSource?.photoAt(index: indexPath.item) ?? UIImage()
         cell.configure(with: photo)
         
         return cell

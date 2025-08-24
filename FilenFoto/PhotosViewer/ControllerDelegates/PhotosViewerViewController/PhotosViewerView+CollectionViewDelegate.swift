@@ -10,13 +10,35 @@ import UIKit
 
 extension PhotosViewerViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let selectedPhoto = self.photos[indexPath.item]
+        setSelectedPhotoIndex(indexPath.item)
         
-        let detailVC = PhotoDetailViewController()
+        let detailVC = PagedPhotoDetailViewController()
         detailVC.animationController = self.transitionDelegate
-        detailVC.configure(with: selectedPhoto)
-        
-        self.setSelectedIndexPath(indexPath)
+
         self.navigationController?.pushViewController(detailVC, animated: true)
+    }
+
+    func focusOnCell(at indexPath: IndexPath) {
+        let visibleCells = self.collectionView.indexPathsForVisibleItems
+
+        if !visibleCells.contains(indexPath) {
+            let scrollPosition: UICollectionView.ScrollPosition = (visibleCells.first?.item ?? -1) > indexPath.item ? .top : .bottom
+            
+            self.collectionView.scrollToItem(at: indexPath, at: scrollPosition, animated: false)
+            self.collectionView.reloadItems(at: self.collectionView.indexPathsForVisibleItems)
+            self.collectionView.layoutIfNeeded()
+        } else {
+            guard let cell = self.collectionView.cellForItem(at: indexPath) as? PhotoViewCell else {
+                return
+            }
+            
+            let cellFrameWithinView = self.collectionView.convert(cell.frame, to: self.view)
+            
+            if cellFrameWithinView.minY < self.collectionView.contentInset.top {
+                self.collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+            } else if cellFrameWithinView.maxY > self.view.frame.height - self.collectionView.contentInset.bottom {
+                self.collectionView.scrollToItem(at: indexPath, at: .bottom, animated: false)
+            }
+        }
     }
 }
