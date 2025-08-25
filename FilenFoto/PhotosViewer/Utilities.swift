@@ -16,6 +16,14 @@ func direction(of delta: CGPoint) -> Direction {
     return delta.y > 0 ? .down : .up
 }
 
+func isVerticalMovement(of delta: CGPoint) -> Bool {
+    if UIDevice.current.orientation.isLandscape {
+        return abs(delta.x) > abs(delta.y)
+    }
+    
+    return abs(delta.y) > abs(delta.x)
+}
+    
 func anchorPoint(of view: UIView, in containerView: UIView) -> CGPoint {
     let anchorPoint = view.anchorPoint
     let coordinateAnchorPoint = CGPoint(x: anchorPoint.x * view.bounds.width, y: anchorPoint.y * view.bounds.height)
@@ -72,4 +80,27 @@ func zoomRectForScale(scale: CGFloat, center: CGPoint, view: UIView) -> CGRect {
     zoomRect.origin.y = center.y - (zoomRect.size.height / 2.0)
     
     return zoomRect
+}
+
+func minimumZoomScale(for imageSize: CGSize, in scrollViewSize: CGSize) -> CGFloat {
+    let widthScale = scrollViewSize.width / imageSize.width
+    let heightScale = scrollViewSize.height / imageSize.height
+    
+    return min(widthScale, heightScale)
+}
+
+func resize(imageView: UIImageView, toFit size: CGSize) {
+    guard let image = imageView.image else { return }
+    
+    let minimumZoomScale = minimumZoomScale(for: image.size, in: size)
+    imageView.frame.size = CGSize(width: image.size.width * minimumZoomScale, height: image.size.height * minimumZoomScale)
+}
+
+func center(imageView: UIImageView, in frame: CGRect) {
+    imageView.center = CGPoint(x: frame.midX, y: frame.midY)
+}
+
+func centerAndResize(imageView: UIImageView, in frame: CGRect) {
+    resize(imageView: imageView, toFit: frame.size)
+    center(imageView: imageView, in: frame)
 }

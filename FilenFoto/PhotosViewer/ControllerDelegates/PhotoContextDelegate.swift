@@ -18,6 +18,7 @@ protocol PhotoContextDelegate: UIViewController {
 protocol PhotoContextHost: AnyObject, PhotoContextDelegate {
     var selectedPhotoIndex: Int? { get set }
     var photoDataSource: PhotoDataSourceProtocol? { get set }
+    var detailedPhotoViewBuilder: DetailedPhotoViewBuilder? { get set }
 }
 
 /// This is over-engineered, but is a concept of how we can state manager across the navigationController
@@ -29,6 +30,11 @@ extension PhotoContextDelegate {
             .first { $0 is PhotoContextHost  } as? PhotoContextHost
     }
     
+    func getDetailedPhotoBuilder() -> DetailedPhotoViewBuilder? {
+        return findContextHostIndex()?.detailedPhotoViewBuilder
+    }
+    
+    /// More efficient than getPhotoDataSource + getSelectedPhotoIndex
     func selectedPhoto() -> UIImage? {
         guard let host = findContextHostIndex(), let at = host.selectedPhotoIndex else {
             logger.error("No PhotoContextHost or selectedPhotoIndex found in navigation stack.")

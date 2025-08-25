@@ -63,9 +63,16 @@ struct ContentView: View {
         VStack {
             PhotosViewer(
                 photoDataSource: PhotoDataSource()
-            )
-        }
-        .padding()
+            ) { image in
+                VStack {
+                    Text("Photo Detail View")
+                        .font(.headline)
+                        .padding()
+                    Text("Size: \(Int(image.size.width)) x \(Int(image.size.height))")
+                        .font(.subheadline)
+                }
+            }
+        }.edgesIgnoringSafeArea(.all)
     }
 }
 

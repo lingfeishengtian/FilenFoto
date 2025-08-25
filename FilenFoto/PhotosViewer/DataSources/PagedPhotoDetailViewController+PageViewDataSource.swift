@@ -20,7 +20,7 @@ extension PagedPhotoDetailViewController: UIPageViewControllerDataSource {
         }
         
         let previousPhoto = dataSource.photoAt(index: previousIndex)
-        let previousVC = PhotoDetailViewController(animationController: animationController, image: previousPhoto, imageIndex: previousIndex)
+        let previousVC = PageType.init(animationController: animationController, image: previousPhoto, imageIndex: previousIndex)
         
         return previousVC
     }
@@ -36,7 +36,7 @@ extension PagedPhotoDetailViewController: UIPageViewControllerDataSource {
         }
         
         let nextPhoto = dataSource.photoAt(index: nextIndex)
-        let nextVC = PhotoDetailViewController(animationController: animationController, image: nextPhoto, imageIndex: nextIndex)
+        let nextVC = PageType.init(animationController: animationController, image: nextPhoto, imageIndex: nextIndex)
         
         return nextVC
     }

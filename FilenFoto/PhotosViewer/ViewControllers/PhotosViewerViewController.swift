@@ -12,6 +12,7 @@ import os
 class PhotosViewerViewController: UIViewController, PhotoContextHost {
     var selectedPhotoIndex: Int?
     var photoDataSource: PhotoDataSourceProtocol?
+    var detailedPhotoViewBuilder: DetailedPhotoViewBuilder?
 
     var collectionView: UICollectionView!
     var itemSize: CGSize!
@@ -24,13 +25,13 @@ class PhotosViewerViewController: UIViewController, PhotoContextHost {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        itemSize = CGSize(width: view.frame.width / 3 - 20, height: view.frame.width / 3 - 20)
+        itemSize = CGSize(width: view.frame.width / 3 - 1, height: view.frame.width / 3 - 1)
 
         // Setup Collection View
         let layout = UICollectionViewFlowLayout()
         layout.itemSize = itemSize
-        layout.minimumInteritemSpacing = 10
-        layout.minimumLineSpacing = 10
+        layout.minimumInteritemSpacing = 1
+        layout.minimumLineSpacing = 1
 
         collectionView = UICollectionView(frame: self.view.bounds, collectionViewLayout: layout)
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]

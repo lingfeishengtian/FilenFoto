@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-extension PhotoDetailViewController: UIScrollViewDelegate {
+extension PhotoPageViewController: UIScrollViewDelegate {
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         return self.imageView
     }

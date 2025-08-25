@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import SwiftUI
 import os
 
 fileprivate let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "AnimationReferences")
@@ -32,5 +33,7 @@ struct AnimationReferences {
 enum Direction {
     case up
     case down
+    case none
 }
 
+typealias DetailedPhotoViewBuilder = (UIImage) -> AnyView

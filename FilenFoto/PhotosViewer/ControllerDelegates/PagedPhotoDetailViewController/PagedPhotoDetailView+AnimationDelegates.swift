@@ -10,7 +10,7 @@ import UIKit
 
 extension PagedPhotoDetailViewController: PhotoHeroAnimatorDelegate {
     func getAnimationReferences() -> AnimationReferences {
-        guard let photoDetailViewController = self.pagedController.viewControllers?.first as? PhotoDetailViewController else {
+        guard let photoDetailViewController = self.pagedController.viewControllers?.first as? PagedPhotoHeroAnimatorDelegate else {
             return AnimationReferences(size: self.view.bounds.size)
         }
         

@@ -13,12 +13,27 @@ class HeroAnimatedTransition: NSObject, UIViewControllerAnimatedTransitioning {
     var transitionImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
+        imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         imageView.clipsToBounds = true
         return imageView
     }()
 
     func transitionDuration(using transitionContext: (any UIViewControllerContextTransitioning)?) -> TimeInterval {
         return navigationOperation == .push ? 0.5 : 0.25
+    }
+    
+    func shouldCenterImage(viewController: UIViewController) -> Bool {
+        guard let vc = viewController as? PagedPhotoDetailViewController else {
+            return false
+        }
+        
+        return vc.PageType == PhotoPageViewController.self
+    }
+    
+    fileprivate func centerAndResizeIfNeeded(viewController: UIViewController, in frame: CGRect) {
+        if shouldCenterImage(viewController: viewController) {
+            centerAndResize(imageView: self.transitionImageView, in: frame)
+        }
     }
 
     func animateTransition(using transitionContext: any UIViewControllerContextTransitioning) {
@@ -57,6 +72,8 @@ class HeroAnimatedTransition: NSObject, UIViewControllerAnimatedTransitioning {
         if transitionImageView.superview == nil {
             transitionImageView.frame = fromViewAnimationReferences.frame
             transitionImageView.image = image
+            
+            centerAndResizeIfNeeded(viewController: fromVC, in: fromViewAnimationReferences.frame)
             containerView.addSubview(transitionImageView)
         }
 
@@ -70,6 +87,8 @@ class HeroAnimatedTransition: NSObject, UIViewControllerAnimatedTransitioning {
             options: [UIView.AnimationOptions.transitionCrossDissolve]
         ) {
             self.transitionImageView.frame = finalTransitionFrame
+            self.transitionImageView.transform = .identity
+            self.centerAndResizeIfNeeded(viewController: toVC, in: finalTransitionFrame)
             toVC.view.alpha = 1
         } completion: { _ in
             self.transitionImageView.removeFromSuperview()
