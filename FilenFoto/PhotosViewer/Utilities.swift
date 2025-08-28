@@ -23,12 +23,19 @@ func isVerticalMovement(of delta: CGPoint) -> Bool {
     
     return abs(delta.y) > abs(delta.x)
 }
-    
-func anchorPoint(of view: UIView, in containerView: UIView) -> CGPoint {
-    let anchorPoint = view.anchorPoint
+
+fileprivate func internalCalculateAnchorPoint(of anchorPoint: CGPoint, in view: UIView) -> CGPoint {
     let coordinateAnchorPoint = CGPoint(x: anchorPoint.x * view.bounds.width, y: anchorPoint.y * view.bounds.height)
     
-    return containerView.convert(coordinateAnchorPoint, from: view)
+    return view.convert(coordinateAnchorPoint, from: view)
+}
+    
+func anchorPoint(of view: UIView, in containerView: UIView) -> CGPoint {
+    return internalCalculateAnchorPoint(of: view.layer.anchorPoint, in: view)
+}
+
+func anchorPoint(of caLayer: CALayer, in containerView: UIView) -> CGPoint {
+    return internalCalculateAnchorPoint(of: caLayer.anchorPoint, in: containerView)
 }
 
 fileprivate func progress(
@@ -89,6 +96,7 @@ func minimumZoomScale(for imageSize: CGSize, in scrollViewSize: CGSize) -> CGFlo
     return min(widthScale, heightScale)
 }
 
+@available(*, deprecated, renamed: "getCenteredAndResizedFrame", message: "Helper functions should not be setting variables")
 func resize(imageView: UIImageView, toFit size: CGSize) {
     guard let image = imageView.image else { return }
     
@@ -96,11 +104,29 @@ func resize(imageView: UIImageView, toFit size: CGSize) {
     imageView.frame.size = CGSize(width: image.size.width * minimumZoomScale, height: image.size.height * minimumZoomScale)
 }
 
+@available(*, deprecated, renamed: "getCenteredAndResizedFrame", message: "Helper functions should not be setting variables")
 func center(imageView: UIImageView, in frame: CGRect) {
-    imageView.center = CGPoint(x: frame.midX, y: frame.midY)
+    imageView.center = CGPoint(x: frame.width / 2, y: frame.height / 2)
 }
 
+@available(*, deprecated, renamed: "getCenteredAndResizedFrame", message: "Helper functions should not be setting variables")
 func centerAndResize(imageView: UIImageView, in frame: CGRect) {
     resize(imageView: imageView, toFit: frame.size)
     center(imageView: imageView, in: frame)
+}
+
+func getCenteredAndResizedFrame(for imageView: UIImageView, in frame: CGRect) -> CGRect {
+    guard let image = imageView.image else { return .zero }
+    
+    let minimumZoomScale = minimumZoomScale(for: image.size, in: frame.size)
+    
+    var newFrame = frame
+    newFrame.size = CGSize(width: image.size.width * minimumZoomScale, height: image.size.height * minimumZoomScale)
+    newFrame.origin = CGPoint(x: frame.width / 2 - newFrame.size.width / 2, y: frame.height / 2 - newFrame.size.height / 2)
+    
+    return newFrame
+}
+
+func lerp(from start: CGFloat, to end: CGFloat, with progress: CGFloat) -> CGFloat {
+    return start + (end - start) * progress
 }

@@ -15,7 +15,6 @@ extension PhotoHeroAnimationController: UINavigationControllerDelegate {
         from fromVC: UIViewController,
         to toVC: UIViewController
     ) -> (any UIViewControllerAnimatedTransitioning)? {
-        self.heroAnimationTransition.navigationOperation = operation
         self.detailedInfoTransition.navigationOperation = operation
         self.detailedInfoInteractiveTransition.navigationOperation = operation
         
@@ -23,7 +22,7 @@ extension PhotoHeroAnimationController: UINavigationControllerDelegate {
             return self.detailedInfoTransition
         }
 
-        return self.heroAnimationTransition
+        return self.heroInteractiveTransition
     }
 
     func navigationController(
@@ -35,10 +34,8 @@ extension PhotoHeroAnimationController: UINavigationControllerDelegate {
             if animationController is DetailedInfoTransition {
                 return self.detailedInfoInteractiveTransition
             }
-            
-            return self.heroInteractiveTransition
         }
 
-        return nil
+        return self.heroInteractiveTransition
     }
 }

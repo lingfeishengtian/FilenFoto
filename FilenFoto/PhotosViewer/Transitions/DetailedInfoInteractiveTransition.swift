@@ -119,7 +119,7 @@ class DetailedInfoInteractiveTransition: NSObject, UIViewControllerInteractiveTr
             UIView.animate(
                 withDuration: 0.25,
                 delay: 0,
-                options: [.transitionCrossDissolve],
+                options: [.transitionCrossDissolve, .allowUserInteraction],
                 animations: {
                     self.transitionImageView.frame = toViewAnimationReferences.frame
                     self.centerAndResizeIfNeeded(viewController: toVC, in: toViewAnimationReferences.frame)

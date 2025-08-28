@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 import os
 
-class PhotosViewerViewController: UIViewController, PhotoContextHost {
+class PhotosViewerViewController: UIViewController, PhotoContextHost, UIGestureRecognizerDelegate {
     var selectedPhotoIndex: Int?
     var photoDataSource: PhotoDataSourceProtocol?
     var detailedPhotoViewBuilder: DetailedPhotoViewBuilder?
@@ -18,9 +18,11 @@ class PhotosViewerViewController: UIViewController, PhotoContextHost {
     var itemSize: CGSize!
 
     // TODO: Rename to transitionController
-    let transitionDelegate = PhotoHeroAnimationController()
+    var transitionDelegate: PhotoHeroAnimationController!
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PhotosViewerViewController")
+    
+    lazy var panGestureRecognizer = UIPanGestureRecognizer()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,7 +42,18 @@ class PhotosViewerViewController: UIViewController, PhotoContextHost {
         collectionView.register(PhotoViewCell.self, forCellWithReuseIdentifier: "PhotoCell")
 
         self.view.addSubview(collectionView)
+        
+        panGestureRecognizer.maximumNumberOfTouches = 1
+        panGestureRecognizer.addTarget(self, action: #selector(handlePan(_:)))
+        panGestureRecognizer.delegate = self
+        transitionDelegate = PhotoHeroAnimationController(navigatorControllerPanGesture: panGestureRecognizer)
+        
         self.navigationController?.delegate = transitionDelegate
+        
+        guard let interactivePopGestureRecognizer = self.navigationController?.interactivePopGestureRecognizer else { return }
+        panGestureRecognizer.require(toFail: interactivePopGestureRecognizer)
+        
+        self.navigationController?.view.addGestureRecognizer(panGestureRecognizer)
     }
     
     func getSelectedIndexPath() -> IndexPath {
@@ -49,5 +62,25 @@ class PhotosViewerViewController: UIViewController, PhotoContextHost {
     
     func willUpdateSelectedPhotoIndex(_ index: Int) {
         focusOnCell(at: getSelectedIndexPath())
+    }
+    
+    // MARK: - Gesture Recognizers
+    @objc func handlePan(_ gestureRecognizer: UIPanGestureRecognizer) {
+        let velocity = gestureRecognizer.velocity(in: self.view)
+//        print("Pan velocity: \(velocity)")
+//        transitionDelegate.isInteractive = true
+//        transitionDelegate.heroInteractiveTransition.handlePan(gestureRecognizer)
+//        
+//        if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
+//            transitionDelegate.isInteractive = false
+//        }
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        true
+    }
+    
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        true
     }
 }

@@ -11,11 +11,12 @@ import SwiftUI
 import UIKit
 import os
 
-private let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "DetailedPhotoViewController")
 
 let IMAGE_PERCENT_OF_SCREEN: CGFloat = 0.5
 
 class DetailedPhotoViewController: FFParentImageViewController {
+    private let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "DetailedPhotoViewController")
+
     var swiftUIView: UIHostingController<AnyView>!
     lazy var panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
 
@@ -27,7 +28,7 @@ class DetailedPhotoViewController: FFParentImageViewController {
         CGRect(
             x: 0, y: view.frame.height * IMAGE_PERCENT_OF_SCREEN, width: view.frame.width, height: view.frame.height * (1 - IMAGE_PERCENT_OF_SCREEN))
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 

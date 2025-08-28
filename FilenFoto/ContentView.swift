@@ -46,6 +46,7 @@ class PhotoDataSource: PhotoDataSourceProtocol {
 
     init() {
         photos = imageGenerator(named: "SampleImage")
+        
     }
 
     func numberOfPhotos() -> Int {
