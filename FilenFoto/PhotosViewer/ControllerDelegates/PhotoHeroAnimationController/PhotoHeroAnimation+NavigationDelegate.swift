@@ -17,6 +17,7 @@ extension PhotoHeroAnimationController: UINavigationControllerDelegate {
     ) -> (any UIViewControllerAnimatedTransitioning)? {
         self.detailedInfoTransition.navigationOperation = operation
         self.detailedInfoInteractiveTransition.navigationOperation = operation
+        self.heroInteractiveTransition.navigationOperation = operation
         
         if fromVC is PagedPhotoDetailViewController && toVC is PagedPhotoDetailViewController {
             return self.detailedInfoTransition
@@ -30,10 +31,8 @@ extension PhotoHeroAnimationController: UINavigationControllerDelegate {
         interactionControllerFor animationController:
             any UIViewControllerAnimatedTransitioning
     ) -> (any UIViewControllerInteractiveTransitioning)? {
-        if isInteractive {
-            if animationController is DetailedInfoTransition {
-                return self.detailedInfoInteractiveTransition
-            }
+        if animationController is DetailedInfoTransition {
+            return self.detailedInfoInteractiveTransition
         }
 
         return self.heroInteractiveTransition

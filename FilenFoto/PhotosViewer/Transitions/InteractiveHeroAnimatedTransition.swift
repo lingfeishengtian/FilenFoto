@@ -9,25 +9,10 @@ import Foundation
 import UIKit
 import os
 
-
 class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTransitioning, UIViewControllerAnimatedTransitioning {
-    let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "InteractiveHeroAnimatedTransition")
-
-    var transitionContext: (any UIViewControllerContextTransitioning)?
-
-    var isInteractive = false
-    var initiallyInteractive = false {
-        didSet {
-            isInteractive = initiallyInteractive
-        }
-    }
-
-    var wantsInteractiveStart: Bool {
-        return initiallyInteractive
-    }
-
-    var navigationOperation = UINavigationController.Operation.none
-    var transitionImageView = {
+    // MARK: Private variables
+    private let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "InteractiveHeroAnimatedTransition")
+    private var transitionImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -35,8 +20,19 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
 
         return imageView
     }()
+    private var transitionContext: (any UIViewControllerContextTransitioning)?
 
-    lazy var viewTransitionAnimator: UIViewPropertyAnimator = {
+    // MARK: Interactivity variables
+    private var isInteractive = false
+    var wantsInteractiveStart: Bool = false {
+        didSet {
+            isInteractive = wantsInteractiveStart
+        }
+    }
+
+    var navigationOperation = UINavigationController.Operation.none
+
+    var viewTransitionAnimator: UIViewPropertyAnimator = {
         return UIViewPropertyAnimator(duration: 0.3, curve: .easeInOut)
     }()
     var imageAnimator: UIViewPropertyAnimator = {
@@ -47,24 +43,19 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
         setupAnimator(using: transitionContext)
     }
 
-    var previousAnchorPoint = CGPoint.zero
-    
+    var previousAnchorPoint: CGPoint? = nil
+
     override init() {
         super.init()
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         panGesture.maximumNumberOfTouches = 1
         transitionImageView.isUserInteractionEnabled = true
         transitionImageView.addGestureRecognizer(panGesture)
-        
-        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handlePan(_:)))
-        longPressGesture.minimumPressDuration = 0.0
-        transitionImageView.addGestureRecognizer(longPressGesture)
-        
+
         panGesture.delegate = self
-        longPressGesture.delegate = self
     }
 
-    @objc func handlePan(_ gestureRecognizer: UIGestureRecognizer) {
+    @objc func handlePan(_ gestureRecognizer: UIPanGestureRecognizer) {
         guard let transitionContext = transitionContext,
             let toVC = transitionContext.viewController(forKey: .to),
             let fromVC = transitionContext.viewController(forKey: .from),
@@ -78,91 +69,56 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
         }
 
         let containerView = transitionContext.containerView
-        
-        let toViewAnimationReferences = toVCDelegate.getAnimationReferences()
-        let fromViewAnimationReferences = fromVCDelegate.getAnimationReferences()
 
-        if gestureRecognizer.state == .began, let longPressGesture = gestureRecognizer as? UILongPressGestureRecognizer, let presentation = transitionImageView.layer.presentation() {
+        //        if gestureRecognizer.state == .began {
+        //            pauseAnimationsToPrepareForInteraction()
+        //            previousAnchorPoint = transitionImageView.center
+        //        }
+
+        if previousAnchorPoint == nil {
             pauseAnimationsToPrepareForInteraction()
-            
-//            previousAnchorPoint = anchorPoint(of: transitionImageView, in: containerView)
-//            previousAnchorPoint = longPressGesture.location(in: containerView)
-            previousAnchorPoint = presentation.position
-            print("Gesture began at: \(transitionImageView.frame)")
-            
-
-            fromVCDelegate.transitionWillStart()
-            toVCDelegate.transitionWillStart()
+            previousAnchorPoint = transitionImageView.center
         }
 
-        let anchorPoint = previousAnchorPoint
-        toViewAnimationReferences.imageReference.isHidden = true
-        fromViewAnimationReferences.imageReference.isHidden = true
+        let anchorPoint = previousAnchorPoint!
+        let progress = transitionImageView.center.y / containerView.frame.height
+        print(progress)
 
-        if let panGestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer {
-            let translation = panGestureRecognizer.translation(in: containerView)
-//            let verticalDelta = abs(translation.y)  // Negative means this gesture is out of bounds
-            
-//            let progress = verticalDelta / containerView.bounds.height / 2
-//            transitionContext.updateInteractiveTransition(progress)
-            
-//            let scaleWidth = lerp(from: fromViewAnimationReferences.frame.width, to: toViewAnimationReferences.frame.width, with: progress)
-            //        let alpha = alpha(for: fromVC.view, with: verticalDelta)
-            //        let scale = scale(for: fromVC.view, with: verticalDelta)
-            
-            //        fromVC.view.alpha = alpha
-            // TODO: Deal with navbar??
-            
-//            transitionImageView.transform = CGAffineTransform(scaleX: scaleWidth / self.transitionImageView.frame.width, y: 1)
-            transitionImageView.center = CGPoint(x: anchorPoint.x + translation.x, y: anchorPoint.y + translation.y)
-        }
+        let translation = gestureRecognizer.translation(in: containerView)
+        transitionImageView.center = CGPoint(x: anchorPoint.x + translation.x, y: anchorPoint.y + translation.y)
+//        transitionImageView.transform = CGAffineTransform(scaleX: 1 + progress * 0.5, y: 1 + progress * 0.5)
 
-        //        animator.fractionComplete = 1 - scale
-        //        transitionContext.updateInteractiveTransition(1 - scale)  // TODO: This feels wrong
+        transitionContext.updateInteractiveTransition(progress)
+        viewTransitionAnimator.fractionComplete = progress
 
-        if gestureRecognizer.state == .ended, let panGesture = gestureRecognizer as? UIPanGestureRecognizer {
-            let velocity = panGesture.velocity(in: fromVC.view)
+        print(transitionImageView.center)
+        print(transitionImageView.isHidden)
+        print(transitionImageView.superview)
+
+        if gestureRecognizer.state == .ended {
+            let velocity = gestureRecognizer.velocity(in: fromVC.view)
 
             transitionContext.finishInteractiveTransition()
 
-            resetImageAnimator()
-            
-            if direction(of: velocity) == .down {
-                viewTransitionAnimator.isReversed = true
-                imageAnimator.addAnimations {
-                    self.transitionImageView.frame = fromViewAnimationReferences.frame
-                    self.centerAndResizeIfNeeded(viewController: fromVC, in: fromViewAnimationReferences.frame)
-                }
-            } else {
-                viewTransitionAnimator.isReversed = false
-                imageAnimator.addAnimations {
-                    self.transitionImageView.frame = toViewAnimationReferences.frame
-                    self.centerAndResizeIfNeeded(viewController: toVC, in: toViewAnimationReferences.frame)
-                }
-            }
-            
-            let durationFactor = CGFloat(imageAnimator.duration / viewTransitionAnimator.duration)
+            let isReversed = direction(of: velocity) == getDirectionOfCancelling()
+            resetImageAnimator(
+                endPosition: isReversed ? .start : .end,
+                initialVelocity: CGVector(dx: velocity.x / containerView.frame.width, dy: velocity.y / containerView.frame.width))
+            viewTransitionAnimator.isReversed = isReversed
 
+            //            let durationFactor = CGFloat(imageAnimator.duration / viewTransitionAnimator.duration)
+
+            self.previousAnchorPoint = nil
             continueAnimationsAfterInteractionEnds(durationFactor: 0.8)
         }
     }
 
+    func getDirectionOfCancelling() -> Direction {
+        navigationOperation == .push ? .down : .up
+    }
+
     func transitionDuration(using transitionContext: (any UIViewControllerContextTransitioning)?) -> TimeInterval {
         return navigationOperation == .push ? 0.5 : 0.25
-    }
-
-    func shouldCenterImage(viewController: UIViewController) -> Bool {
-        guard let vc = viewController as? PagedPhotoDetailViewController else {
-            return false
-        }
-
-        return vc.PageType == PhotoPageViewController.self
-    }
-
-    fileprivate func centerAndResizeIfNeeded(viewController: UIViewController, in frame: CGRect) {
-        if shouldCenterImage(viewController: viewController) {
-            centerAndResize(imageView: self.transitionImageView, in: frame)
-        }
     }
 
     func animateTransition(using transitionContext: any UIViewControllerContextTransitioning) {
@@ -185,13 +141,11 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
         }
 
         self.transitionContext = transitionContext
-        
-        viewTransitionAnimator = UIViewPropertyAnimator(duration: 0.3, curve: .easeInOut)
+
+        viewTransitionAnimator = getNewViewPropertyAnimator()
 
         fromVCDelegate.transitionWillStart()
         toVCDelegate.transitionWillStart()
-
-        toVC.view.alpha = 0
 
         let toViewAnimationReferences = toVCDelegate.getAnimationReferences()
         let fromViewAnimationReferences = fromVCDelegate.getAnimationReferences()
@@ -201,30 +155,28 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
 
         if navigationOperation == .push {
             containerView.addSubview(toView)
+            toVC.view.alpha = 0
         } else {
+            fromVC.view.alpha = 1
             containerView.insertSubview(toView, belowSubview: fromView)
         }
 
         let image = fromViewAnimationReferences.imageReference.image
         if transitionImageView.superview == nil {
-            transitionImageView.frame = fromViewAnimationReferences.frame
+            transitionImageView.frame = self.getFinalFrame(for: fromVC)
             transitionImageView.image = image
 
-            centerAndResizeIfNeeded(viewController: fromVC, in: fromViewAnimationReferences.frame)
             containerView.addSubview(transitionImageView)
         }
 
-        let finalTransitionFrame = toViewAnimationReferences.frame
-        
-        resetImageAnimator()
-        
-        imageAnimator.addAnimations {
-            self.transitionImageView.frame = self.shouldCenterImage(viewController: toVC) ? getCenteredAndResizedFrame(for: self.transitionImageView, in: finalTransitionFrame) : finalTransitionFrame
-//            self.centerAndResizeIfNeeded(viewController: toVC, in: finalTransitionFrame)
-        }
+        resetImageAnimator(endPosition: .end)
 
         viewTransitionAnimator.addAnimations {
-            toVC.view.alpha = 1
+            if self.navigationOperation == .push {
+                toVC.view.alpha = 1
+            } else {
+                fromVC.view.alpha = 0
+            }
         }
 
         viewTransitionAnimator.addCompletion { position in
@@ -236,6 +188,8 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
 
             fromVCDelegate.transitionDidEnd()
             toVCDelegate.transitionDidEnd()
+
+            self.transitionContext = nil
         }
 
         startAnimationsOnInitiallyInteractive()
@@ -246,33 +200,29 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
     }
 }
 
+// MARK: - Animation Math & Generation
 extension InteractiveHeroAnimatedTransition {
+    func getNewViewPropertyAnimator(initialVelocity: CGVector = .zero) -> UIViewPropertyAnimator {
+        UIViewPropertyAnimator(duration: 0.5, dampingRatio: 0.8)
+    }
+}
 
+// MARK: - Animation State Helper Functions
+extension InteractiveHeroAnimatedTransition {
     func pauseAnimationsToPrepareForInteraction() {
-        guard !isInteractive else { return }
-
         viewTransitionAnimator.pauseAnimation()
-        print("imageFrame", transitionImageView.frame)
-        
-        if let presenting = transitionImageView.layer.presentation() {
-            print("presentation frame", presenting.frame)
-        }
-        
         imageAnimator.stopAnimation(true)
-        print("imageFrame", transitionImageView.frame)
 
         isInteractive = true
     }
 
     func continueAnimationsAfterInteractionEnds(durationFactor: CGFloat) {
-        guard isInteractive else { return }
-        
         if viewTransitionAnimator.state == .inactive {
             viewTransitionAnimator.startAnimation()
         } else {
             viewTransitionAnimator.continueAnimation(withTimingParameters: nil, durationFactor: durationFactor)
         }
-        
+
         if imageAnimator.state == .inactive {
             imageAnimator.startAnimation()
         } else {
@@ -283,7 +233,7 @@ extension InteractiveHeroAnimatedTransition {
     }
 
     func startAnimationsOnInitiallyInteractive() {
-        guard !initiallyInteractive else {
+        guard !wantsInteractiveStart else {
             viewTransitionAnimator.pauseAnimation()
             imageAnimator.pauseAnimation()
 
@@ -293,27 +243,61 @@ extension InteractiveHeroAnimatedTransition {
         viewTransitionAnimator.startAnimation()
         imageAnimator.startAnimation()
     }
-    
-    func resetImageAnimator() {
-        if imageAnimator.state != .inactive {
-            logger.error("Image animator not inactive while resetting Image Animator. This is an issue")
-            // stack trace
-            let symbols = Thread.callStackSymbols
-            for symbol in symbols {
-                logger.error("\(symbol)")
-            }
-        }
-//        imageAnimator.finishAnimation(at: .current)
 
-        imageAnimator = UIViewPropertyAnimator(duration: 0.3, curve: .easeInOut)
+    func resetImageAnimator(endPosition: UIViewAnimatingPosition, initialVelocity: CGVector = .zero) {
+        if imageAnimator.state != .inactive {
+            imageAnimator.stopAnimation(true)
+        }
+
+        imageAnimator = getNewViewPropertyAnimator(initialVelocity: initialVelocity)
+
+        guard let toVC = self.transitionContext?.viewController(forKey: .to), let fromVC = self.transitionContext?.viewController(forKey: .from),
+            endPosition != .current
+        else {
+            return
+        }
+
+        let finalViewController = endPosition == .end ? toVC : fromVC
+
+        imageAnimator.addAnimations {
+            self.transitionImageView.frame = self.getFinalFrame(for: finalViewController)
+        }
     }
 }
 
+// MARK: - Frame Calculation Functions
+extension InteractiveHeroAnimatedTransition {
+    func getFinalFrame(for viewController: UIViewController) -> CGRect {
+        guard let animationDelegate = viewController as? PhotoHeroAnimatorDelegate else {
+            return .zero
+        }
+
+        let finalFrame = animationDelegate.getAnimationReferences().frame
+
+        if shouldCenterImage(viewController: viewController) {
+            return getCenteredAndResizedFrame(for: self.transitionImageView, in: finalFrame)
+        }
+
+        return finalFrame
+    }
+
+    func shouldCenterImage(viewController: UIViewController) -> Bool {
+        guard let vc = viewController as? PagedPhotoDetailViewController else {
+            return false
+        }
+
+        return vc.PageType == PhotoPageViewController.self
+    }
+}
+
+// MARK: - Gesture Delegate
 extension InteractiveHeroAnimatedTransition: UIGestureRecognizerDelegate {
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer)
+        -> Bool
+    {
         true
     }
-        
+
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         true
     }

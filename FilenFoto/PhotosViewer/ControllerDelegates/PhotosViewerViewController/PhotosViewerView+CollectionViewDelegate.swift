@@ -15,7 +15,8 @@ extension PhotosViewerViewController: UICollectionViewDelegate {
         let detailVC = PagedPhotoDetailViewController()
         detailVC.animationController = self.transitionDelegate
         detailVC.PageType = PhotoPageViewController.self
-
+        
+        self.transitionDelegate.beganTransition(initiallyInteractive: false)
         self.navigationController?.pushViewController(detailVC, animated: true)
     }
 

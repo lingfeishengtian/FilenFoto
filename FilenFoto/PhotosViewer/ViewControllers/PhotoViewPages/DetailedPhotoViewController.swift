@@ -60,16 +60,16 @@ class DetailedPhotoViewController: FFParentImageViewController {
     @objc func handlePan(_ gestureRecognizer: UIPanGestureRecognizer) {
         self.animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
 
-        switch gestureRecognizer.state {
-        case .began:
-            self.animationController.isInteractive = true
-            self.navigationController?.popViewController(animated: true)
-        case .changed:
-            break
-        default:
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.animationController.isInteractive = false
-            }
-        }
+//        switch gestureRecognizer.state {
+//        case .began:
+//            self.animationController.isInteractive = true
+//            self.navigationController?.popViewController(animated: true)
+//        case .changed:
+//            break
+//        default:
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+//                self.animationController.isInteractive = false
+//            }
+//        }
     }
 }

@@ -22,7 +22,6 @@ class PhotosViewerViewController: UIViewController, PhotoContextHost, UIGestureR
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PhotosViewerViewController")
     
-    lazy var panGestureRecognizer = UIPanGestureRecognizer()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,17 +42,11 @@ class PhotosViewerViewController: UIViewController, PhotoContextHost, UIGestureR
 
         self.view.addSubview(collectionView)
         
-        panGestureRecognizer.maximumNumberOfTouches = 1
-        panGestureRecognizer.addTarget(self, action: #selector(handlePan(_:)))
-        panGestureRecognizer.delegate = self
-        transitionDelegate = PhotoHeroAnimationController(navigatorControllerPanGesture: panGestureRecognizer)
-        
+//        panGestureRecognizer.maximumNumberOfTouches = 1
+//        panGestureRecognizer.addTarget(self, action: #selector(handlePan(_:)))
+//        panGestureRecognizer.delegate = self
+        transitionDelegate = PhotoHeroAnimationController(navigationController: self.navigationController!) // TODO: Type gaurd
         self.navigationController?.delegate = transitionDelegate
-        
-        guard let interactivePopGestureRecognizer = self.navigationController?.interactivePopGestureRecognizer else { return }
-        panGestureRecognizer.require(toFail: interactivePopGestureRecognizer)
-        
-        self.navigationController?.view.addGestureRecognizer(panGestureRecognizer)
     }
     
     func getSelectedIndexPath() -> IndexPath {

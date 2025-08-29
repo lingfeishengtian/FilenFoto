@@ -54,6 +54,9 @@ class PhotoPageViewController: FFParentImageViewController {
         self.addChild(swiftUIBottomBar)
         self.view.addSubview(swiftUITopBar.view)
         self.view.addSubview(swiftUIBottomBar.view)
+        
+//        animationController.panGestureRecognizer.addTarget(self, action: #selector(handlePan(_:)))
+//        self.view.addGestureRecognizer(animationController.panGestureRecognizer)
         self.view.addGestureRecognizer(panGestureRecognizer)
         self.view.addGestureRecognizer(doubleTapGestureRecognizer)
 
@@ -106,10 +109,11 @@ class PhotoPageViewController: FFParentImageViewController {
         switch gestureRecognizer.state {
         case .began:
             if direction(of: velocity) == .down {
-                animationController.isInteractive = true
+                animationController.beganTransition(initiallyInteractive: true)
                 navigationController?.popViewController(animated: true)
+                
+                animationController.heroInteractiveTransition.handlePan(gestureRecognizer)
             } else {
-                animationController.isInteractive = true
                 let pagedVC = PagedPhotoDetailViewController()
                 pagedVC.animationController = animationController
                 pagedVC.PageType = DetailedPhotoViewController.self
@@ -119,7 +123,7 @@ class PhotoPageViewController: FFParentImageViewController {
 
             initialPanDirection = direction(of: velocity)
         case .changed:
-            if animationController.isInteractive && initialPanDirection == .down {
+            if initialPanDirection == .down {
                 animationController.heroInteractiveTransition.handlePan(gestureRecognizer)
             }
 
@@ -127,14 +131,12 @@ class PhotoPageViewController: FFParentImageViewController {
                 animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
             }
         case .ended:
-            if animationController.isInteractive && initialPanDirection == .down {
+            if initialPanDirection == .down {
                 animationController.heroInteractiveTransition.handlePan(gestureRecognizer)
-                animationController.isInteractive = false
             }
 
             if initialPanDirection == .up {
                 animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
-                animationController.isInteractive = false
             }
         default:
             // TODO: Remove this debug print
