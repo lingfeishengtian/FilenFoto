@@ -17,12 +17,10 @@ class PhotosViewerViewController: UIViewController, PhotoContextHost, UIGestureR
     var collectionView: UICollectionView!
     var itemSize: CGSize!
 
-    // TODO: Rename to transitionController
-    var transitionDelegate: PhotoHeroAnimationController!
+    var animationController: PhotoHeroAnimationController!
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PhotosViewerViewController")
     
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -42,11 +40,8 @@ class PhotosViewerViewController: UIViewController, PhotoContextHost, UIGestureR
 
         self.view.addSubview(collectionView)
         
-//        panGestureRecognizer.maximumNumberOfTouches = 1
-//        panGestureRecognizer.addTarget(self, action: #selector(handlePan(_:)))
-//        panGestureRecognizer.delegate = self
-        transitionDelegate = PhotoHeroAnimationController(navigationController: self.navigationController!) // TODO: Type gaurd
-        self.navigationController?.delegate = transitionDelegate
+        animationController = PhotoHeroAnimationController()
+        self.navigationController?.delegate = animationController
     }
     
     func getSelectedIndexPath() -> IndexPath {
@@ -62,6 +57,6 @@ class PhotosViewerViewController: UIViewController, PhotoContextHost, UIGestureR
     }
     
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        transitionDelegate.isAnimating()
+        animationController.isAnimating()
     }
 }

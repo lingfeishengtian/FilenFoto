@@ -13,10 +13,10 @@ extension PhotosViewerViewController: UICollectionViewDelegate {
         setSelectedPhotoIndex(indexPath.item)
         
         let detailVC = PagedPhotoDetailViewController()
-        detailVC.animationController = self.transitionDelegate
+        detailVC.animationController = self.animationController
         detailVC.PageType = PhotoPageViewController.self
         
-        self.transitionDelegate.beganTransition(initiallyInteractive: false)
+        self.animationController.beganTransition(initiallyInteractive: false)
         self.navigationController?.pushViewController(detailVC, animated: true)
     }
 
