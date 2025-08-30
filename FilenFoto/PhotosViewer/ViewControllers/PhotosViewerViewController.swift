@@ -9,11 +9,7 @@ import Foundation
 import UIKit
 import os
 
-class PhotosViewerViewController: UIViewController, PhotoContextHost, UIGestureRecognizerDelegate {
-    var selectedPhotoIndex: Int?
-    var photoDataSource: PhotoDataSourceProtocol?
-    var detailedPhotoViewBuilder: DetailedPhotoViewBuilder?
-
+class PhotosViewerViewController: UIViewController, PhotoContextDelegate {
     var collectionView: UICollectionView!
     var itemSize: CGSize!
 
@@ -45,18 +41,10 @@ class PhotosViewerViewController: UIViewController, PhotoContextHost, UIGestureR
     }
     
     func getSelectedIndexPath() -> IndexPath {
-        return IndexPath(item: selectedPhotoIndex ?? 0, section: 0)
+        return IndexPath(item: selectedPhotoIndex() ?? 0, section: 0)
     }
     
     func willUpdateSelectedPhotoIndex(_ index: Int) {
         focusOnCell(at: getSelectedIndexPath())
-    }
-    
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        true
-    }
-    
-    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        animationController.isAnimating()
     }
 }

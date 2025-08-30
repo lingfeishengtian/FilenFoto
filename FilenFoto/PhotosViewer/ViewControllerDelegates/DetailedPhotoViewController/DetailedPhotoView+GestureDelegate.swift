@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 
+/// Allow the page controller gesture to activate when horizontal movement is larger than vertical
 extension DetailedPhotoViewController: UIGestureRecognizerDelegate {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         guard let panGesture = gestureRecognizer as? UIPanGestureRecognizer else {

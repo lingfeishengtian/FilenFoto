@@ -1,14 +1,14 @@
 //
-//  PhotosViewerViewController+CollectionViewDataSource.swift
+//  PhotoPageViewController+CollectionViewDataSource.swift
 //  FilenFoto
 //
-//  Created by Hunter Han on 8/23/25.
+//  Created by Hunter Han on 8/30/25.
 //
 
 import Foundation
 import UIKit
 
-extension PhotosViewerViewController: UICollectionViewDataSource {
+extension PhotoPageViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         photoDataSource().numberOfPhotos()
     }

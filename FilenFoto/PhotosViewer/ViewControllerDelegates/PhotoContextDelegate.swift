@@ -15,71 +15,52 @@ protocol PhotoContextDelegate: UIViewController {
     func willUpdateSelectedPhotoIndex(_ index: Int)
 }
 
-protocol PhotoContextHost: AnyObject, PhotoContextDelegate {
-    var selectedPhotoIndex: Int? { get set }
-    var photoDataSource: PhotoDataSourceProtocol? { get set }
-    var detailedPhotoViewBuilder: DetailedPhotoViewBuilder? { get set }
-}
-
 /// This is over-engineered, but is a concept of how we can state manager across the navigationController
 extension PhotoContextDelegate {
-    fileprivate func findContextHostIndex() -> PhotoContextHost? {
-        return navigationController?
-            .viewControllers
-            .reversed()
-            .first { $0 is PhotoContextHost  } as? PhotoContextHost
-    }
-    
-    func getDetailedPhotoBuilder() -> DetailedPhotoViewBuilder? {
-        return findContextHostIndex()?.detailedPhotoViewBuilder
+    fileprivate func getPhotoContext() -> PhotoContextNavigationController {
+        guard let host = self.navigationController as? PhotoContextNavigationController else {
+            fatalError("PhotoContextDelegates are only supported in PhotoContextNavigationControllers")
+        }
+        
+        return host
     }
     
     /// More efficient than getPhotoDataSource + getSelectedPhotoIndex
     func selectedPhoto() -> UIImage? {
-        guard let host = findContextHostIndex(), let at = host.selectedPhotoIndex else {
-            logger.error("No PhotoContextHost or selectedPhotoIndex found in navigation stack.")
+        let host = getPhotoContext()
+        
+        guard let index = host.selectedPhotoIndex else {
+            logger.error("Tried to access selected photo but no index was set")
             return nil
         }
         
-        return host.photoDataSource?.photoAt(index: at)
+        return host.photoDataSource.photoAt(index: index)
     }
     
-    /// Looks for, from top to bottom, the first view that conforms to PhotoContextHost and returns its photoDataSource
-    func getPhotoDataSource() -> PhotoDataSourceProtocol? {
-        let photoDataSource = findContextHostIndex()?.photoDataSource
-        
-        if photoDataSource == nil {
-            logger.error("No PhotoDataSource found in navigation stack.")
-        }
-        
-        return photoDataSource
+    func photoDataSource() -> PhotoDataSourceProtocol {
+        getPhotoContext().photoDataSource
     }
     
-    /// Looks for, from top to bottom, the first view that conforms to PhotoContextHost
-    func getSelectedPhotoIndex() -> Int? {
-        return findContextHostIndex()?.selectedPhotoIndex
+    func swiftUIProvider() -> SwiftUIProviderProtocol {
+        getPhotoContext().swiftUIProvider
     }
     
-    /// Looks for, first, the context host starting from the top of the stack, then sets the selected photo index and calls updateSelectedPhotoIndex on all views following it in the navigation stack as they should all conform to `PhotoContextDelegate`, if they do not, warn in the log.
-    /// Will not call `willUpdateSelectedPhotoIndex` on the caller of the this function
+    func selectedPhotoIndex() -> Int? {
+        return getPhotoContext().selectedPhotoIndex
+    }
+    
+    // TODO: Write docs
     func setSelectedPhotoIndex(_ index: Int) {
+        getPhotoContext().selectedPhotoIndex = index
+        
         let viewControllers = self.navigationController?.viewControllers ?? []
         
-        guard let hostIndex = viewControllers.lastIndex(where: { $0 is PhotoContextHost }) else {
-            logger.warning("No PhotoContextHost found in navigation stack.")
-            return
-        }
-        
-        (viewControllers[hostIndex] as? PhotoContextHost)?.selectedPhotoIndex = index
-        
-        for vc in viewControllers[hostIndex...] {
-            if let contextDelegate = vc as? PhotoContextDelegate {
-                if contextDelegate != self {
-                    contextDelegate.willUpdateSelectedPhotoIndex(index)
-                }
-            } else {
-                logger.warning("ViewController \(String(describing: vc)) does not conform to PhotoContextDelegate.")
+        for case let viewController as PhotoContextDelegate in viewControllers {
+            if viewController == self || self.view.isDescendant(of: viewController.view) {
+                continue
             }
+            
+            viewController.willUpdateSelectedPhotoIndex(index)
         }
     }
 }

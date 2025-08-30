@@ -37,11 +37,10 @@ class DetailedPhotoViewController: FFParentImageViewController {
         imageView.clipsToBounds = true
         imageView.image = image
 
-        if let detailedViewBuilder = getDetailedPhotoBuilder(), let image {
-            swiftUIView = UIHostingController(rootView: detailedViewBuilder(image))
+        if let image {
+            swiftUIView = UIHostingController(rootView: AnyView(swiftUIProvider().view(for: .detailedImage, with: image)))
         } else {
             swiftUIView = UIHostingController(rootView: AnyView(EmptyView()))
-            logger.error("No detailed view builder or image available")
         }
 
         swiftUIView.view.frame = calculateSwiftUIFrame()
@@ -49,7 +48,6 @@ class DetailedPhotoViewController: FFParentImageViewController {
         
         panGestureRecognizer.delegate = self
         
-
         self.view.addSubview(imageView)
         self.view.addSubview(swiftUIView.view)
         self.view.addGestureRecognizer(panGestureRecognizer)

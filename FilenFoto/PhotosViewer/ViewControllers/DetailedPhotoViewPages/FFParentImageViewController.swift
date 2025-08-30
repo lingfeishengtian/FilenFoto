@@ -36,4 +36,12 @@ class FFParentImageViewController: UIViewController, PhotoContextDelegate, Paged
     func getAnimationReferences(in view: UIView) -> AnimationReferences {
         return AnimationReferences(imageReference: self.imageView, frame: view.frame)
     }
+    
+    func getParentForHoisting() -> PagedPhotoDetailViewController {
+        guard let parent = self.parent as? PagedPhotoDetailViewController else {
+            fatalError("Cannot find parent PagedPhotoDetailViewController")
+        }
+        
+        return parent
+    }
 }

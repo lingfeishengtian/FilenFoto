@@ -31,7 +31,7 @@ class PagedPhotoDetailViewController: UIViewController, PhotoContextDelegate {
     }
     
     fileprivate func generateCurrentViewControllers() -> [UIViewController]? {
-        guard let selectedPhotoIndex = getSelectedPhotoIndex() else {
+        guard let selectedPhotoIndex = selectedPhotoIndex() else {
             return nil
         }
         

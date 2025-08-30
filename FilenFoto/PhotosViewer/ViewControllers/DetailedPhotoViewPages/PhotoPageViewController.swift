@@ -19,6 +19,9 @@ class PhotoPageViewController: FFParentImageViewController {
     var scrollView: UIScrollView = UIScrollView() // TODO: This variables looks different from rest, find better solution
     var swiftUITopBar: UIHostingController<AnyView>!
     var swiftUIBottomBar: UIHostingController<AnyView>!
+    var collectionView: UICollectionView!
+    
+    static let PHOTO_SCRUBBER_HEIGHT: CGFloat = 44
 
     lazy var panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
     lazy var doubleTapGestureRecognizer: UITapGestureRecognizer = {
@@ -42,11 +45,27 @@ class PhotoPageViewController: FFParentImageViewController {
         imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
         scrollView.addSubview(imageView)
+        
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.minimumLineSpacing = 0
+        layout.minimumInteritemSpacing = 0
+        layout.itemSize = CGSize(width: PhotoPageViewController.PHOTO_SCRUBBER_HEIGHT, height: PhotoPageViewController.PHOTO_SCRUBBER_HEIGHT)
+        
+        collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: layout)
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(PhotoViewCell.self, forCellWithReuseIdentifier: "PhotoCell")
 
         panGestureRecognizer.delegate = self
 
-        swiftUITopBar = UIHostingController(rootView: AnyView(generateTestView()))
-        swiftUIBottomBar = UIHostingController(rootView: AnyView(generateTestView()))
+        if let image {
+            swiftUITopBar = UIHostingController(rootView: AnyView(swiftUIProvider().view(for: .topBar, with: image)))
+            swiftUIBottomBar = UIHostingController(rootView: AnyView(swiftUIProvider().view(for: .bottomBar, with: image)))
+        } else {
+            swiftUITopBar = UIHostingController(rootView: AnyView(EmptyView()))
+            swiftUIBottomBar = UIHostingController(rootView: AnyView(EmptyView()))
+        }
 
         self.view.backgroundColor = self.traitCollection.userInterfaceStyle == .dark ? .black : .white
         self.view.addSubview(scrollView)
@@ -54,6 +73,7 @@ class PhotoPageViewController: FFParentImageViewController {
         self.addChild(swiftUIBottomBar)
         self.view.addSubview(swiftUITopBar.view)
         self.view.addSubview(swiftUIBottomBar.view)
+        self.view.addSubview(collectionView)
 
         self.view.addGestureRecognizer(panGestureRecognizer)
         self.view.addGestureRecognizer(doubleTapGestureRecognizer)
@@ -61,22 +81,29 @@ class PhotoPageViewController: FFParentImageViewController {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         swiftUITopBar.view.translatesAutoresizingMaskIntoConstraints = false
         swiftUIBottomBar.view.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
             swiftUITopBar.view.topAnchor.constraint(equalTo: self.view.topAnchor),
             swiftUITopBar.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
             swiftUITopBar.view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
             swiftUITopBar.view.heightAnchor.constraint(equalToConstant: 100),
+            
+            scrollView.topAnchor.constraint(equalTo: swiftUITopBar.view.bottomAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: collectionView.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            
+            collectionView.topAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: swiftUIBottomBar.view.topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            collectionView.heightAnchor.constraint(equalToConstant: PhotoPageViewController.PHOTO_SCRUBBER_HEIGHT),
 
             swiftUIBottomBar.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
             swiftUIBottomBar.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
             swiftUIBottomBar.view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
             swiftUIBottomBar.view.heightAnchor.constraint(equalToConstant: 100),
-
-            scrollView.topAnchor.constraint(equalTo: swiftUITopBar.view.bottomAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: swiftUIBottomBar.view.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
         ])
 
         configure(with: image)

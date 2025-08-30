@@ -16,7 +16,5 @@ extension PagedPhotoDetailViewController: PhotoHeroAnimatorDelegate {
         
         return photoDetailViewController.getAnimationReferences(in: self.view)
     }
-    
-    // TODO: Probably need to passthrough the rest, but they're unused in the child
 }
 

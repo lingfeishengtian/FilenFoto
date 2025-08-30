@@ -45,8 +45,8 @@ class PhotoDataSource: PhotoDataSourceProtocol {
     var photos: [UIImage] = []
 
     init() {
-        photos = imageGenerator(named: "SampleImage")
-        
+                photos = imageGenerator(named: "SampleImage")
+
     }
 
     func numberOfPhotos() -> Int {
@@ -59,20 +59,32 @@ class PhotoDataSource: PhotoDataSourceProtocol {
     }
 }
 
+struct PhotoViewProvider: SwiftUIProviderProtocol {
+    func view(for providerRoute: SwiftUIProviderRoute, with image: UIImage) -> any View {
+        switch providerRoute {
+        case .topBar:
+            Text("Photo Detail View")
+        case .bottomBar:
+            Text("Test")
+        case .detailedImage:
+            VStack {
+                Text("Photo Detail View")
+                    .font(.headline)
+                    .padding()
+                Text("Size: \(Int(image.size.width)) x \(Int(image.size.height))")
+                    .font(.subheadline)
+            }
+        }
+    }
+
+}
+
 struct ContentView: View {
     var body: some View {
         VStack {
             PhotosViewer(
-                photoDataSource: PhotoDataSource()
-            ) { image in
-                VStack {
-                    Text("Photo Detail View")
-                        .font(.headline)
-                        .padding()
-                    Text("Size: \(Int(image.size.width)) x \(Int(image.size.height))")
-                        .font(.subheadline)
-                }
-            }
+                photoDataSource: PhotoDataSource(), swiftUIProvider: PhotoViewProvider()
+            )
         }.edgesIgnoringSafeArea(.all)
     }
 }

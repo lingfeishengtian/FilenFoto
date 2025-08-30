@@ -10,7 +10,7 @@ import UIKit
 
 extension PagedPhotoDetailViewController: UIPageViewControllerDataSource {
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        guard let selectedIndex = self.getSelectedPhotoIndex(), let dataSource = self.getPhotoDataSource() else {
+        guard let selectedIndex = selectedPhotoIndex() else {
             return nil
         }
         
@@ -19,23 +19,23 @@ extension PagedPhotoDetailViewController: UIPageViewControllerDataSource {
             return nil
         }
         
-        let previousPhoto = dataSource.photoAt(index: previousIndex)
+        let previousPhoto = photoDataSource().photoAt(index: previousIndex)
         let previousVC = PageType.init(animationController: animationController, image: previousPhoto, imageIndex: previousIndex)
         
         return previousVC
     }
     
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        guard let selectedIndex = self.getSelectedPhotoIndex(), let dataSource = self.getPhotoDataSource() else {
+        guard let selectedIndex = selectedPhotoIndex() else {
             return nil
         }
         
         let nextIndex = selectedIndex + 1
-        guard nextIndex < dataSource.numberOfPhotos() else {
+        guard nextIndex < photoDataSource().numberOfPhotos() else {
             return nil
         }
         
-        let nextPhoto = dataSource.photoAt(index: nextIndex)
+        let nextPhoto = photoDataSource().photoAt(index: nextIndex)
         let nextVC = PageType.init(animationController: animationController, image: nextPhoto, imageIndex: nextIndex)
         
         return nextVC
