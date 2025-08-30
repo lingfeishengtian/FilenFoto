@@ -13,41 +13,9 @@ extension PhotoPageViewController: UIGestureRecognizerDelegate {
         if let gestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer {
             let velocity = gestureRecognizer.velocity(in: gestureRecognizer.view)
             
-            return isVerticalMovement(of: velocity)
+            return isVerticalMovement(of: velocity) && scrollView.zoomScale == scrollView.minimumZoomScale
         }
 
         return true
-    }
-
-    fileprivate func getGestureRecognizer<GestureType>(equivelantTo goalGesture: UIGestureRecognizer, from gestures: [UIGestureRecognizer])
-        -> GestureType?
-    {
-        for gesture in gestures {
-            if gesture == goalGesture {
-                return gesture as? GestureType
-            }
-        }
-
-        return nil
-    }
-
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer)
-        -> Bool
-    {
-        let argList = [gestureRecognizer, otherGestureRecognizer]
-        let panGestureRecognizer: UIPanGestureRecognizer? = getGestureRecognizer(
-            equivelantTo: self.panGestureRecognizer, from: argList)
-        let scrollViewPanGestureRecognizer: UIPanGestureRecognizer? = getGestureRecognizer(
-            equivelantTo: self.scrollView.panGestureRecognizer, from: argList)
-        
-        guard let panGestureRecognizer, let scrollViewPanGestureRecognizer else {
-            return false
-        }
-        
-        if scrollView.zoomScale != scrollView.minimumZoomScale {
-            return false
-        }
-
-        return false
     }
 }

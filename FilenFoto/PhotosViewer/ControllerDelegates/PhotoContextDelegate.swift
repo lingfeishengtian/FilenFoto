@@ -61,6 +61,7 @@ extension PhotoContextDelegate {
     }
     
     /// Looks for, first, the context host starting from the top of the stack, then sets the selected photo index and calls updateSelectedPhotoIndex on all views following it in the navigation stack as they should all conform to `PhotoContextDelegate`, if they do not, warn in the log.
+    /// Will not call `willUpdateSelectedPhotoIndex` on the caller of the this function
     func setSelectedPhotoIndex(_ index: Int) {
         let viewControllers = self.navigationController?.viewControllers ?? []
         
@@ -73,7 +74,9 @@ extension PhotoContextDelegate {
         
         for vc in viewControllers[hostIndex...] {
             if let contextDelegate = vc as? PhotoContextDelegate {
-                contextDelegate.willUpdateSelectedPhotoIndex(index)
+                if contextDelegate != self {
+                    contextDelegate.willUpdateSelectedPhotoIndex(index)
+                }
             } else {
                 logger.warning("ViewController \(String(describing: vc)) does not conform to PhotoContextDelegate.")
             }

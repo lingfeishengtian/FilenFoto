@@ -9,9 +9,8 @@ import Foundation
 import UIKit
 
 class PhotoHeroAnimationController: NSObject {
-    let heroInteractiveTransition = InteractiveHeroAnimatedTransition()
-    let detailedInfoTransition = DetailedInfoTransition()
-    let detailedInfoInteractiveTransition = DetailedInfoInteractiveTransition()
+    let heroInteractiveTransition = InteractiveHeroAnimatedTransition(movableXAxis: true)
+    let detailedInfoInteractiveTransition = InteractiveHeroAnimatedTransition(movableXAxis: false)
     
     private weak var navigationController: UINavigationController?
     private let panGestureRecognizer = UIPanGestureRecognizer()

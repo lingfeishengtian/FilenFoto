@@ -15,6 +15,6 @@ extension DetailedPhotoViewController: UIGestureRecognizerDelegate {
         }
         
         let velocity = panGesture.velocity(in: view)
-        return direction(of: velocity) == .down
+        return isVerticalMovement(of: velocity)
     }
 }

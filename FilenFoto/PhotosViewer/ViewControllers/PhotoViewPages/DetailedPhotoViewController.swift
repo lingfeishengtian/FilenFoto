@@ -46,6 +46,9 @@ class DetailedPhotoViewController: FFParentImageViewController {
 
         swiftUIView.view.frame = calculateSwiftUIFrame()
         swiftUIView.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        
+        panGestureRecognizer.delegate = self
+        
 
         self.view.addSubview(imageView)
         self.view.addSubview(swiftUIView.view)
@@ -58,16 +61,13 @@ class DetailedPhotoViewController: FFParentImageViewController {
 
     // MARK: - Gesture Recognizers
     @objc func handlePan(_ gestureRecognizer: UIPanGestureRecognizer) {
-        self.animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
-
         switch gestureRecognizer.state {
         case .began:
-//            self.animationController.isInteractive = true
+            animationController.beganTransition(initiallyInteractive: true)
             self.navigationController?.popViewController(animated: true)
-        case .changed:
-            break
+            self.animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
         default:
-            break
+            self.animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
         }
     }
 }

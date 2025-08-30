@@ -16,7 +16,7 @@ func generateTestView() -> some View {
 }
 
 class PhotoPageViewController: FFParentImageViewController {
-    var scrollView: UIScrollView!
+    var scrollView: UIScrollView = UIScrollView() // TODO: This variables looks different from rest, find better solution
     var swiftUITopBar: UIHostingController<AnyView>!
     var swiftUIBottomBar: UIHostingController<AnyView>!
 
@@ -47,18 +47,20 @@ class PhotoPageViewController: FFParentImageViewController {
 
         swiftUITopBar = UIHostingController(rootView: AnyView(generateTestView()))
         swiftUIBottomBar = UIHostingController(rootView: AnyView(generateTestView()))
-        
+
         self.view.backgroundColor = self.traitCollection.userInterfaceStyle == .dark ? .black : .white
         self.view.addSubview(scrollView)
         self.addChild(swiftUITopBar)
         self.addChild(swiftUIBottomBar)
         self.view.addSubview(swiftUITopBar.view)
         self.view.addSubview(swiftUIBottomBar.view)
-        
-//        animationController.panGestureRecognizer.addTarget(self, action: #selector(handlePan(_:)))
-//        self.view.addGestureRecognizer(animationController.panGestureRecognizer)
+
         self.view.addGestureRecognizer(panGestureRecognizer)
         self.view.addGestureRecognizer(doubleTapGestureRecognizer)
+
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        swiftUITopBar.view.translatesAutoresizingMaskIntoConstraints = false
+        swiftUIBottomBar.view.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
             swiftUITopBar.view.topAnchor.constraint(equalTo: self.view.topAnchor),
@@ -93,7 +95,11 @@ class PhotoPageViewController: FFParentImageViewController {
     func configure(with image: UIImage?) {
         self.imageView.image = image
 
-        centerAndResize(imageView: self.imageView, in: self.scrollView.frame)
+        guard let image else {
+            return
+        }
+
+        self.imageView.frame = centeredAndResizedFrame(for: image, in: self.scrollView.frame)
 
         let offsetX = max((scrollView.bounds.size.width - scrollView.contentSize.width) / 2, 0.0)
         let offsetY = max((scrollView.bounds.size.height - scrollView.contentSize.height) / 2, 0.0)
@@ -111,40 +117,31 @@ class PhotoPageViewController: FFParentImageViewController {
             if animationController.isAnimating() {
                 return
             }
-            
+
             if direction(of: velocity) == .down {
                 animationController.beganTransition(initiallyInteractive: true)
                 navigationController?.popViewController(animated: true)
-                
+
                 animationController.heroInteractiveTransition.handlePan(gestureRecognizer)
             } else {
                 let pagedVC = PagedPhotoDetailViewController()
                 pagedVC.animationController = animationController
                 pagedVC.PageType = DetailedPhotoViewController.self
 
+                animationController.beganTransition(initiallyInteractive: true)
                 navigationController?.pushViewController(pagedVC, animated: true)
+                animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
             }
 
             initialPanDirection = direction(of: velocity)
-        case .changed:
-            if initialPanDirection == .down {
-                animationController.heroInteractiveTransition.handlePan(gestureRecognizer)
-            }
-
-            if initialPanDirection == .up {
-                animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
-            }
-        case .ended:
-            if initialPanDirection == .down {
-                animationController.heroInteractiveTransition.handlePan(gestureRecognizer)
-            }
-
-            if initialPanDirection == .up {
-                animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
-            }
         default:
-            // TODO: Remove this debug print
-            print("Unhandled gesture state: \(gestureRecognizer.state)")
+            if initialPanDirection == .down {
+                animationController.heroInteractiveTransition.handlePan(gestureRecognizer)
+            }
+
+            if initialPanDirection == .up {
+                animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
+            }
         }
     }
 
@@ -158,6 +155,14 @@ class PhotoPageViewController: FFParentImageViewController {
     }
 
     override func getAnimationReferences(in view: UIView) -> AnimationReferences {
-        return AnimationReferences(imageReference: self.imageView, frame: self.scrollView.frame)
+        self.view.layoutIfNeeded()
+        
+        return AnimationReferences(
+            imageReference: imageView,
+            frame: scrollView.convert(
+                imageView.frame,
+                to: view
+            )
+        )
     }
 }

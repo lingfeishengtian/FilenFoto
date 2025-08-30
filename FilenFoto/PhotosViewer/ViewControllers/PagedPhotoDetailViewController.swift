@@ -22,16 +22,20 @@ class PagedPhotoDetailViewController: UIViewController, PhotoContextDelegate {
 
         pagedController.delegate = self
         pagedController.dataSource = self
-
-        let initialPhotoVC = PageType.init(
-            animationController: animationController, image: selectedPhoto(), imageIndex: getSelectedPhotoIndex() ?? 0)
-
-        pagedController.setViewControllers([initialPhotoVC], direction: .forward, animated: false, completion: nil)
+        pagedController.setViewControllers(generateCurrentViewControllers(), direction: .forward, animated: false, completion: nil)
         pagedController.didMove(toParent: self)
     }
 
     func willUpdateSelectedPhotoIndex(_ index: Int) {
-        // TODO: Implement this method to update the page view controller to the new index
-        // TODO: Call update on pageController's 3 view controllers
+        pagedController.setViewControllers(generateCurrentViewControllers(), direction: .forward, animated: false)
+    }
+    
+    fileprivate func generateCurrentViewControllers() -> [UIViewController]? {
+        guard let selectedPhotoIndex = getSelectedPhotoIndex() else {
+            return nil
+        }
+        
+        return [PageType.init(
+            animationController: animationController, image: selectedPhoto(), imageIndex: selectedPhotoIndex)]
     }
 }
