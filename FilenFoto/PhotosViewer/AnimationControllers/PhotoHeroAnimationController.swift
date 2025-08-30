@@ -16,6 +16,7 @@ class PhotoHeroAnimationController: NSObject {
     private weak var navigationController: UINavigationController?
     private let panGestureRecognizer = UIPanGestureRecognizer()
     
+    // TODO: FIx remove navigationController
     init(navigationController: UINavigationController) {
         super.init()
         
@@ -33,18 +34,7 @@ class PhotoHeroAnimationController: NSObject {
         heroInteractiveTransition.wantsInteractiveStart = initiallyInteractive
     }
     
-    @objc func handlePan(_ gestureRecognizer: UIPanGestureRecognizer) {
-        guard let navigationController = navigationController, let topViewController = navigationController.topViewController else { return }
-        
-        if let pagedVC = topViewController as? PagedPhotoDetailViewController, let view = pagedVC.view {
-            let returnedView = view.hitTest(gestureRecognizer.location(in: view), with: nil)
-            
-                if gestureRecognizer.state == .began {
-                    navigationController.popViewController(animated: true)
-                }
-            
-            if returnedView == (pagedVC.pagedController.viewControllers?.first as! PhotoPageViewController).imageView {
-            }
-        }
+    func isAnimating() -> Bool {
+        heroInteractiveTransition.isAnimating()
     }
 }

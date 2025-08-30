@@ -24,5 +24,11 @@ extension PhotosViewerViewController: PhotoHeroAnimatorDelegate {
     
     func transitionDidEnd() {
         focusOnCell(at: getSelectedIndexPath())
+        
+        self.collectionView.isScrollEnabled = true
+    }
+    
+    func transitionWillStart() {
+        self.collectionView.isScrollEnabled = false
     }
 }

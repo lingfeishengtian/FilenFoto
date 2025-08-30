@@ -57,23 +57,11 @@ class PhotosViewerViewController: UIViewController, PhotoContextHost, UIGestureR
         focusOnCell(at: getSelectedIndexPath())
     }
     
-    // MARK: - Gesture Recognizers
-    @objc func handlePan(_ gestureRecognizer: UIPanGestureRecognizer) {
-        let velocity = gestureRecognizer.velocity(in: self.view)
-//        print("Pan velocity: \(velocity)")
-//        transitionDelegate.isInteractive = true
-//        transitionDelegate.heroInteractiveTransition.handlePan(gestureRecognizer)
-//        
-//        if gestureRecognizer.state == .ended || gestureRecognizer.state == .cancelled {
-//            transitionDelegate.isInteractive = false
-//        }
-    }
-    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         true
     }
     
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        true
+        transitionDelegate.isAnimating()
     }
 }

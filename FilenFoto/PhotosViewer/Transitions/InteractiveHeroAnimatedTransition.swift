@@ -91,10 +91,6 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
         transitionContext.updateInteractiveTransition(progress)
         viewTransitionAnimator.fractionComplete = progress
 
-        print(transitionImageView.center)
-        print(transitionImageView.isHidden)
-        print(transitionImageView.superview)
-
         if gestureRecognizer.state == .ended {
             let velocity = gestureRecognizer.velocity(in: fromVC.view)
 
@@ -300,5 +296,12 @@ extension InteractiveHeroAnimatedTransition: UIGestureRecognizerDelegate {
 
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         true
+    }
+}
+
+// MARK: - Is Animating
+extension InteractiveHeroAnimatedTransition {
+    func isAnimating() -> Bool {
+        return transitionContext != nil
     }
 }

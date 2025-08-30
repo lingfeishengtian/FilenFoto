@@ -108,6 +108,10 @@ class PhotoPageViewController: FFParentImageViewController {
 
         switch gestureRecognizer.state {
         case .began:
+            if animationController.isAnimating() {
+                return
+            }
+            
             if direction(of: velocity) == .down {
                 animationController.beganTransition(initiallyInteractive: true)
                 navigationController?.popViewController(animated: true)
