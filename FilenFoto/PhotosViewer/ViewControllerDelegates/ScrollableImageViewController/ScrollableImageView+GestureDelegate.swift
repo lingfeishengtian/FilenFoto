@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-extension PhotoPageViewController: UIGestureRecognizerDelegate {
+extension ScrollableImageViewController: UIGestureRecognizerDelegate {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         if let gestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer {
             let velocity = gestureRecognizer.velocity(in: gestureRecognizer.view)

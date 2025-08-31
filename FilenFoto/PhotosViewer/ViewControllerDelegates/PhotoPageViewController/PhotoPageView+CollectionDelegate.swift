@@ -9,5 +9,8 @@ import Foundation
 import UIKit
 
 extension PhotoPageViewController: UICollectionViewDelegate {
-    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        
+        let page = Int(scrollView.contentOffset.x / scrollView.frame.size.width)
+    }
 }

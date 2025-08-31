@@ -46,7 +46,6 @@ class PhotoDataSource: PhotoDataSourceProtocol {
 
     init() {
                 photos = imageGenerator(named: "SampleImage")
-
     }
 
     func numberOfPhotos() -> Int {
@@ -63,7 +62,7 @@ struct PhotoViewProvider: SwiftUIProviderProtocol {
     func view(for providerRoute: SwiftUIProviderRoute, with image: UIImage) -> any View {
         switch providerRoute {
         case .topBar:
-            Text("Photo Detail View")
+            Text(image.debugDescription)
         case .bottomBar:
             Text("Test")
         case .detailedImage:

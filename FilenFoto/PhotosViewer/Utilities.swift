@@ -69,7 +69,9 @@ func lerp(from start: CGFloat, to end: CGFloat, with progress: CGFloat) -> CGFlo
 }
 
 fileprivate func clampedInvLerp(_ o: CGFloat, _ p: CGFloat, _ m: CGFloat) -> CGFloat {
-    min(max((o - p) / (o - m), 0), 1)
+    if o - m == 0 { return 0 }
+    
+    return min(max((o - p) / (o - m), 0), 1)
 }
 
 /// Mathmatical helper function to linearly interpolate the size of a frame between animation transition frames..

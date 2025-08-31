@@ -14,12 +14,29 @@ import os
 
 let IMAGE_PERCENT_OF_SCREEN: CGFloat = 0.5
 
-class DetailedPhotoViewController: FFParentImageViewController {
+class DetailedPhotoViewController: UIViewController, PhotoContextDelegate, PagedPhotoHeroAnimatorDelegate, ChildPageProtocol {
+    let animationController: PhotoHeroAnimationController
+    let image: UIImage?
+    var imageIndex: Int
+    /// Purely for tagging purposes during transition
     private let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "DetailedPhotoViewController")
-
+    
+    var imageView: UIImageView!
     var swiftUIView: UIHostingController<AnyView>!
     lazy var panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
 
+    required init(animationController: PhotoHeroAnimationController, image: UIImage?, imageIndex: Int) {
+        self.image = image
+        self.imageIndex = imageIndex
+        self.animationController = animationController
+
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     func calculateImageFrame() -> CGRect {
         CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height * IMAGE_PERCENT_OF_SCREEN)
     }
@@ -53,10 +70,6 @@ class DetailedPhotoViewController: FFParentImageViewController {
         self.view.addGestureRecognizer(panGestureRecognizer)
     }
 
-    override func getAnimationReferences(in view: UIView) -> AnimationReferences {
-        return AnimationReferences(imageReference: self.imageView, frame: self.view.convert(calculateImageFrame(), to: view))
-    }
-
     // MARK: - Gesture Recognizers
     @objc func handlePan(_ gestureRecognizer: UIPanGestureRecognizer) {
         switch gestureRecognizer.state {
@@ -67,5 +80,13 @@ class DetailedPhotoViewController: FFParentImageViewController {
         default:
             self.animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
         }
+    }
+    
+    func willUpdateSelectedPhotoIndex(_ index: Int, _ wasSelf: Bool) {
+        // TODO: Ignore
+    }
+    
+    func getAnimationReferences(in view: UIView) -> AnimationReferences {
+        return AnimationReferences(imageReference: self.imageView, frame: self.view.convert(calculateImageFrame(), to: view))
     }
 }

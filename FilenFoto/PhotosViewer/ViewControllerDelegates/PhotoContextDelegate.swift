@@ -12,7 +12,7 @@ import os
 private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "FilenFoto", category: "PhotoContextDelegate")
 
 protocol PhotoContextDelegate: UIViewController {
-    func willUpdateSelectedPhotoIndex(_ index: Int)
+    func willUpdateSelectedPhotoIndex(_ index: Int, _ wasSelf: Bool)
 }
 
 /// This is over-engineered, but is a concept of how we can state manager across the navigationController
@@ -56,11 +56,7 @@ extension PhotoContextDelegate {
         let viewControllers = self.navigationController?.viewControllers ?? []
         
         for case let viewController as PhotoContextDelegate in viewControllers {
-            if viewController == self || self.view.isDescendant(of: viewController.view) {
-                continue
-            }
-            
-            viewController.willUpdateSelectedPhotoIndex(index)
+            viewController.willUpdateSelectedPhotoIndex(index, viewController == self)
         }
     }
 }

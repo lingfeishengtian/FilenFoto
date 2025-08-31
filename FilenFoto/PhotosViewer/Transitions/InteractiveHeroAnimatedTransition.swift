@@ -93,7 +93,7 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
             fromFrame: finalFrame(for: fromVC),
             currentFrame: previousAnchorFrame!,
             toFrame: finalFrame(for: toVC),
-            at: gestureRecognizer.location(in: containerView),
+            at: transitionImageView.center,
             originPoint: originPoint!
         )
 
@@ -288,10 +288,6 @@ extension InteractiveHeroAnimatedTransition {
     }
 
     func shouldCenterImage(viewController: UIViewController) -> Bool {
-        guard let vc = viewController as? PagedPhotoDetailViewController else {
-            return false
-        }
-
-        return vc.PageType == PhotoPageViewController.self
+        return viewController is PhotoPageViewController
     }
 }

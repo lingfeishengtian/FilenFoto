@@ -8,9 +8,8 @@
 import Foundation
 import UIKit
 
+/// Other classes inherit this class if they need a more detailed paged detail view controller
 class PagedPhotoDetailViewController: UIViewController, PhotoContextDelegate {
-    var PageType: FFParentImageViewController.Type!
-
     var pagedController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
     var animationController: PhotoHeroAnimationController!
 
@@ -22,20 +21,30 @@ class PagedPhotoDetailViewController: UIViewController, PhotoContextDelegate {
 
         pagedController.delegate = self
         pagedController.dataSource = self
-        pagedController.setViewControllers(generateCurrentViewControllers(), direction: .forward, animated: false, completion: nil)
+        pagedController.setViewControllers(currentViewControllers(), direction: .forward, animated: false, completion: nil)
         pagedController.didMove(toParent: self)
     }
 
-    func willUpdateSelectedPhotoIndex(_ index: Int) {
-        pagedController.setViewControllers(generateCurrentViewControllers(), direction: .forward, animated: false)
+    func willUpdateSelectedPhotoIndex(_ index: Int, _ wasSelf: Bool) {
+        if !wasSelf {
+            pagedController.setViewControllers(currentViewControllers(), direction: .forward, animated: false)
+        }
     }
     
-    fileprivate func generateCurrentViewControllers() -> [UIViewController]? {
-        guard let selectedPhotoIndex = selectedPhotoIndex() else {
+    func currentViewControllers() -> [UIViewController]? {
+        guard let selectedIndex = selectedPhotoIndex(), let currentViewController = getViewController(at: selectedIndex) else {
             return nil
         }
         
-        return [PageType.init(
-            animationController: animationController, image: selectedPhoto(), imageIndex: selectedPhotoIndex)]
+        return [currentViewController]
+    }
+    
+    func getViewController(at index: Int) -> UIViewController? {
+        if index < 0 || index >= photoDataSource().numberOfPhotos() {
+            return nil
+        }
+                
+        return ScrollableImageViewController(
+            animationController: animationController, image: photoDataSource().photoAt(index: index), imageIndex: index)
     }
 }

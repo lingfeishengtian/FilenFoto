@@ -10,7 +10,7 @@ import UIKit
 
 extension PagedPhotoDetailViewController: UIPageViewControllerDelegate {
     func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-        guard let currentPage = pageViewController.viewControllers?.first as? FFParentImageViewController else {
+        guard let currentPage = pageViewController.viewControllers?.first as? ChildPageProtocol else {
             return
         }
         

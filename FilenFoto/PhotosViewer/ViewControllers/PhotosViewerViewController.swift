@@ -44,7 +44,9 @@ class PhotosViewerViewController: UIViewController, PhotoContextDelegate {
         return IndexPath(item: selectedPhotoIndex() ?? 0, section: 0)
     }
     
-    func willUpdateSelectedPhotoIndex(_ index: Int) {
-        focusOnCell(at: getSelectedIndexPath())
+    func willUpdateSelectedPhotoIndex(_ index: Int, _ wasSelf: Bool) {
+        if !wasSelf {
+            focusOnCell(at: getSelectedIndexPath())
+        }
     }
 }
