@@ -48,5 +48,5 @@ xcodebuild -create-xcframework \
 	-library target/aarch64-apple-ios-sim/release/lib${libname}.a -headers target/uniffi-xcframework-staging \
 	-output target/ios/lib${libname}.xcframework
 
-cp -r target/ios/lib${libname}.xcframework "$xcode_dir/Frameworks"
+# cp -r target/ios/lib${libname}.xcframework "$xcode_dir/Frameworks"
 # cp target/uniffi-xcframework-staging/${libname}.swift "$xcode_dir/filen_mobile_native_cache.swift"
