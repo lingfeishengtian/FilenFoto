@@ -6,36 +6,36 @@
 //
 
 import Foundation
-import UIKit
 import SwiftUI
+import UIKit
 import os
 
-class PhotosViewerViewController: PhotoGalleryTemplateViewController  {
+class PhotosViewerViewController: PhotoGalleryTemplateViewController {
     var contextHostController: PhotosViewerViewController? = nil
-    
+
     var collectionView: UICollectionView!
     var itemSize: CGSize!
 
     var animationController: PhotoHeroAnimationController!
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PhotosViewerViewController")
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         let spacing: CGFloat = 1
         let numberOfItemsPerRow: CGFloat = 5
         let totalSpacing = (numberOfItemsPerRow - 1) * spacing
 
         let itemWidth = floor((view.frame.width - totalSpacing) / numberOfItemsPerRow)
         itemSize = CGSize(width: itemWidth, height: itemWidth)
-        
+
         let swiftUIOverlayView = UIHostingController(rootView: AnyView(swiftUIProvider().overlay(for: .galleryView)))
         swiftUIOverlayView.view.backgroundColor = .clear
         swiftUIOverlayView.view.isOpaque = false
         swiftUIOverlayView.view.isUserInteractionEnabled = false
         swiftUIOverlayView.view.frame = self.view.bounds
-        
+
         // Setup Collection View
         let layout = UICollectionViewFlowLayout()
         layout.itemSize = itemSize
@@ -49,22 +49,21 @@ class PhotosViewerViewController: PhotoGalleryTemplateViewController  {
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(PhotoViewCell.self, forCellWithReuseIdentifier: "PhotoCell")
-        collectionView.register(CollectionHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "CollectionHeader")
+        collectionView.register(
+            CollectionHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "CollectionHeader")
 
         self.view.addSubview(collectionView)
-//        self.view.addSubview(swiftUIOverlayView.view)
-        
+        //        self.view.addSubview(swiftUIOverlayView.view)
+
         animationController = PhotoHeroAnimationController()
         self.navigationController?.delegate = animationController
     }
-    
+
     func getSelectedIndexPath() -> IndexPath {
         return IndexPath(item: selectedPhotoIndex() ?? 0, section: 0)
     }
-    
-    func willUpdateSelectedPhotoIndex(_ index: Int, _ wasSelf: Bool) {
-        if !wasSelf {
-            focusOnCell(at: getSelectedIndexPath())
-        }
+
+    func willUpdateSelectedPhotoIndex(_ index: Int) {
+        focusOnCell(at: getSelectedIndexPath())
     }
 }

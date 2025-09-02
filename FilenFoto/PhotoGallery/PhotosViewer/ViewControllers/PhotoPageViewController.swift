@@ -101,12 +101,13 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
         collectionView.setContentOffset(CGPoint(x: Int(itemWidth()) * selectedIndex, y: 0), animated: animated)
     }
     
-    override func willUpdateSelectedPhotoIndex(_ index: Int, _ wasSelf: Bool) {
-        super.willUpdateSelectedPhotoIndex(index, wasSelf)
+    override func willUpdateSelectedPhotoIndex(_ index: Int?) {
+        super.willUpdateSelectedPhotoIndex(index)
         
         if !collectionView.isDragging {
             scrollScrubberToSelectedPhoto(animated: true)
         }
+        
         resetSwiftUIViews()
     }
 }

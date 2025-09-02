@@ -66,10 +66,6 @@ class DetailedPhotoViewController: ChildPageTemplateViewController, PagedPhotoHe
         }
     }
     
-    func willUpdateSelectedPhotoIndex(_ index: Int, _ wasSelf: Bool) {
-        // TODO: Ignore
-    }
-    
     func getAnimationReferences(in view: UIView) -> AnimationReferences {
         return AnimationReferences(imageReference: self.imageView, frame: self.view.convert(calculateImageFrame(), to: view))
     }

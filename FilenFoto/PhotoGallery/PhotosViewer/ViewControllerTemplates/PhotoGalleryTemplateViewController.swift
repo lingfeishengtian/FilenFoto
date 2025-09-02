@@ -21,9 +21,11 @@ class PhotoGalleryTemplateViewController: UIViewController, PhotoContextDelegate
         
         super.init(nibName: nil, bundle: nil)
         
-        self.cancellable = self.photoGalleryContext.$selectedPhotoIndex.sink { [weak self] newIndex in
-            guard let self else { return }
-            self.willUpdateSelectedPhotoIndex(newIndex)
+        self.cancellable = self.photoGalleryContext.$selectedPhotoIndex
+            .removeDuplicates()
+            .sink { [weak self] newIndex in
+                guard let self, self.isViewLoaded else { return }
+                self.willUpdateSelectedPhotoIndex(newIndex)
         }
     }
     
