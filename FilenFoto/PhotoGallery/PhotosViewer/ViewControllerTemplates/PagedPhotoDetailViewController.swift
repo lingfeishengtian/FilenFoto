@@ -42,8 +42,6 @@ class PagedPhotoDetailViewController: PhotoGalleryTemplateViewController {
             return nil
         }
         
-        print("selectedIndex: \(selectedIndex)")
-
         return [currentViewController]
     }
 

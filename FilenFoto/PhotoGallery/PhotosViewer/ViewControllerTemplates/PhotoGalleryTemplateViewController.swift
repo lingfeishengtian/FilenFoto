@@ -30,7 +30,7 @@ class PhotoGalleryTemplateViewController: UIViewController {
             .removeDuplicates()
             .sink { [weak self] newIndex in
                 guard let self, self.isViewLoaded, localSelectedPhotoIndex != newIndex else { return }
-                print("Selected photo index updated to \(String(describing: newIndex))")
+
                 self.willUpdateSelectedPhotoIndex(newIndex)
         }
     }
