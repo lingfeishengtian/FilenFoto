@@ -97,20 +97,19 @@ class ScrollableImageViewController: ChildPageTemplateViewController, PagedPhoto
             if animationController.isAnimating() {
                 return
             }
+            
+            commitLocalSelectedPhotoIndex()
 
             if direction(of: velocity) == .down {
-                animationController.beganTransition(initiallyInteractive: true)
-                navigationController?.dismiss(animated: true)
+                animationController.beginDismissingInteractiveTransition()
+                dismiss(animated: true)
 
                 animationController.heroInteractiveTransition.handlePan(gestureRecognizer)
             } else {
                 let pagedVC = DetailPageViewController(animationController: animationController, photoGalleryContext: photoGalleryContext)
                 pagedVC.animationController = animationController
 
-                animationController.beganTransition(initiallyInteractive: true)
-                
-                animationController.detailedInfoInteractiveTransition.from = self.parent?.parent
-                animationController.detailedInfoInteractiveTransition.to = pagedVC
+                animationController.beginDetailedInfoInteractiveTransition(initiallyInteractive: true, from: pagingViewController, to: pagedVC)
                 
                 navigationController?.pushViewController(pagedVC, animated: true)
                 animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)

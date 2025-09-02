@@ -9,7 +9,6 @@ import Foundation
 import UIKit
 
 class ChildPageTemplateViewController: PhotoGalleryTemplateViewController {
-    
     let animationController: PhotoHeroAnimationController
     let image: UIImage?
     var imageIndex: Int
@@ -21,5 +20,17 @@ class ChildPageTemplateViewController: PhotoGalleryTemplateViewController {
         self.animationController = animationController
         
         super.init(photoGalleryContext: photoGalleryContext)
+    }
+    
+    var pagingViewController: PagedPhotoDetailViewController {
+        if let parent = self.parent?.parent as? PagedPhotoDetailViewController {
+            return parent
+        }
+        
+        fatalError("ChildPageTemplateViewController must be a child of PagedPhotoDetailViewController")
+    }
+    
+    override func commitLocalSelectedPhotoIndex() {
+        pagingViewController.commitLocalSelectedPhotoIndex()
     }
 }

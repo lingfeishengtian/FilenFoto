@@ -11,8 +11,8 @@ import SwiftUI
 class PhotoGalleryContext: ObservableObject {
     @Published var selectedPhotoIndex: Int?
     
-    var photoDataSource: any PhotoDataSourceProtocol
-    var swiftUIProvider: any SwiftUIProviderProtocol
+    let photoDataSource: any PhotoDataSourceProtocol
+    let swiftUIProvider: any SwiftUIProviderProtocol
     
     init(photoDataSource: any PhotoDataSourceProtocol, swiftUIProvider: any SwiftUIProviderProtocol) {
         self.photoDataSource = photoDataSource

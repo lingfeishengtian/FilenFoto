@@ -23,6 +23,7 @@ struct ErrorMessagesListView: View {
                         .fontWeight(.bold)
                     Spacer()
                     Button {
+                        // TODO: Fix this nested with animation
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             expanded = false
                         } completion: {

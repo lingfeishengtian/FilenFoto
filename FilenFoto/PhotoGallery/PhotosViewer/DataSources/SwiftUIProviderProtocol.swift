@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 protocol SwiftUIProviderProtocol {
-    func view(for providerRoute: SwiftUIProviderRoute, with image: UIImage) -> any View
-    func overlay(for providerRoute: SwiftUIOverlayRoute) -> any View // TODO: Add state provider that exposes the collection view state
+    func topBar(with image: UIImage) -> any View
+    func bottomBar(with image: UIImage) -> any View
+    func detailedView(for image: UIImage) -> any View
 }

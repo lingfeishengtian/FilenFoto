@@ -60,36 +60,22 @@ class PhotoDataSource: PhotoDataSourceProtocol {
 }
 
 struct PhotoViewProvider: SwiftUIProviderProtocol {
-    func overlay(for providerRoute: SwiftUIOverlayRoute) -> any View {
-        switch providerRoute {
-        case .galleryView:
-            VStack {
-                Text("Photo Gallery")
-                    .font(.largeTitle)
-                    .padding()
-                Spacer()
-                Button("Close Gallery") {
-                    print("hello")
-                }
-            }.background(Color.black.opacity(0.5))
+    func topBar(with image: UIImage) -> any View {
+        Text(image.debugDescription)
+    }
+    
+    func bottomBar(with image: UIImage) -> any View {
+        Button("Test Filen") {
         }
     }
     
-    func view(for providerRoute: SwiftUIProviderRoute, with image: UIImage) -> any View {
-        switch providerRoute {
-        case .topBar:
-            Text(image.debugDescription)
-        case .bottomBar:
-            Button("Test Filen") {
-            }
-        case .detailedImage:
-            VStack {
-                Text("Photo Detail View")
-                    .font(.headline)
-                    .padding()
-                Text("Size: \(Int(image.size.width)) x \(Int(image.size.height))")
-                    .font(.subheadline)
-            }
+    func detailedView(for image: UIImage) -> any View {
+        VStack {
+            Text("Photo Detail View")
+                .font(.headline)
+                .padding()
+            Text("Size: \(Int(image.size.width)) x \(Int(image.size.height))")
+                .font(.subheadline)
         }
     }
 }

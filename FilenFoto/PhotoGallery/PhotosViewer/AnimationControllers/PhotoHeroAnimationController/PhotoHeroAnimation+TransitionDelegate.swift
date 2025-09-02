@@ -20,10 +20,10 @@ extension PhotoHeroAnimationController: UIViewControllerTransitioningDelegate {
     }
     
     func interactionControllerForPresentation(using animator: any UIViewControllerAnimatedTransitioning) -> (any UIViewControllerInteractiveTransitioning)? {
-        return self.heroInteractiveTransition
+        self.heroInteractiveTransition
     }
     
     func interactionControllerForDismissal(using animator: any UIViewControllerAnimatedTransitioning) -> (any UIViewControllerInteractiveTransitioning)? {
-        return self.heroInteractiveTransition
+        self.heroInteractiveTransition
     }
 }

@@ -39,7 +39,7 @@ class DetailedPhotoViewController: ChildPageTemplateViewController, PagedPhotoHe
         imageView.image = image
 
         if let image {
-            swiftUIView = UIHostingController(rootView: AnyView(swiftUIProvider().view(for: .detailedImage, with: image)))
+            swiftUIView = UIHostingController(rootView: AnyView(swiftUIProvider().detailedView(for: image)))
         } else {
             swiftUIView = UIHostingController(rootView: AnyView(EmptyView()))
         }
@@ -58,7 +58,8 @@ class DetailedPhotoViewController: ChildPageTemplateViewController, PagedPhotoHe
     @objc func handlePan(_ gestureRecognizer: UIPanGestureRecognizer) {
         switch gestureRecognizer.state {
         case .began:
-            animationController.beganTransition(initiallyInteractive: true)
+            commitLocalSelectedPhotoIndex()
+            animationController.beginDismissingInteractiveTransition()
             self.navigationController?.popViewController(animated: true)
             self.animationController.detailedInfoInteractiveTransition.handlePan(gestureRecognizer)
         default:

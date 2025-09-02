@@ -11,8 +11,6 @@ import UIKit
 import os
 
 class PhotosViewerViewController: PhotoGalleryTemplateViewController {
-    var contextHostController: PhotosViewerViewController? = nil
-
     var collectionView: UICollectionView!
     var itemSize: CGSize!
 
@@ -30,30 +28,19 @@ class PhotosViewerViewController: PhotoGalleryTemplateViewController {
         let itemWidth = floor((view.frame.width - totalSpacing) / numberOfItemsPerRow)
         itemSize = CGSize(width: itemWidth, height: itemWidth)
 
-        let swiftUIOverlayView = UIHostingController(rootView: AnyView(swiftUIProvider().overlay(for: .galleryView)))
-        swiftUIOverlayView.view.backgroundColor = .clear
-        swiftUIOverlayView.view.isOpaque = false
-        swiftUIOverlayView.view.isUserInteractionEnabled = false
-        swiftUIOverlayView.view.frame = self.view.bounds
-
         // Setup Collection View
         let layout = UICollectionViewFlowLayout()
         layout.itemSize = itemSize
         layout.minimumInteritemSpacing = spacing
         layout.minimumLineSpacing = spacing
-        layout.headerReferenceSize = CGSize(width: view.frame.width, height: 80)
-        layout.footerReferenceSize = CGSize(width: view.frame.width, height: 50)
 
         collectionView = UICollectionView(frame: self.view.bounds, collectionViewLayout: layout)
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(PhotoViewCell.self, forCellWithReuseIdentifier: "PhotoCell")
-        collectionView.register(
-            CollectionHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "CollectionHeader")
 
         self.view.addSubview(collectionView)
-        //        self.view.addSubview(swiftUIOverlayView.view)
 
         animationController = PhotoHeroAnimationController()
         self.navigationController?.delegate = animationController

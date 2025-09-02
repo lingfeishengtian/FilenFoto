@@ -36,14 +36,4 @@ enum Direction {
     case none
 }
 
-enum SwiftUIProviderRoute {
-    case topBar
-    case bottomBar
-    case detailedImage
-}
-
-enum SwiftUIOverlayRoute {
-    case galleryView
-}
-
 typealias DetailedPhotoViewBuilder = (UIImage) -> AnyView

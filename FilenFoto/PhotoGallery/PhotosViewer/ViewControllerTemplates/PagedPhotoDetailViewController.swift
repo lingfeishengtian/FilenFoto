@@ -12,13 +12,13 @@ import UIKit
 class PagedPhotoDetailViewController: PhotoGalleryTemplateViewController {
     var pagedController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
     var animationController: PhotoHeroAnimationController!
-    
+
     init(animationController: PhotoHeroAnimationController, photoGalleryContext: PhotoGalleryContext) {
         self.animationController = animationController
-        
+
         super.init(photoGalleryContext: photoGalleryContext)
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -31,26 +31,29 @@ class PagedPhotoDetailViewController: PhotoGalleryTemplateViewController {
         pagedController.didMove(toParent: self)
     }
 
-    func willUpdateSelectedPhotoIndex(_ index: Int, _ wasSelf: Bool) {
-        if !wasSelf {
-            pagedController.setViewControllers(currentViewControllers(), direction: .forward, animated: false)
-        }
+    override func willUpdateSelectedPhotoIndex(_ index: Int?) {
+        super.willUpdateSelectedPhotoIndex(index)
+        
+        pagedController.setViewControllers(currentViewControllers(with: index), direction: .forward, animated: false)
     }
-    
-    func currentViewControllers() -> [UIViewController]? {
-        guard let selectedIndex = selectedPhotoIndex(), let currentViewController = getViewController(at: selectedIndex) else {
+
+    func currentViewControllers(with newIndex: Int? = nil) -> [UIViewController]? {
+        guard let selectedIndex = newIndex ?? selectedPhotoIndex(), let currentViewController = getViewController(at: selectedIndex) else {
             return nil
         }
         
+        print("selectedIndex: \(selectedIndex)")
+
         return [currentViewController]
     }
-    
+
     func getViewController(at index: Int) -> UIViewController? {
         if index < 0 || index >= photoDataSource().numberOfPhotos() {
             return nil
         }
-                
+
         return ScrollableImageViewController(
-            animationController: animationController, image: photoDataSource().photoAt(index: index), imageIndex: index, photoGalleryContext: self.photoGalleryContext)
+            animationController: animationController, image: photoDataSource().photoAt(index: index), imageIndex: index,
+            photoGalleryContext: photoGalleryContext)
     }
 }

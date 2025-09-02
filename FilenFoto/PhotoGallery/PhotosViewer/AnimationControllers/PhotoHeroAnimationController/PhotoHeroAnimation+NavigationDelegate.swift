@@ -25,6 +25,6 @@ extension PhotoHeroAnimationController: UINavigationControllerDelegate {
         interactionControllerFor animationController:
             any UIViewControllerAnimatedTransitioning
     ) -> (any UIViewControllerInteractiveTransitioning)? {
-        return self.detailedInfoInteractiveTransition
+        self.detailedInfoInteractiveTransition
     }
 }

@@ -23,11 +23,9 @@ extension PhotosViewerViewController: UICollectionViewDelegate {
         
         navigationControllerWrapper.navigationBar.isHidden = true
         
-        // TODO: REMOVEEEE
-        self.animationController.heroInteractiveTransition.from = self
-        self.animationController.heroInteractiveTransition.to = detailVC
+        commitLocalSelectedPhotoIndex()
         
-        self.animationController.beganTransition(initiallyInteractive: false)
+        self.animationController.beginHeroInteractiveTransition(initiallyInteractive: false, from: self, to: detailVC)
         self.present(navigationControllerWrapper, animated: true)
     }
 

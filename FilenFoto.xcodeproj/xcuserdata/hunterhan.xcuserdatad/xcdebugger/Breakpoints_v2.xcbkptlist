@@ -1058,8 +1058,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotosViewerViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "31"
-            endingLineNumber = "31"
+            startingLineNumber = "29"
+            endingLineNumber = "29"
             landmarkName = "viewDidLoad()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1074,8 +1074,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotosViewerViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "58"
-            endingLineNumber = "58"
+            startingLineNumber = "45"
+            endingLineNumber = "45"
             landmarkName = "viewDidLoad()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1090,8 +1090,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotosViewerViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "57"
-            endingLineNumber = "57"
+            startingLineNumber = "44"
+            endingLineNumber = "44"
             landmarkName = "viewDidLoad()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1106,8 +1106,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "130"
-            endingLineNumber = "130"
+            startingLineNumber = "133"
+            endingLineNumber = "133"
             landmarkName = "animateTransition(using:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1138,8 +1138,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "134"
-            endingLineNumber = "134"
+            startingLineNumber = "137"
+            endingLineNumber = "137"
             landmarkName = "setupAnimator(using:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1154,8 +1154,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "199"
-            endingLineNumber = "199"
+            startingLineNumber = "204"
+            endingLineNumber = "204"
             landmarkName = "setupAnimator(using:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1266,8 +1266,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "197"
-            endingLineNumber = "197"
+            startingLineNumber = "202"
+            endingLineNumber = "202"
             landmarkName = "setupAnimator(using:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1282,24 +1282,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "141"
-            endingLineNumber = "141"
-            landmarkName = "setupAnimator(using:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "6B8DEFE3-94CA-4C19-874D-2BCC714B0B0F"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "137"
-            endingLineNumber = "137"
+            startingLineNumber = "146"
+            endingLineNumber = "146"
             landmarkName = "setupAnimator(using:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1314,8 +1298,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "129"
-            endingLineNumber = "129"
+            startingLineNumber = "132"
+            endingLineNumber = "132"
             landmarkName = "animateTransition(using:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1330,9 +1314,9 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "231"
-            endingLineNumber = "231"
-            landmarkName = "getFromVC()"
+            startingLineNumber = "233"
+            endingLineNumber = "233"
+            landmarkName = "fromImageContext()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -1346,9 +1330,9 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "239"
-            endingLineNumber = "239"
-            landmarkName = "getToVC()"
+            startingLineNumber = "241"
+            endingLineNumber = "241"
+            landmarkName = "toImageContext()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -1362,9 +1346,9 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "232"
-            endingLineNumber = "232"
-            landmarkName = "getFromVC()"
+            startingLineNumber = "234"
+            endingLineNumber = "234"
+            landmarkName = "fromImageContext()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -1446,36 +1430,6 @@
             endingLineNumber = "25"
             landmarkName = "gestureRecognizer(_:shouldReceive:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "E4D83753-6302-4817-970D-B93C10C24E74 - 17b878f6c561d72f"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "FilenFoto.PhotoHeroAnimationController.gestureRecognizer(_: __C.UIGestureRecognizer, shouldReceive: __C.UIEvent) -&gt; Swift.Bool"
-                  moduleName = "FilenFoto.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/hunterhan/Documents/FilenFoto/FilenFoto/PhotoGallery/PhotosViewer/AnimationControllers/PhotoHeroAnimationController/PhotoHeroAnimation+GestureDelegate.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "25"
-                  endingLineNumber = "25">
-               </Location>
-               <Location
-                  uuid = "E4D83753-6302-4817-970D-B93C10C24E74 - 17b878f6c561d72f"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "FilenFoto.PhotoHeroAnimationController.gestureRecognizer(_: __C.UIGestureRecognizer, shouldReceive: __C.UIEvent) -&gt; Swift.Bool"
-                  moduleName = "FilenFoto.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/hunterhan/Documents/FilenFoto/FilenFoto/PhotoGallery/PhotosViewer/AnimationControllers/PhotoHeroAnimationController/PhotoHeroAnimation+GestureDelegate.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "25"
-                  endingLineNumber = "25">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -1536,8 +1490,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "280"
-            endingLineNumber = "280"
+            startingLineNumber = "282"
+            endingLineNumber = "282"
             landmarkName = "startAnimationsOnInitiallyInteractive()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1552,8 +1506,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "273"
-            endingLineNumber = "273"
+            startingLineNumber = "275"
+            endingLineNumber = "275"
             landmarkName = "startAnimationsOnInitiallyInteractive()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1568,8 +1522,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "190"
-            endingLineNumber = "190"
+            startingLineNumber = "195"
+            endingLineNumber = "195"
             landmarkName = "setupAnimator(using:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1584,8 +1538,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "106"
-            endingLineNumber = "106"
+            startingLineNumber = "109"
+            endingLineNumber = "109"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1625,7 +1579,7 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "6D531074-C4AC-4469-BDBA-7FE2AF8C6A68"
+            uuid = "E2C668C3-491D-45D8-B311-C43DD54EB688"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
@@ -1634,22 +1588,6 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "115"
             endingLineNumber = "115"
-            landmarkName = "handlePan(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "E2C668C3-491D-45D8-B311-C43DD54EB688"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/ChildrenPages/ScrollableImageViewController.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "116"
-            endingLineNumber = "116"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1680,24 +1618,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/ChildrenPages/ScrollableImageViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "107"
-            endingLineNumber = "107"
-            landmarkName = "handlePan(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "749634D9-7DE8-4F6D-9D79-122D6FD1A45D"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/ChildrenPages/ScrollableImageViewController.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "113"
-            endingLineNumber = "113"
+            startingLineNumber = "109"
+            endingLineNumber = "109"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1712,8 +1634,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/ChildrenPages/ScrollableImageViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "103"
-            endingLineNumber = "103"
+            startingLineNumber = "105"
+            endingLineNumber = "105"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1728,8 +1650,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/Transitions/InteractiveHeroAnimatedTransition.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "202"
-            endingLineNumber = "202"
+            startingLineNumber = "207"
+            endingLineNumber = "207"
             landmarkName = "setupAnimator(using:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1746,6 +1668,118 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "105"
             endingLineNumber = "105"
+            landmarkName = "willUpdateSelectedPhotoIndex(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "C30530B2-E2D5-4885-AA2F-59648A96CD5B"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllerTemplates/PagedPhotoDetailViewController/PagedPhotoDetailView+PageDelegate.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "17"
+            endingLineNumber = "17"
+            landmarkName = "pageViewController(_:didFinishAnimating:previousViewControllers:transitionCompleted:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B6107422-2766-49BF-9793-A2F90CE7DA5D"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllerTemplates/PagedPhotoDetailViewController/PagedPhotoDetailView+PageDelegate.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "18"
+            endingLineNumber = "18"
+            landmarkName = "pageViewController(_:didFinishAnimating:previousViewControllers:transitionCompleted:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "7937660B-7B23-400A-9D7A-284351EE78AB"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllerTemplates/PagedPhotoDetailViewController/PagedPhotoDetailView+PageDelegate.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "14"
+            endingLineNumber = "14"
+            landmarkName = "pageViewController(_:didFinishAnimating:previousViewControllers:transitionCompleted:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B715E7AE-AC44-4413-A080-9851EE4300E4"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllerTemplates/PagedPhotoDetailViewController/PagedPhotoDetailView+PageDelegate.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "13"
+            endingLineNumber = "13"
+            landmarkName = "pageViewController(_:didFinishAnimating:previousViewControllers:transitionCompleted:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "AAC21BB9-3751-4406-A1C3-1A5D351D9E10"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotoPageViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "107"
+            endingLineNumber = "107"
+            landmarkName = "willUpdateSelectedPhotoIndex(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A9F0197A-5DD3-4640-9BF8-D63575527DF7"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllerTemplates/PagedPhotoDetailViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "37"
+            endingLineNumber = "37"
+            landmarkName = "willUpdateSelectedPhotoIndex(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "90C16B06-AEE1-424E-896E-381F2F8C0F36"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotoPageViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "108"
+            endingLineNumber = "108"
             landmarkName = "willUpdateSelectedPhotoIndex(_:)"
             landmarkType = "7">
          </BreakpointContent>

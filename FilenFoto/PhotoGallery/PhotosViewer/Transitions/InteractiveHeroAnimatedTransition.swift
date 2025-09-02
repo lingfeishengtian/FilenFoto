@@ -21,6 +21,9 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
         return imageView
     }()
     private var transitionContext: (any UIViewControllerContextTransitioning)?
+    
+    var from: PhotoHeroAnimatorDelegate?
+    var to: PhotoHeroAnimatorDelegate?
 
     // MARK: Interactivity variables
     internal var isInteractive = false
@@ -63,8 +66,8 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
 
     @objc func handlePan(_ gestureRecognizer: UIPanGestureRecognizer) {
         guard let transitionContext = transitionContext,
-            let toVC = getToVC(),
-            let fromVC = getFromVC()
+            let toVC = toImageContext(),
+            let fromVC = fromImageContext()
         else {
             transitionContext?.cancelInteractiveTransition()
             transitionContext?.completeTransition(false)
@@ -134,8 +137,10 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
         let containerView = transitionContext.containerView
         self.transitionContext = transitionContext
 
-        guard let fromVC = getFromVC(),
-            let toVC = getToVC(),
+        /// When doing a modal transition, we need to save a reference to the VCs since we mix SwiftUI and UIKit, the "from" is the root `UIHostingController`
+        /// Thus we need to manually save the reference to the actual view controller we want to animate from
+        guard let fromVC = fromImageContext(),
+              let toVC = toImageContext(),
               let fromVCDelegate = fromVC as? PhotoHeroAnimatorDelegate,
               let toVCDelegate = toVC as? PhotoHeroAnimatorDelegate,
               let toView = transitionContext.viewController(forKey: .to)?.view,
@@ -205,9 +210,6 @@ class InteractiveHeroAnimatedTransition: NSObject, UIViewControllerInteractiveTr
     func interruptibleAnimator(using transitionContext: any UIViewControllerContextTransitioning) -> any UIViewImplicitlyAnimating {
         return viewTransitionAnimator
     }
-    
-    var from: UIViewController?
-    var to: UIViewController?
 }
 
 // MARK: - Animation Math & Generation
@@ -227,7 +229,7 @@ extension InteractiveHeroAnimatedTransition {
         navigationOperation == .push ? .down : .up
     }
     
-    func getFromVC() -> UIViewController? {
+    func fromImageContext() -> UIViewController? {
         if navigationOperation == .push {
             return from
         } else {
@@ -235,7 +237,7 @@ extension InteractiveHeroAnimatedTransition {
         }
     }
     
-    func getToVC() -> UIViewController? {
+    func toImageContext() -> UIViewController? {
         if navigationOperation == .push {
             return to
         } else {
@@ -288,7 +290,7 @@ extension InteractiveHeroAnimatedTransition {
 
         imageAnimator = InteractiveHeroAnimatedTransition.getNewViewPropertyAnimator(initialVelocity: initialVelocity)
 
-        guard let toVC = getToVC(), let fromVC = getFromVC(),
+        guard let toVC = toImageContext(), let fromVC = fromImageContext(),
             endPosition != .current
         else {
             return

@@ -15,10 +15,6 @@ extension PhotoPageViewController: UICollectionViewDataSource {
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TinyPhotoCell", for: indexPath) as! TinyPhotoViewCell
-
-        guard navigationController != nil else {
-            return cell
-        }
         
         let photo = photoDataSource().photoAt(index: indexPath.item) ?? UIImage()
         cell.configure(with: photo)
@@ -47,7 +43,7 @@ extension PhotoPageViewController: UICollectionViewDataSource {
         setSelectedPhotoIndex(Int(index))
         
         // We don't want to update this collection, so rather we manually set the states necessary internally
-        super.willUpdateSelectedPhotoIndex(Int(index), false)
+        super.willUpdateSelectedPhotoIndex(Int(index))
         resetSwiftUIViews()
     }
 }
