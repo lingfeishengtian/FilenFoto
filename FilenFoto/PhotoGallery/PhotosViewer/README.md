@@ -30,4 +30,26 @@ This forces the view controllers to update their local state manually so allow f
 
 ## Animations
 
-The animation logic is quite complex in this view. // TODO: Finish writing
+The animation logic is quite complex in this view. To simplify the transition codebase, we use one transition class to coordinate transitions modally and within a navigation controller. This class is called `PhotoHeroAnimationController`. We have another class that actually contains code for the transition logic called `InteractiveHeroAnimatedTransition`. 
+
+### Clamped Inverse Interpolation
+
+In order to smooth transitions (specifically for scaling the image while dragging), we use clamped inverse interpolation. This technique allows us to create a more fluid and natural scaling effect by clamping the interpolation values within a specific range. By doing so, we can prevent abrupt changes in scale and maintain a consistent visual experience throughout the transition.
+
+We scale starting from the original image size and apply the clamped inverse interpolation as the user drags the image. This ensures that the scaling effect feels responsive and natural, enhancing the overall user experience.
+
+The algorithm works by keeping track of the initial image size, the current drag position, the target image size, and the initial drag position. The algorithm then determines whether or not your initial drag position was between or outside of the range between the initial and target image sizes. Based on this information, the algorithm can apply the appropriate scaling transformation to the image during the drag gesture.
+
+```swift
+fileprivate func clampedInvLerp(_ o: CGFloat, _ p: CGFloat, _ m: CGFloat) -> CGFloat {
+    if o - m == 0 { return 0 }
+    
+    return min(max((o - p) / (o - m), 0), 1)
+}
+```
+
+Negative values work since in a "negative scenario", `(p - o)` is negative and `(o - m)` is also negative, which means the division will yield a positive value between 0 and 1, effectively clamping the interpolation as intended.
+
+### View Controller Nuances
+
+Modals present from the root view while navigation controller present from the caller view. This means that when presenting a modal in a SwiftUI + UIKit integrated application, the "from" controller could be a `UIHostingController` of the main SwiftUI. Thus we need to store references to the actual caller view controllers within the transition objects to let them know about the actual context in which the transition is occurring.
