@@ -14,8 +14,8 @@ struct ContentView: View {
         ZStack {
             switch (photoContext.filenClient, photoContext.rootPhotoDirectory) {
             case (nil, nil):
-                PhotoGallery()
-//                LoginView()
+//                PhotoGallery()
+                LoginView()
             case (_, nil):
                 RootDirSelection()
             case (_, _):

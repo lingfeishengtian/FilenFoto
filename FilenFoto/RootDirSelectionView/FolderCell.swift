@@ -14,8 +14,12 @@ struct FolderList: View {
         List {
             Section {
                 ForEach(directories) { directory in
-                    NavigationLink(directory.name) {
+                    NavigationLink{
                         RootDirSelection(currentDirectory: directory)
+                    } label: {
+                        Image(systemName: "folder")
+                            .foregroundStyle(directory.swiftColor() ?? .blue)
+                        Text(directory.name)
                     }
                 }
             }
@@ -31,6 +35,7 @@ struct FolderList: View {
                 name: "Test Folder",
                 parentUuid: UUID().uuidString,
                 favorited: true,
+                color: nil,
                 createdAt: UInt64(Date.now.timeIntervalSince1970))
         ]
     )
