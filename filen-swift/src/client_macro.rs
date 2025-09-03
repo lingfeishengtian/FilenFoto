@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! with_client {
-    ($self:ident, $block:block $(, $args:expr )* ) => {{
+    ($self:ident, $block:block ) => {{
         $self.tokio_runtime
             .handle()
             .spawn(async move { $block })

@@ -692,7 +692,6 @@ dependencies = [
 name = "filen-swift"
 version = "0.1.0"
 dependencies = [
- "chrono",
  "filen-sdk-rs",
  "filen-types",
  "serde",

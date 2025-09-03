@@ -3,10 +3,7 @@ use filen_types::fs::UuidStr;
 use std::{str::FromStr, sync::Arc};
 
 use crate::types::{Directory, DirectoryAsHasContents};
-use filen_sdk_rs::fs::{
-        HasUUID,
-        dir::HasUUIDContents,
-    };
+use filen_sdk_rs::fs::HasUUID;
 
 #[derive(uniffi::Object)]
 pub struct FilenClient {
