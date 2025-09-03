@@ -671,15 +671,17 @@ public struct Directory {
     public var name: String
     public var parentUuid: String
     public var favorited: Bool
+    public var color: String?
     public var createdAt: UInt64?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(uuid: String, name: String, parentUuid: String, favorited: Bool, createdAt: UInt64?) {
+    public init(uuid: String, name: String, parentUuid: String, favorited: Bool, color: String?, createdAt: UInt64?) {
         self.uuid = uuid
         self.name = name
         self.parentUuid = parentUuid
         self.favorited = favorited
+        self.color = color
         self.createdAt = createdAt
     }
 }
@@ -703,6 +705,9 @@ extension Directory: Equatable, Hashable {
         if lhs.favorited != rhs.favorited {
             return false
         }
+        if lhs.color != rhs.color {
+            return false
+        }
         if lhs.createdAt != rhs.createdAt {
             return false
         }
@@ -714,6 +719,7 @@ extension Directory: Equatable, Hashable {
         hasher.combine(name)
         hasher.combine(parentUuid)
         hasher.combine(favorited)
+        hasher.combine(color)
         hasher.combine(createdAt)
     }
 }
@@ -731,6 +737,7 @@ public struct FfiConverterTypeDirectory: FfiConverterRustBuffer {
                 name: FfiConverterString.read(from: &buf),
                 parentUuid: FfiConverterString.read(from: &buf),
                 favorited: FfiConverterBool.read(from: &buf),
+                color: FfiConverterOptionString.read(from: &buf),
                 createdAt: FfiConverterOptionUInt64.read(from: &buf)
         )
     }
@@ -740,6 +747,7 @@ public struct FfiConverterTypeDirectory: FfiConverterRustBuffer {
         FfiConverterString.write(value.name, into: &buf)
         FfiConverterString.write(value.parentUuid, into: &buf)
         FfiConverterBool.write(value.favorited, into: &buf)
+        FfiConverterOptionString.write(value.color, into: &buf)
         FfiConverterOptionUInt64.write(value.createdAt, into: &buf)
     }
 }
@@ -764,9 +772,9 @@ public enum FilenClientError: Swift.Error {
 
     
     
-    case LoginError(msg: String
+    case ConcurrencyError(msg: String
     )
-    case RuntimeError(msg: String
+    case FilenClientError(msg: String
     )
     case TypeConversionError(msg: String
     )
@@ -786,10 +794,10 @@ public struct FfiConverterTypeFilenClientError: FfiConverterRustBuffer {
         
 
         
-        case 1: return .LoginError(
+        case 1: return .ConcurrencyError(
             msg: try FfiConverterString.read(from: &buf)
             )
-        case 2: return .RuntimeError(
+        case 2: return .FilenClientError(
             msg: try FfiConverterString.read(from: &buf)
             )
         case 3: return .TypeConversionError(
@@ -807,12 +815,12 @@ public struct FfiConverterTypeFilenClientError: FfiConverterRustBuffer {
 
         
         
-        case let .LoginError(msg):
+        case let .ConcurrencyError(msg):
             writeInt(&buf, Int32(1))
             FfiConverterString.write(msg, into: &buf)
             
         
-        case let .RuntimeError(msg):
+        case let .FilenClientError(msg):
             writeInt(&buf, Int32(2))
             FfiConverterString.write(msg, into: &buf)
             
@@ -874,6 +882,30 @@ fileprivate struct FfiConverterOptionUInt64: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterUInt64.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
+    typealias SwiftType = String?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterString.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }

@@ -11,6 +11,8 @@ thiserror = "2.0.16"
 tokio = { version = "1.47.1", features = ["rt-multi-thread"] }
 serde_cbor = "0.11.2"
 serde = "*"
+chrono = "0.4.41"
+uuid = "1.18.1"
 
 [build-dependencies]
 uniffi = { version = "0.29.4", features = ["build"] }
