@@ -1,0 +1,76 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Cancel" : {
+
+    },
+    "Clear All Error Messages" : {
+
+    },
+    "Confirm Selection" : {
+
+    },
+    "Create" : {
+
+    },
+    "Create a folder in your cloud storage and use it to store photos." : {
+
+    },
+    "Create Folder" : {
+
+    },
+    "Errors" : {
+
+    },
+    "Folder Name" : {
+
+    },
+    "Gallery" : {
+
+    },
+    "Login" : {
+
+    },
+    "No directories found. You may use this folder as your photo storage." : {
+
+    },
+    "Password" : {
+
+    },
+    "Photo Detail View" : {
+
+    },
+    "Select Root Directory" : {
+
+    },
+    "Set as Root Directory" : {
+
+    },
+    "Settings" : {
+
+    },
+    "Settings View" : {
+
+    },
+    "Size: %lld x %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Size: %1$lld x %2$lld"
+          }
+        }
+      }
+    },
+    "Test Filen" : {
+
+    },
+    "Two Factor Code" : {
+
+    },
+    "Username" : {
+
+    }
+  },
+  "version" : "1.0"
+}
