@@ -9,51 +9,52 @@ import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject var photoContext: PhotoContext
-    
+
     @State var username: String = ""
     @State var password: String = ""
     @State var twoFactorCode: String = ""
-    
+
     @State var isLoading: Bool = false
     @State var errorMessage: String? = nil
     
+    @FocusState private var focusedField: UITextContentType?
+
     func tryLogin() async {
         isLoading = true
-        
+
         do {
             photoContext.filenClient = try await login(email: username, pwd: password, twoFactorCode: twoFactorCode)
         } catch {
             errorMessage = error.localizedDescription
         }
-        
+
         isLoading = false
     }
-    
-    
+
     var body: some View {
-        VStack {
+        VStack(spacing: 24) {
+            Text("Filen Sign In")
+                .font(.largeTitle.weight(.semibold))
+                .padding(.bottom, 32)
+
             if let errorMessage {
                 Text(errorMessage)
                     .foregroundColor(.red)
                     .padding()
             }
-            
-            TextField("Username", text: $username)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
-            SecureField("Password", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
-            TextField("Two Factor Code", text: $twoFactorCode)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
-            
+
+            LoginField(input: $username, focusedField: $focusedField, textContentType: .username)
+            LoginField(input: $password, focusedField: $focusedField, textContentType: .password)
+            LoginField(input: $twoFactorCode, focusedField: $focusedField, textContentType: .oneTimeCode)
+
             Button("Login") {
                 Task {
                     await tryLogin()
                 }
             }
-        }.overlay {
+        }
+        .padding()
+        .overlay {
             if isLoading {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle())
@@ -68,4 +69,5 @@ struct LoginView: View {
 
 #Preview {
     LoginView()
+        .environmentObject(PhotoContext())
 }
