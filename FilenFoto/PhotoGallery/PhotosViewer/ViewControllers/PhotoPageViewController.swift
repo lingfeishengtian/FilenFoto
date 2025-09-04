@@ -110,4 +110,8 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
         
         resetSwiftUIViews()
     }
+    
+    override func onPageChanged(to index: Int) {
+        scrollScrubberToSelectedPhoto(animated: true)
+    }
 }

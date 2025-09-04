@@ -54,4 +54,6 @@ class PagedPhotoDetailViewController: PhotoGalleryTemplateViewController {
             animationController: animationController, image: photoDataSource().photoAt(index: index), imageIndex: index,
             photoGalleryContext: photoGalleryContext)
     }
+    
+    func onPageChanged(to index: Int) { }
 }

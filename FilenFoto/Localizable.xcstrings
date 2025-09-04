@@ -22,6 +22,9 @@
     "Errors" : {
 
     },
+    "Filen Sign In" : {
+
+    },
     "Folder Name" : {
 
     },
@@ -32,9 +35,6 @@
 
     },
     "No directories found. You may use this folder as your photo storage." : {
-
-    },
-    "Password" : {
 
     },
     "Photo Detail View" : {
@@ -63,12 +63,6 @@
       }
     },
     "Test Filen" : {
-
-    },
-    "Two Factor Code" : {
-
-    },
-    "Username" : {
 
     }
   },
