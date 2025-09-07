@@ -85,9 +85,23 @@ struct PhotoGallery: View {
     var body: some View {
         TabView {
             Tab("Gallery", systemImage: "photo.on.rectangle.angled") {
-                PhotosViewer(
-                    photoDataSource: PhotoDataSource(), swiftUIProvider: PhotoViewProvider()
-                ).edgesIgnoringSafeArea(.all)
+                ZStack {
+                    PhotosViewer(
+                        photoDataSource: PhotoDataSource(), swiftUIProvider: PhotoViewProvider()
+                    ).edgesIgnoringSafeArea(.all)
+                    
+                    VStack {
+                        HStack {
+                            Text("Library")
+                                .font(.largeTitle)
+                                .bold()
+                                .padding()
+                            Spacer()
+                            
+                        }
+                        Spacer()
+                    }
+                }
             }
             
             Tab("Settings", systemImage: "gearshape") {

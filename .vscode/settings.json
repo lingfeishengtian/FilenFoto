@@ -9,5 +9,12 @@
         "other": "on",
         "comments": "off",
         "strings": "on"
-    }
+    },
+    "[rust]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "always",
+        },
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    },
 }

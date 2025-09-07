@@ -1,0 +1,21 @@
+[package]
+name = "indexed_blobs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+memmap2 = "0.9.8"
+thiserror = "2.0.16"
+uniffi = { version = "0.29.4", features = ["cli"] }
+
+
+[build-dependencies]
+uniffi = { version = "0.29.4", features = ["build"] }
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+name = "indexed_blobs"
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
