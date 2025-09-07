@@ -5,63 +5,103 @@
 //  Created by Hunter Han on 9/3/25.
 //
 
+import CoreData
 import Foundation
 import Photos
 import os
-import CoreData
 
-//let REGISTERED_PROVIDERS = [
-//
-//]
+let REGISTERED_PROVIDERS = [
+    "ThumbnailProvider": ThumbnailProvider.shared
+]
 
 enum SyncError: Error {
     case askForPermissions
     case runtimeError(LocalizedStringResource)
 }
 
-let MAX_CONCURRENT_TASKS = 10
+let MAX_CONCURRENT_TASKS = 3
+typealias ProviderAction = () async -> Bool
 
 class PhotoSyncController {
     private init() {}
 
     static let shared = PhotoSyncController()
-    private let sharedThread = DispatchQueue(label: "com.hunterhan.filenfoto.photosync", qos: .userInitiated, attributes: .concurrent)
     private let logger = Logger(subsystem: "com.hunterhan.filenfoto", category: "PhotoSyncController")
-    private let managedObjectContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
-    
-    private var taskStream: AsyncStream<PHAsset>? = nil
-    
+
+    private var taskStream: AsyncStream<(PHAsset, UUID, PhotoActionProviderDelegate)>? = nil
+
     var stopped = false
 
     func beginSync() throws {
         if !(try checkPermissionStatus()) {
             throw SyncError.askForPermissions
         }
-        
+
         if stopped {
             return
         }
-        
+
         let photoLibrary = PHAsset.fetchAssets(with: PHFetchOptions())
         logger.info("Starting sync of \(photoLibrary.count) photos")
-        
-        taskStream = AsyncStream { continuation in
-            photoLibrary.enumerateObjects { asset, index, stop in
-                if self.stopped {
-                    stop.pointee = true
-                    continuation.finish()
-                    return
+
+        Task.detached(priority: .background) {
+            await withTaskGroup(of: Bool.self) { group in
+                var initialTasks = 0
+
+                func addToWorker(task: @escaping ProviderAction) async {
+                    if initialTasks < MAX_CONCURRENT_TASKS {
+                        initialTasks += 1
+                        group.addTask {
+                            await task()
+                        }
+                    } else {
+                        if let finishedTask = await group.next() {
+                            group.addTask {
+                                await task()
+                            }
+                        }
+                    }
                 }
+
+                await self.batchedTaskGroup(addToWorker: addToWorker, photoLibrary: photoLibrary)
                 
+                try? FFCoreDataManager.shared.managedObjectContext.save()
             }
         }
-//        sharedThread.async {
-//            photoLibrary.enumerateObjects(self.enumerationBlock(asset:index:stop:))
-//        }
+    }
+
+    func batchedTaskGroup(addToWorker: (@escaping ProviderAction) async -> Void, photoLibrary: PHFetchResult<PHAsset>) async {
+        for index in 0..<photoLibrary.count {
+            let asset = photoLibrary.object(at: index)
+            print("Enumerating asset \(index + 1) of \(photoLibrary.count)")
+
+            if self.stopped {
+                return
+            }
+
+            let filenAsset = FotoAsset(context: FFCoreDataManager.shared.managedObjectContext)
+            set(filenFoto: filenAsset, for: asset)
+            
+            FFCoreDataManager.shared.managedObjectContext.insert(filenAsset)
+            
+            let uuid = UUID()
+            for provider in REGISTERED_PROVIDERS.values {
+                await addToWorker {
+                    let result = await provider.initiateProtocol(for: asset, with: uuid)
+                    return result
+                }
+            }
+        }
     }
     
-    func beginTaskIngestion() {
-        
+    func set(filenFoto: FotoAsset, for asset: PHAsset) {
+        filenFoto.uuid = UUID()
+//        filenFoto.cloudUuid = asset. TODO: Figure out
+        filenFoto.localUuid = asset.localIdentifier
+        filenFoto.dateCreated = asset.creationDate
+        filenFoto.dateModified = asset.modificationDate
+        filenFoto.mediaType = Int16(asset.mediaType.rawValue)
+        filenFoto.mediaSubtypes = Int64(asset.mediaSubtypes.rawValue)
     }
 }
 
@@ -81,7 +121,7 @@ extension PhotoSyncController {
             return false
         }
     }
-    
+
     func requestPermission(completion: @escaping (Bool) -> Void) {
         PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
             completion((try? self.checkPermissionStatus(status: status)) ?? false)

@@ -102,6 +102,19 @@ struct PhotoGallery: View {
                         Spacer()
                     }
                 }
+                .onAppear {
+                    do {
+                        try PhotoSyncController.shared.beginSync()
+                    } catch SyncError.askForPermissions {
+                        PhotoSyncController.shared.requestPermission { succeeded in
+                            if succeeded {
+                                print("Permission granted.")
+                            }
+                        }
+                    } catch {
+                        print("Unexpected error: \(error).")
+                    }
+                }
             }
             
             Tab("Settings", systemImage: "gearshape") {

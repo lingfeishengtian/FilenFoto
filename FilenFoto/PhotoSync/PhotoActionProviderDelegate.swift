@@ -9,5 +9,5 @@ import Foundation
 import Photos
 
 protocol PhotoActionProviderDelegate {
-    func initiateProtocol(for photo: PHAsset, with identifier: UUID) -> Progress
+    func initiateProtocol(for photo: PHAsset, with identifier: UUID) async -> Bool
 }

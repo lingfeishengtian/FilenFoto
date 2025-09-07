@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "App entitlements are incorrect." : {
+
+    },
     "Cancel" : {
 
     },
@@ -31,10 +34,16 @@
     "Gallery" : {
 
     },
+    "Library" : {
+
+    },
     "Login" : {
 
     },
     "No directories found. You may use this folder as your photo storage." : {
+
+    },
+    "Permission to access photos was denied." : {
 
     },
     "Photo Detail View" : {
