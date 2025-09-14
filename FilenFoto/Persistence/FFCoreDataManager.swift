@@ -7,11 +7,15 @@
 
 import Foundation
 import CoreData
+import os
 
 class FFCoreDataManager {
     static let shared = FFCoreDataManager()
-    let managedObjectContext: NSManagedObjectContext
+    let mainThreadManagedContext: NSManagedObjectContext
+    let backgroundContext: NSManagedObjectContext
     let persistentContainer: NSPersistentContainer
+    
+    let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "CoreData")
     
     private init() {
         persistentContainer = NSPersistentContainer(name: "FilenFotoModel")
@@ -20,6 +24,8 @@ class FFCoreDataManager {
                 fatalError("Failed to load Core Data stack: \(error)")
             }
         }
-        managedObjectContext = persistentContainer.viewContext
+        
+        mainThreadManagedContext = persistentContainer.viewContext
+        backgroundContext = persistentContainer.newBackgroundContext()
     }
 }

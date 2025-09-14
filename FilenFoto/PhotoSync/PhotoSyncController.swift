@@ -64,9 +64,9 @@ class PhotoSyncController {
                 }
 
                 await self.batchedTaskGroup(addToWorker: addToWorker, photoLibrary: photoLibrary)
-                
-                try? FFCoreDataManager.shared.managedObjectContext.save()
             }
+            
+            FFCoreDataManager.shared.saveContextIfNeeded()
         }
     }
 
@@ -79,30 +79,20 @@ class PhotoSyncController {
                 return
             }
 
-            let filenAsset = FotoAsset(context: FFCoreDataManager.shared.managedObjectContext)
-            set(filenFoto: filenAsset, for: asset)
+            let fotoAsset = FFCoreDataManager.shared.insert(for: asset)
             
-            FFCoreDataManager.shared.managedObjectContext.insert(filenAsset)
             
-            let uuid = UUID()
-            for provider in REGISTERED_PROVIDERS.values {
-                await addToWorker {
-                    let result = await provider.initiateProtocol(for: asset, with: uuid)
-                    return result
-                }
-            }
+            
+                // Maybe use provider in a different class?
+//            for provider in REGISTERED_PROVIDERS.values {
+//                await addToWorker {
+//                    let result = await provider.initiateProtocol(for: asset, with: fotoAsset)
+//                    return result
+//                }
+//            }
         }
     }
     
-    func set(filenFoto: FotoAsset, for asset: PHAsset) {
-        filenFoto.uuid = UUID()
-//        filenFoto.cloudUuid = asset. TODO: Figure out
-        filenFoto.localUuid = asset.localIdentifier
-        filenFoto.dateCreated = asset.creationDate
-        filenFoto.dateModified = asset.modificationDate
-        filenFoto.mediaType = Int16(asset.mediaType.rawValue)
-        filenFoto.mediaSubtypes = Int64(asset.mediaSubtypes.rawValue)
-    }
 }
 
 extension PhotoSyncController {

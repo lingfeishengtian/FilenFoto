@@ -10,7 +10,7 @@ import SwiftUI
 func imageGenerator(named name: String) -> [UIImage] {
     var images: [UIImage] = []
 
-    for _ in 1...100 {
+    for _ in 1...10000 {
         // Generate random size (e.g., between 50x50 and 200x200)
         let width = CGFloat.random(in: 50...200)
         let height = CGFloat.random(in: 50...200)

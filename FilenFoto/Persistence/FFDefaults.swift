@@ -16,6 +16,7 @@ class FFDefaults {
     
     private let FILEN_AUTH_DATA_KEY = "filenAuthData"
     private let ROOT_FOLDER_UUID_KEY = "rootFolderUUID"
+    private let THUMBNAIL_INDEX_KEY = "thumbnailIndex"
     
     var filenAuthData: Data? {
         get {

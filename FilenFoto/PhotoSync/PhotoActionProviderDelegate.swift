@@ -7,7 +7,9 @@
 
 import Foundation
 import Photos
+import CoreData
 
 protocol PhotoActionProviderDelegate {
-    func initiateProtocol(for photo: PHAsset, with identifier: UUID) async -> Bool
+//    func initiateProtocol(for photo: PHAsset, with fotoAsset: FotoAsset) async -> Bool
+    func initiateProtocol(with fotoAsset: FotoAsset) async -> Bool
 }
