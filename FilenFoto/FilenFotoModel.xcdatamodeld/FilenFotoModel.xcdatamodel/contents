@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23788" systemVersion="24E263" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
-    <entity name="CachedResource" representedClassName=".CachedResource" syncable="YES" codeGenerationType="class">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24299" systemVersion="25A354" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="CachedResource" representedClassName=".CachedResource" syncable="YES" codeGenerationType="category">
         <attribute name="fileName" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="fileSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="lastAccessDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="remoteResource" maxCount="1" deletionRule="Nullify" destinationEntity="RemoteResource" inverseName="cachedResource" inverseEntity="RemoteResource"/>
     </entity>
-    <entity name="FotoAsset" representedClassName=".FotoAsset" syncable="YES" codeGenerationType="class">
+    <entity name="FotoAsset" representedClassName=".FotoAsset" syncable="YES" codeGenerationType="category">
         <attribute name="cloudUuid" optional="YES" attributeType="String"/>
         <attribute name="dateCreated" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="dateModified" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="filenResourceFolderUuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="localUuid" optional="YES" attributeType="String"/>
-        <attribute name="mediaSubtypes" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="mediaType" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mediaSubtypesRaw" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mediaTypeRaw" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pixelHeight" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pixelWidth" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="providerFailures" optional="YES" attributeType="Binary"/>
         <attribute name="thumbnailIndex" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="uuid" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="remoteResources" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="RemoteResource" inverseName="parentAsset" inverseEntity="RemoteResource"/>
         <fetchIndex name="byCreatedDate">
             <fetchIndexElement property="dateCreated" type="Binary" order="descending"/>
@@ -28,10 +30,13 @@
             <fetchIndexElement property="cloudUuid" type="Binary" order="ascending"/>
         </fetchIndex>
     </entity>
-    <entity name="RemoteResource" representedClassName=".RemoteResource" syncable="YES" codeGenerationType="class">
-        <attribute name="assetResourceType" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+    <entity name="RemoteResource" representedClassName=".RemoteResource" syncable="YES" codeGenerationType="category">
+        <attribute name="assetResourceTypeRaw" optional="YES" attributeType="Integer 64" valueTransformerName="AssetResourceTypeTransformer" defaultValueString="0" usesScalarValueType="YES" customClassName="Photos.PHAssetResourceType"/>
+        <attribute name="fileHashBinary" optional="YES" attributeType="Binary"/>
         <attribute name="filenUuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="originalFilename" optional="YES" attributeType="String"/>
+        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="cachedResource" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="CachedResource" inverseName="remoteResource" inverseEntity="CachedResource"/>
-        <relationship name="parentAsset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FotoAsset" inverseName="remoteResources" inverseEntity="FotoAsset"/>
+        <relationship name="parentAsset" maxCount="1" deletionRule="Nullify" destinationEntity="FotoAsset" inverseName="remoteResources" inverseEntity="FotoAsset"/>
     </entity>
 </model>

@@ -94,5 +94,5 @@ struct RootDirSelection: View {
 
 #Preview {
     RootDirSelection()
-        .environmentObject(PhotoContext())
+        .environmentObject(PhotoContext.shared)
 }

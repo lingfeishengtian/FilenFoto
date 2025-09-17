@@ -15,8 +15,8 @@ enum CacheError: Error {
     case invalidFile
 }
 
-class FFAssetCacheManager {
-    static let shared = FFAssetCacheManager()
+class FFResourceCacheManager {
+    static let shared = FFResourceCacheManager()
     private init() {}
 
     // Temporary constant variable for now
@@ -55,7 +55,7 @@ class FFAssetCacheManager {
 
             return totalFileSize
         } catch {
-            FFAssetCacheManager.shared.logger.error("Failed to fetch cache size: \(error.localizedDescription)")
+            FFResourceCacheManager.shared.logger.error("Failed to fetch cache size: \(error.localizedDescription)")
             return 0
         }
     }()
@@ -88,7 +88,7 @@ class FFAssetCacheManager {
         // Delete until we're under the limit
         let context = FFCoreDataManager.shared.backgroundContext
         let fetchedAssets: [CachedResource] = (try? context.fetch(fetchRequest)) ?? []
-        for cachedAsset in (try? context.fetch(fetchRequest)) ?? [] {
+        for cachedAsset in fetchedAssets {
             if currentSizeOfCache <= photoCacheMaximumSize {
                 break
             }
@@ -129,6 +129,6 @@ extension CachedResource {
     override public func prepareForDeletion() {
         super.prepareForDeletion()
 
-        FFAssetCacheManager.shared.delete(self)
+        FFResourceCacheManager.shared.delete(self)
     }
 }

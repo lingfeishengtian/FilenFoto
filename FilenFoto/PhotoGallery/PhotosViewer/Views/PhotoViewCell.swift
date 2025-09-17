@@ -8,7 +8,6 @@
 import Foundation
 import UIKit
 
-let fotoAsset = ThumbnailProvider.shared.thumbnail(for: FFCoreDataManager.shared.findFotoAsset(for: "3C22F0D8-250F-4CEA-B718-A76AFE2DEF8E/L0/001")!)
 class PhotoViewCell: UICollectionViewCell {
     let imageView = UIImageView()
     
@@ -34,7 +33,7 @@ class PhotoViewCell: UICollectionViewCell {
     }
     
     func configure(with image: UIImage) {
-//        imageView.image = image
-        imageView.image = fotoAsset
+        imageView.image = image
+//        imageView.image = fotoAsset
     }
 }

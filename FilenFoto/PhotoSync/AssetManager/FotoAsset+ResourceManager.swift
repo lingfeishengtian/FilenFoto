@@ -18,11 +18,8 @@ enum DisplayImageType {
 
 extension FotoAsset {
     var displayImageType: DisplayImageType {
-        let mediaType = PHAssetMediaType(rawValue: Int(self.mediaType))
-        let mediaSubtype = PHAssetMediaSubtype(rawValue: UInt(self.mediaSubtypes))
-
         if mediaType == .image {
-            if mediaSubtype.contains(.photoLive) {
+            if mediaSubtypes.contains(.photoLive) {
                 return .livePhoto
             }
             

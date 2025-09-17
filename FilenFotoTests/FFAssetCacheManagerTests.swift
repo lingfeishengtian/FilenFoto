@@ -27,7 +27,7 @@ struct FFAssetCacheManagerTests {
     func generateTestRemoteResources(count: Int = 10) -> [RemoteResource] {
         return (0..<count).map { i in
             let remoteResource = RemoteResource(context: FFCoreDataManager.shared.backgroundContext)
-            remoteResource.assetResourceType = Int64(generateRandomResourceType().rawValue)
+            remoteResource.assetResourceType = generateRandomResourceType()
             remoteResource.filenUuid = UUID()
 
             return remoteResource
@@ -36,7 +36,7 @@ struct FFAssetCacheManagerTests {
 
     var maxNumberInCache: Int {
         Int(
-            floor(Double(FFAssetCacheManager.shared.photoCacheMaximumSize) / Double(TestResourceManager.shared.testImageFileSize)))
+            floor(Double(FFResourceCacheManager.shared.photoCacheMaximumSize) / Double(TestResourceManager.shared.testImageFileSize)))
     }
 
     @Test func testSimpleInsertion() {
@@ -58,7 +58,7 @@ struct FFAssetCacheManagerTests {
     func insert(remoteResources: [RemoteResource]) {
         for resource in remoteResources {
             #expect(throws: Never.self) {
-                try FFAssetCacheManager.shared.insert(remoteResource: resource, fileUrl: TestResourceManager.shared.testImage)
+                try FFResourceCacheManager.shared.insert(remoteResource: resource, fileUrl: TestResourceManager.shared.testImage)
             }
         }
     }
@@ -103,7 +103,7 @@ struct FFAssetCacheManagerTests {
     }
     
     func checkCacheFolder(has expectedCount: Int) {
-        let cacheFolder = FFAssetCacheManager.shared.persistedPhotoCacheFolder
+        let cacheFolder = FFResourceCacheManager.shared.persistedPhotoCacheFolder
         let fileManager = FileManager.default
         let filesOnDisk = (try? fileManager.contentsOfDirectory(at: cacheFolder, includingPropertiesForKeys: nil)) ?? []
         #expect(filesOnDisk.count == expectedCount)

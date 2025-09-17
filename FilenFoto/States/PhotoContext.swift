@@ -10,6 +10,8 @@ import UIKit
 import os
 
 class PhotoContext: ObservableObject {
+    static let shared = PhotoContext()
+    private init() {}
     private static let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "PhotoContext")
     
     @Published var filenClient: FilenClient? = {

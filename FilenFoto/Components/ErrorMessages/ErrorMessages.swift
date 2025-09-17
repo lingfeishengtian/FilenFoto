@@ -28,7 +28,7 @@ struct ErrorMessages: View {
 
 #Preview {
     let photoContext = {
-        let photoContext = PhotoContext()
+        let photoContext = PhotoContext.shared
         photoContext.errorMessages.append("This is an error message.")
         photoContext.errorMessages.append("This is another error message that is quite long and should be truncated.")
         for i in 1...10 {

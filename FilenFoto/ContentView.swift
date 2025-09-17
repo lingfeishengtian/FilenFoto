@@ -29,5 +29,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .environmentObject(PhotoContext())
+        .environmentObject(PhotoContext.shared)
 }

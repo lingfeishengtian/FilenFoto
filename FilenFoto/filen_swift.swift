@@ -503,11 +503,15 @@ public protocol FilenClientProtocol: AnyObject, Sendable {
     
     func createDirInDir(parentUuid: String, name: String) async throws  -> Directory
     
-    func dirsInDir(dirUuid: String) async throws  -> [Directory]
+    func dirsInDir(dirUuid: String) async throws  -> ListDir
+    
+    func downloadFileToPath(fileUuid: String, path: String) async throws
     
     func exportCredentials()  -> Data
     
     func rootUuid()  -> String
+    
+    func uploadFileFromPath(dirUuid: String, filePath: String, fileName: String) async throws  -> RemoteFile
     
 }
 open class FilenClient: FilenClientProtocol, @unchecked Sendable {
@@ -579,7 +583,7 @@ open func createDirInDir(parentUuid: String, name: String)async throws  -> Direc
         )
 }
     
-open func dirsInDir(dirUuid: String)async throws  -> [Directory]  {
+open func dirsInDir(dirUuid: String)async throws  -> ListDir  {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
@@ -591,7 +595,24 @@ open func dirsInDir(dirUuid: String)async throws  -> [Directory]  {
             pollFunc: ffi_filen_swift_rust_future_poll_rust_buffer,
             completeFunc: ffi_filen_swift_rust_future_complete_rust_buffer,
             freeFunc: ffi_filen_swift_rust_future_free_rust_buffer,
-            liftFunc: FfiConverterSequenceTypeDirectory.lift,
+            liftFunc: FfiConverterTypeListDir_lift,
+            errorHandler: FfiConverterTypeFilenClientError_lift
+        )
+}
+    
+open func downloadFileToPath(fileUuid: String, path: String)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_filen_swift_fn_method_filenclient_download_file_to_path(
+                    self.uniffiClonePointer(),
+                    FfiConverterString.lower(fileUuid),FfiConverterString.lower(path)
+                )
+            },
+            pollFunc: ffi_filen_swift_rust_future_poll_void,
+            completeFunc: ffi_filen_swift_rust_future_complete_void,
+            freeFunc: ffi_filen_swift_rust_future_free_void,
+            liftFunc: { $0 },
             errorHandler: FfiConverterTypeFilenClientError_lift
         )
 }
@@ -608,6 +629,23 @@ open func rootUuid() -> String  {
     uniffi_filen_swift_fn_method_filenclient_root_uuid(self.uniffiClonePointer(),$0
     )
 })
+}
+    
+open func uploadFileFromPath(dirUuid: String, filePath: String, fileName: String)async throws  -> RemoteFile  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_filen_swift_fn_method_filenclient_upload_file_from_path(
+                    self.uniffiClonePointer(),
+                    FfiConverterString.lower(dirUuid),FfiConverterString.lower(filePath),FfiConverterString.lower(fileName)
+                )
+            },
+            pollFunc: ffi_filen_swift_rust_future_poll_rust_buffer,
+            completeFunc: ffi_filen_swift_rust_future_complete_rust_buffer,
+            freeFunc: ffi_filen_swift_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterTypeRemoteFile_lift,
+            errorHandler: FfiConverterTypeFilenClientError_lift
+        )
 }
     
 
@@ -768,6 +806,218 @@ public func FfiConverterTypeDirectory_lower(_ value: Directory) -> RustBuffer {
 }
 
 
+public struct ListDir {
+    public var directories: [Directory]
+    public var files: [RemoteFile]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(directories: [Directory], files: [RemoteFile]) {
+        self.directories = directories
+        self.files = files
+    }
+}
+
+#if compiler(>=6)
+extension ListDir: Sendable {}
+#endif
+
+
+extension ListDir: Equatable, Hashable {
+    public static func ==(lhs: ListDir, rhs: ListDir) -> Bool {
+        if lhs.directories != rhs.directories {
+            return false
+        }
+        if lhs.files != rhs.files {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(directories)
+        hasher.combine(files)
+    }
+}
+
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeListDir: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ListDir {
+        return
+            try ListDir(
+                directories: FfiConverterSequenceTypeDirectory.read(from: &buf),
+                files: FfiConverterSequenceTypeRemoteFile.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: ListDir, into buf: inout [UInt8]) {
+        FfiConverterSequenceTypeDirectory.write(value.directories, into: &buf)
+        FfiConverterSequenceTypeRemoteFile.write(value.files, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeListDir_lift(_ buf: RustBuffer) throws -> ListDir {
+    return try FfiConverterTypeListDir.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeListDir_lower(_ value: ListDir) -> RustBuffer {
+    return FfiConverterTypeListDir.lower(value)
+}
+
+
+public struct RemoteFile {
+    public var uuid: String
+    public var name: String
+    public var mime: String
+    public var lastModified: UInt64
+    public var created: UInt64
+    public var parent: String
+    public var size: UInt64
+    public var favorited: Bool
+    public var region: String
+    public var bucket: String
+    public var chunks: UInt64
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(uuid: String, name: String, mime: String, lastModified: UInt64, created: UInt64, parent: String, size: UInt64, favorited: Bool, region: String, bucket: String, chunks: UInt64) {
+        self.uuid = uuid
+        self.name = name
+        self.mime = mime
+        self.lastModified = lastModified
+        self.created = created
+        self.parent = parent
+        self.size = size
+        self.favorited = favorited
+        self.region = region
+        self.bucket = bucket
+        self.chunks = chunks
+    }
+}
+
+#if compiler(>=6)
+extension RemoteFile: Sendable {}
+#endif
+
+
+extension RemoteFile: Equatable, Hashable {
+    public static func ==(lhs: RemoteFile, rhs: RemoteFile) -> Bool {
+        if lhs.uuid != rhs.uuid {
+            return false
+        }
+        if lhs.name != rhs.name {
+            return false
+        }
+        if lhs.mime != rhs.mime {
+            return false
+        }
+        if lhs.lastModified != rhs.lastModified {
+            return false
+        }
+        if lhs.created != rhs.created {
+            return false
+        }
+        if lhs.parent != rhs.parent {
+            return false
+        }
+        if lhs.size != rhs.size {
+            return false
+        }
+        if lhs.favorited != rhs.favorited {
+            return false
+        }
+        if lhs.region != rhs.region {
+            return false
+        }
+        if lhs.bucket != rhs.bucket {
+            return false
+        }
+        if lhs.chunks != rhs.chunks {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(uuid)
+        hasher.combine(name)
+        hasher.combine(mime)
+        hasher.combine(lastModified)
+        hasher.combine(created)
+        hasher.combine(parent)
+        hasher.combine(size)
+        hasher.combine(favorited)
+        hasher.combine(region)
+        hasher.combine(bucket)
+        hasher.combine(chunks)
+    }
+}
+
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeRemoteFile: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RemoteFile {
+        return
+            try RemoteFile(
+                uuid: FfiConverterString.read(from: &buf),
+                name: FfiConverterString.read(from: &buf),
+                mime: FfiConverterString.read(from: &buf),
+                lastModified: FfiConverterUInt64.read(from: &buf),
+                created: FfiConverterUInt64.read(from: &buf),
+                parent: FfiConverterString.read(from: &buf),
+                size: FfiConverterUInt64.read(from: &buf),
+                favorited: FfiConverterBool.read(from: &buf),
+                region: FfiConverterString.read(from: &buf),
+                bucket: FfiConverterString.read(from: &buf),
+                chunks: FfiConverterUInt64.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: RemoteFile, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.uuid, into: &buf)
+        FfiConverterString.write(value.name, into: &buf)
+        FfiConverterString.write(value.mime, into: &buf)
+        FfiConverterUInt64.write(value.lastModified, into: &buf)
+        FfiConverterUInt64.write(value.created, into: &buf)
+        FfiConverterString.write(value.parent, into: &buf)
+        FfiConverterUInt64.write(value.size, into: &buf)
+        FfiConverterBool.write(value.favorited, into: &buf)
+        FfiConverterString.write(value.region, into: &buf)
+        FfiConverterString.write(value.bucket, into: &buf)
+        FfiConverterUInt64.write(value.chunks, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeRemoteFile_lift(_ buf: RustBuffer) throws -> RemoteFile {
+    return try FfiConverterTypeRemoteFile.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeRemoteFile_lower(_ value: RemoteFile) -> RustBuffer {
+    return FfiConverterTypeRemoteFile.lower(value)
+}
+
+
 public enum FilenClientError: Swift.Error {
 
     
@@ -777,6 +1027,8 @@ public enum FilenClientError: Swift.Error {
     case FilenClientError(msg: String
     )
     case TypeConversionError(msg: String
+    )
+    case IoError(msg: String
     )
 }
 
@@ -803,6 +1055,9 @@ public struct FfiConverterTypeFilenClientError: FfiConverterRustBuffer {
         case 3: return .TypeConversionError(
             msg: try FfiConverterString.read(from: &buf)
             )
+        case 4: return .IoError(
+            msg: try FfiConverterString.read(from: &buf)
+            )
 
          default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -827,6 +1082,11 @@ public struct FfiConverterTypeFilenClientError: FfiConverterRustBuffer {
         
         case let .TypeConversionError(msg):
             writeInt(&buf, Int32(3))
+            FfiConverterString.write(msg, into: &buf)
+            
+        
+        case let .IoError(msg):
+            writeInt(&buf, Int32(4))
             FfiConverterString.write(msg, into: &buf)
             
         }
@@ -935,6 +1195,31 @@ fileprivate struct FfiConverterSequenceTypeDirectory: FfiConverterRustBuffer {
         return seq
     }
 }
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypeRemoteFile: FfiConverterRustBuffer {
+    typealias SwiftType = [RemoteFile]
+
+    public static func write(_ value: [RemoteFile], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeRemoteFile.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [RemoteFile] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [RemoteFile]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeRemoteFile.read(from: &buf))
+        }
+        return seq
+    }
+}
 private let UNIFFI_RUST_FUTURE_POLL_READY: Int8 = 0
 private let UNIFFI_RUST_FUTURE_POLL_MAYBE_READY: Int8 = 1
 
@@ -1027,13 +1312,19 @@ private let initializationResult: InitializationResult = {
     if (uniffi_filen_swift_checksum_method_filenclient_create_dir_in_dir() != 914) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_filen_swift_checksum_method_filenclient_dirs_in_dir() != 38668) {
+    if (uniffi_filen_swift_checksum_method_filenclient_dirs_in_dir() != 35760) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_filen_swift_checksum_method_filenclient_download_file_to_path() != 47710) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_filen_swift_checksum_method_filenclient_export_credentials() != 37485) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_filen_swift_checksum_method_filenclient_root_uuid() != 61878) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_filen_swift_checksum_method_filenclient_upload_file_from_path() != 36275) {
         return InitializationResult.apiChecksumMismatch
     }
 

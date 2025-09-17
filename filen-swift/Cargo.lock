@@ -593,6 +593,7 @@ dependencies = [
  "serde_cbor",
  "thiserror",
  "tokio",
+ "tokio-util",
  "uniffi",
  "uuid",
 ]

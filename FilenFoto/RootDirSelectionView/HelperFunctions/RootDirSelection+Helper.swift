@@ -26,7 +26,7 @@ extension RootDirSelection {
         let directory = currentDirectory?.uuid ?? filenClient.rootUuid()
 
         do {
-            directories = try await filenClient.dirsInDir(dirUuid: directory)
+            directories = try await filenClient.dirsInDir(dirUuid: directory).directories
             sortDirectories()
         } catch {
             photoContext.errorMessages.append("Failed to fetch directories: \(error.localizedDescription)")
