@@ -1,10 +1,10 @@
 pub use crate::with_client;
-use filen_types::fs::UuidStr;
+use filen_types::fs::{ParentUuid, UuidStr};
 use std::{str::FromStr, sync::Arc};
 use tokio_util::compat::{TokioAsyncReadCompatExt, TokioAsyncWriteCompatExt};
 
 use crate::types::{Directory, DirectoryAsHasContents, RemoteFile};
-use filen_sdk_rs::fs::HasUUID;
+use filen_sdk_rs::fs::{HasUUID, dir::RemoteDirectory};
 
 #[derive(uniffi::Object)]
 pub struct FilenClient {
@@ -39,7 +39,7 @@ impl FilenClient {
         self.client.root().uuid().to_string()
     }
 
-    pub async fn dirs_in_dir(&self, dir_uuid: String) -> Result<ListDir, FilenClientError> {
+    pub async fn list_dir(&self, dir_uuid: String) -> Result<ListDir, FilenClientError> {
         let client = self.client.clone();
 
         with_client!(self, {
@@ -117,6 +117,67 @@ impl FilenClient {
                 .upload_file_from_reader(base_file, &mut async_reader, None, None)
                 .await?;
             Ok(RemoteFile::from_remote_file(uploaded_file)?)
+        })?
+    }
+
+    pub async fn delete_dir(&self, dir_uuid: String) -> Result<(), FilenClientError> {
+        let client = self.client.clone();
+
+        with_client!(self, {
+            // The sdk limits us for some reason to only delete directories retrieved from the sdk and doesn't have a function to delete by uuid, so we trick it :3
+            let remote_dir = RemoteDirectory {
+                uuid: UuidStr::from_str(&dir_uuid)?,
+                meta: filen_sdk_rs::fs::dir::meta::DirectoryMeta::DecryptedRaw(
+                    std::borrow::Cow::Borrowed(&[]),
+                ),
+                parent: ParentUuid::Uuid(*client.root().uuid()),
+                favorited: false,
+                color: None,
+            };
+
+            client.delete_dir_permanently(remote_dir).await?;
+            Ok(())
+        })?
+    }
+
+    pub async fn delete_file(&self, file_uuid: String) -> Result<(), FilenClientError> {
+        let client = self.client.clone();
+
+        with_client!(self, {
+            // The sdk limits us for some reason to only delete files retrieved from the sdk and doesn't have a function to delete by uuid, so we trick it :3
+            let remote_file = filen_sdk_rs::fs::file::RemoteFile {
+                uuid: UuidStr::from_str(&file_uuid)?,
+                meta: filen_sdk_rs::fs::file::meta::FileMeta::DecryptedRaw(
+                    std::borrow::Cow::Borrowed(&[]),
+                ),
+                parent: ParentUuid::Uuid(*client.root().uuid()),
+                size: 0,
+                favorited: false,
+                region: "".to_string(),
+                bucket: "".to_string(),
+                chunks: 0,
+            };
+
+            client.delete_file_permanently(remote_file).await?;
+            Ok(())
+        })?
+    }
+
+    pub async fn get_dir_info(&self, dir_uuid: String) -> Result<Directory, FilenClientError> {
+        let client = self.client.clone();
+
+        with_client!(self, {
+            let dir = client.get_dir(UuidStr::from_str(&dir_uuid)?).await?;
+            Ok(Directory::from_remote_dir(&dir)?)
+        })?
+    }
+
+    pub async fn get_file_info(&self, file_uuid: String) -> Result<RemoteFile, FilenClientError> {
+        let client = self.client.clone();
+
+        with_client!(self, {
+            let file = client.get_file(UuidStr::from_str(&file_uuid)?).await?;
+            Ok(RemoteFile::from_remote_file(&file)?)
         })?
     }
 }

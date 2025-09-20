@@ -21,17 +21,30 @@ func generateRandomResourceType() -> PHAssetResourceType {
     return validTypes.randomElement()!
 }
 
+@MainActor
 @Suite(.serialized)
 struct FFAssetCacheManagerTests {
+    let context = FFCoreDataManager.shared.mainContext
+
     /// This resets every test
     func generateTestRemoteResources(count: Int = 10) -> [RemoteResource] {
-        return (0..<count).map { i in
-            let remoteResource = RemoteResource(context: FFCoreDataManager.shared.backgroundContext)
+        let parentAsset = FotoAsset(context: context)
+        parentAsset.dateCreated = Date()
+        parentAsset.dateModified = Date()
+        parentAsset.uuid = UUID()
+        
+        let resources = (0..<count).map { i in
+            let remoteResource = RemoteResource(context: context)
             remoteResource.assetResourceType = generateRandomResourceType()
             remoteResource.filenUuid = UUID()
+            remoteResource.parentAsset = parentAsset
 
             return remoteResource
         }
+        
+        try! context.save()
+        
+        return resources
     }
 
     var maxNumberInCache: Int {
@@ -39,18 +52,20 @@ struct FFAssetCacheManagerTests {
             floor(Double(FFResourceCacheManager.shared.photoCacheMaximumSize) / Double(TestResourceManager.shared.testImageFileSize)))
     }
 
-    @Test func testSimpleInsertion() {
+    @Test func testSimpleInsertion() async {
         let testRemoteResources = generateTestRemoteResources(count: 10)
 
         insert(remoteResources: testRemoteResources)
+        await FFCoreDataManager.shared.saveContextIfNeeded()
         assertCoreDataIntegrity(withOriginal: testRemoteResources)
         clear(remoteResources: testRemoteResources)
     }
 
-    @Test func testCachePushout() {
+    @Test func testCachePushout() async {
         let testRemoteResources = generateTestRemoteResources(count: maxNumberInCache + 1)
 
         insert(remoteResources: testRemoteResources)
+        await FFCoreDataManager.shared.saveContextIfNeeded()
         assertCoreDataIntegrity(withOriginal: testRemoteResources)
         clear(remoteResources: testRemoteResources)
     }
@@ -66,7 +81,7 @@ struct FFAssetCacheManagerTests {
     func assertCoreDataIntegrity(withOriginal remoteResources: [RemoteResource]) {
         // Ensure all remote resources are present
         let fetchRequest = RemoteResource.fetchRequest()
-        let coreDataResults = try? FFCoreDataManager.shared.backgroundContext.fetch(fetchRequest)
+        let coreDataResults = try? context.fetch(fetchRequest)
 
         #expect(coreDataResults?.count == remoteResources.count)
 
@@ -78,7 +93,7 @@ struct FFAssetCacheManagerTests {
 
         // Ensure cache integrity
         let fetchCacheRequest = CachedResource.fetchRequest()
-        let cacheResults = try? FFCoreDataManager.shared.backgroundContext.fetch(fetchCacheRequest)
+        let cacheResults = try? context.fetch(fetchCacheRequest)
 
         #expect(cacheResults?.count == min(remoteResources.count, maxNumberInCache))
 
@@ -94,10 +109,10 @@ struct FFAssetCacheManagerTests {
     
     func clear(remoteResources: [RemoteResource]) {
         for resource in remoteResources {
-            FFCoreDataManager.shared.backgroundContext.delete(resource)
+            context.delete(resource)
         }
         
-        FFCoreDataManager.shared.saveContextIfNeeded()
+        try? context.save()
         
         checkCacheFolder(has: 0)
     }

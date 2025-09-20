@@ -7,9 +7,8 @@
 
 import CoreData
 import Foundation
-import os.log
 import Photos.PHAssetResource
-
+import os.log
 
 enum CacheError: Error {
     case invalidFile
@@ -17,17 +16,22 @@ enum CacheError: Error {
 
 class FFResourceCacheManager {
     static let shared = FFResourceCacheManager()
-    private init() {}
 
     // Temporary constant variable for now
     let photoCacheMaximumSize: UInt64 = 200 * 1024 * 1024  // 200 MB
-    
+    var currentSizeOfCache: UInt64
+
     let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "AssetManager")
     let persistedPhotoCacheFolder = FileManager.photoCacheDirectory
 
+    private let objectContext = FFCoreDataManager.shared.newChildContext()
+
     // TODO: Register onto FotoAsset for an onDelete trigger to remove from cache
 
-    var currentSizeOfCache: UInt64 = {
+
+    private init() {
+        self.currentSizeOfCache = 0
+
         let cacheFetchRequest: NSFetchRequest<NSFetchRequestResult> = CachedResource.fetchRequest()
 
         let sumExpression = NSExpression(
@@ -45,20 +49,17 @@ class FFResourceCacheManager {
         cacheFetchRequest.propertiesToFetch = [sumExpressionDescription]
 
         do {
-            let fetchedQueryResult = try FFCoreDataManager.shared.backgroundContext.fetch(cacheFetchRequest)
+            let fetchedQueryResult = try objectContext.fetch(cacheFetchRequest)
 
-            guard let resultDict = fetchedQueryResult.first as? [String: Any],
+            if let resultDict = fetchedQueryResult.first as? [String: Any],
                 let totalFileSize = resultDict["totalFileSize"] as? UInt64
-            else {
-                return 0
+            {
+                self.currentSizeOfCache = totalFileSize
             }
-
-            return totalFileSize
         } catch {
-            FFResourceCacheManager.shared.logger.error("Failed to fetch cache size: \(error.localizedDescription)")
-            return 0
+            logger.error("Failed to fetch cache size: \(error.localizedDescription)")
         }
-    }()
+    }
 
     func delete(_ cachedResource: CachedResource) {
         guard let name = cachedResource.fileName else {
@@ -82,46 +83,52 @@ class FFResourceCacheManager {
             return
         }
 
-        let fetchRequest = NSFetchRequest<CachedResource>(entityName: "CachedResource")
+        let fetchRequest = CachedResource.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: #keyPath(CachedResource.lastAccessDate), ascending: true)]
-        
+
         // Delete until we're under the limit
-        let context = FFCoreDataManager.shared.backgroundContext
-        let fetchedAssets: [CachedResource] = (try? context.fetch(fetchRequest)) ?? []
+        let fetchedAssets: [CachedResource] = (try? objectContext.fetch(fetchRequest)) ?? []
         for cachedAsset in fetchedAssets {
             if currentSizeOfCache <= photoCacheMaximumSize {
                 break
             }
-            
-            context.delete(cachedAsset)
+
+            objectContext.delete(cachedAsset)
+        }
+        
+        do {
+            try objectContext.save()
+        } catch {
+            logger.error("Failed to save context: \(error.localizedDescription)")
         }
     }
-    
+
     /// This will move the file from the given URL into the cache and create a corresponding CachedResource object
     func insert(remoteResource: RemoteResource, fileUrl: URL) throws {
         guard let fileSize = FileManager.default.sizeOfFile(at: fileUrl) else {
             throw CacheError.invalidFile
         }
-        
-        let context = FFCoreDataManager.shared.backgroundContext
-        let cachedResource = CachedResource(context: context)
-        cachedResource.remoteResource = remoteResource
+
+        let cachedResource = CachedResource(context: objectContext)
+        cachedResource.remoteResource = objectContext.object(with: remoteResource.objectID) as? RemoteResource
         cachedResource.fileName = UUID()
         cachedResource.fileSize = fileSize
         cachedResource.lastAccessDate = Date()
-        
+
         let destinationUrl = persistedPhotoCacheFolder.appendingPathComponent(cachedResource.fileName!.uuidString)
-        
+
         do {
             try FileManager.default.moveItem(at: fileUrl, to: destinationUrl)
             currentSizeOfCache += UInt64(fileSize)
-            
+
             ensureCacheSizeLimit()
         } catch {
-            context.delete(cachedResource)
-            
+            objectContext.delete(cachedResource)
+
             throw error
         }
+        
+        try objectContext.save()
     }
 }
 

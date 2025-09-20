@@ -66,27 +66,26 @@ actor ThumbnailProviderActor {
 }
 
 class ThumbnailProvider: PhotoActionProviderDelegate {
+    
     private init() {}
     static let shared = ThumbnailProvider()
     let thumbnailActor = ThumbnailProviderActor()
     
-    func initiateProtocol(with fotoAsset: FotoAsset) async -> Bool {
-        return false
-    }
-    
-    func initiateProtocol(for photo: PHAsset, with fotoAsset: FotoAsset) async -> Bool {
+    func initiateProtocol(with workingSetAsset: WorkingSetFotoAsset) async -> Bool {
+        let fotoAsset = workingSetAsset.asset
         print("Initiate ThumbnailProvider for photo with identifier: \(fotoAsset.id)")
 
-        let photoFile = PHAssetResource.assetResources(for: photo)
-        let phAssetResourceManager = PHAssetResourceManager.default()
-        for resource in photoFile {
-            if resource.type == .photo {
-                try! await phAssetResourceManager.writeData(for: resource, toFile: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("test.jpg"), options: nil)
-                let uiImage = UIImage(contentsOfFile: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("test.jpg").path)!
-                
-                try! await thumbnailActor.saveThumbnail(for: compressImageToJpeg(uiImage), to: fotoAsset)
-            }
-        }
+
+//        let photoFile = PHAssetResource.assetResources(for: photo)
+//        let phAssetResourceManager = PHAssetResourceManager.default()
+//        for resource in photoFile {
+//            if resource.type == .photo {
+//                try! await phAssetResourceManager.writeData(for: resource, toFile: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("test.jpg"), options: nil)
+//                let uiImage = UIImage(contentsOfFile: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("test.jpg").path)!
+//                
+//                try! await thumbnailActor.saveThumbnail(for: compressImageToJpeg(uiImage), to: fotoAsset)
+//            }
+//        }
         
 
         return true

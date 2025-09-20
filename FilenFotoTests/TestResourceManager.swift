@@ -7,6 +7,10 @@
 
 import Foundation
 
+@testable import FilenFoto
+import CoreData
+import Photos
+
 class TestResourceManager {
     static let shared = TestResourceManager()
     private init() {}
@@ -19,7 +23,7 @@ class TestResourceManager {
         try! FileManager.default.copyItem(at: bundleImage, to: destinationURL)
         return destinationURL
     }
-
+    
     var hashForTestImage: String = "014cf9c191271bb5b22dcfa95bf72540de06bc67a43af3dca08775fd68295fc6"
     var hashAsDataForTestImage: Data { dataWithHexString(hex: hashForTestImage) }
 

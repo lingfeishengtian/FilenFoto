@@ -10,6 +10,5 @@ import Photos
 import CoreData
 
 protocol PhotoActionProviderDelegate {
-//    func initiateProtocol(for photo: PHAsset, with fotoAsset: FotoAsset) async -> Bool
-    func initiateProtocol(with fotoAsset: FotoAsset) async -> Bool
+    func initiateProtocol(with workingSetAsset: WorkingSetFotoAsset) async -> Bool
 }

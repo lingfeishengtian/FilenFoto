@@ -66,7 +66,7 @@ class PhotoSyncController {
                 await self.batchedTaskGroup(addToWorker: addToWorker, photoLibrary: photoLibrary)
             }
             
-            FFCoreDataManager.shared.saveContextIfNeeded()
+            await FFCoreDataManager.shared.saveContextIfNeeded()
         }
     }
 
@@ -79,17 +79,23 @@ class PhotoSyncController {
                 return
             }
 
-            let fotoAsset = FFCoreDataManager.shared.insert(for: asset)
+            let fotoAsset = await FFCoreDataManager.shared.insert(for: asset)
+            let workingAsset = WorkingSetFotoAsset(asset: fotoAsset)
             
-            
+            do {
+                try await workingAsset.retrieveResources(withSupportingPHAsset: asset)
+            } catch {
+                print(error)
+                PhotoContext.shared.errorMessages.append("An error ocurred on asset \(index + 1) of \(photoLibrary.count)")
+            }
             
                 // Maybe use provider in a different class?
-//            for provider in REGISTERED_PROVIDERS.values {
-//                await addToWorker {
-//                    let result = await provider.initiateProtocol(for: asset, with: fotoAsset)
-//                    return result
-//                }
-//            }
+            for provider in REGISTERED_PROVIDERS.values {
+                await addToWorker {
+                    let result = await provider.initiateProtocol(with: workingAsset)
+                    return result
+                }
+            }
         }
     }
     

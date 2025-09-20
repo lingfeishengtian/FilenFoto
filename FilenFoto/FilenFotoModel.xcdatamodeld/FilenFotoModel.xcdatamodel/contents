@@ -13,13 +13,13 @@
         <attribute name="filenResourceFolderUuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="localUuid" optional="YES" attributeType="String"/>
         <attribute name="mediaSubtypesRaw" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="mediaTypeRaw" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mediaTypeRaw" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pixelHeight" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pixelWidth" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="providerFailures" optional="YES" attributeType="Binary"/>
         <attribute name="thumbnailIndex" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="uuid" attributeType="UUID" usesScalarValueType="NO"/>
-        <relationship name="remoteResources" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="RemoteResource" inverseName="parentAsset" inverseEntity="RemoteResource"/>
+        <relationship name="remoteResources" optional="YES" toMany="YES" deletionRule="Deny" destinationEntity="RemoteResource" inverseName="parentAsset" inverseEntity="RemoteResource"/>
         <fetchIndex name="byCreatedDate">
             <fetchIndexElement property="dateCreated" type="Binary" order="descending"/>
         </fetchIndex>
@@ -34,6 +34,7 @@
         <attribute name="assetResourceTypeRaw" optional="YES" attributeType="Integer 64" valueTransformerName="AssetResourceTypeTransformer" defaultValueString="0" usesScalarValueType="YES" customClassName="Photos.PHAssetResourceType"/>
         <attribute name="fileHashBinary" optional="YES" attributeType="Binary"/>
         <attribute name="filenUuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isMarkedForDeletion" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="originalFilename" optional="YES" attributeType="String"/>
         <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="cachedResource" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="CachedResource" inverseName="remoteResource" inverseEntity="CachedResource"/>

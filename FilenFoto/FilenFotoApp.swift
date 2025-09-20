@@ -18,11 +18,13 @@ struct FilenFotoApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(photoContext)
-                .environment(\.managedObjectContext, FFCoreDataManager.shared.mainThreadManagedContext)
+                .environment(\.managedObjectContext, FFCoreDataManager.shared.mainContext)
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     switch newPhase {
                     case .background:
-                        FFCoreDataManager.shared.saveContextIfNeeded()
+                        Task { @MainActor in
+                            await FFCoreDataManager.shared.saveContextIfNeeded()
+                        }
                     default:
                         break
                     }

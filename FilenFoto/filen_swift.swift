@@ -503,11 +503,19 @@ public protocol FilenClientProtocol: AnyObject, Sendable {
     
     func createDirInDir(parentUuid: String, name: String) async throws  -> Directory
     
-    func dirsInDir(dirUuid: String) async throws  -> ListDir
+    func deleteDir(dirUuid: String) async throws
+    
+    func deleteFile(fileUuid: String) async throws
     
     func downloadFileToPath(fileUuid: String, path: String) async throws
     
     func exportCredentials()  -> Data
+    
+    func getDirInfo(dirUuid: String) async throws  -> Directory
+    
+    func getFileInfo(fileUuid: String) async throws  -> RemoteFile
+    
+    func listDir(dirUuid: String) async throws  -> ListDir
     
     func rootUuid()  -> String
     
@@ -583,19 +591,36 @@ open func createDirInDir(parentUuid: String, name: String)async throws  -> Direc
         )
 }
     
-open func dirsInDir(dirUuid: String)async throws  -> ListDir  {
+open func deleteDir(dirUuid: String)async throws   {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
-                uniffi_filen_swift_fn_method_filenclient_dirs_in_dir(
+                uniffi_filen_swift_fn_method_filenclient_delete_dir(
                     self.uniffiClonePointer(),
                     FfiConverterString.lower(dirUuid)
                 )
             },
-            pollFunc: ffi_filen_swift_rust_future_poll_rust_buffer,
-            completeFunc: ffi_filen_swift_rust_future_complete_rust_buffer,
-            freeFunc: ffi_filen_swift_rust_future_free_rust_buffer,
-            liftFunc: FfiConverterTypeListDir_lift,
+            pollFunc: ffi_filen_swift_rust_future_poll_void,
+            completeFunc: ffi_filen_swift_rust_future_complete_void,
+            freeFunc: ffi_filen_swift_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeFilenClientError_lift
+        )
+}
+    
+open func deleteFile(fileUuid: String)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_filen_swift_fn_method_filenclient_delete_file(
+                    self.uniffiClonePointer(),
+                    FfiConverterString.lower(fileUuid)
+                )
+            },
+            pollFunc: ffi_filen_swift_rust_future_poll_void,
+            completeFunc: ffi_filen_swift_rust_future_complete_void,
+            freeFunc: ffi_filen_swift_rust_future_free_void,
+            liftFunc: { $0 },
             errorHandler: FfiConverterTypeFilenClientError_lift
         )
 }
@@ -622,6 +647,57 @@ open func exportCredentials() -> Data  {
     uniffi_filen_swift_fn_method_filenclient_export_credentials(self.uniffiClonePointer(),$0
     )
 })
+}
+    
+open func getDirInfo(dirUuid: String)async throws  -> Directory  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_filen_swift_fn_method_filenclient_get_dir_info(
+                    self.uniffiClonePointer(),
+                    FfiConverterString.lower(dirUuid)
+                )
+            },
+            pollFunc: ffi_filen_swift_rust_future_poll_rust_buffer,
+            completeFunc: ffi_filen_swift_rust_future_complete_rust_buffer,
+            freeFunc: ffi_filen_swift_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterTypeDirectory_lift,
+            errorHandler: FfiConverterTypeFilenClientError_lift
+        )
+}
+    
+open func getFileInfo(fileUuid: String)async throws  -> RemoteFile  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_filen_swift_fn_method_filenclient_get_file_info(
+                    self.uniffiClonePointer(),
+                    FfiConverterString.lower(fileUuid)
+                )
+            },
+            pollFunc: ffi_filen_swift_rust_future_poll_rust_buffer,
+            completeFunc: ffi_filen_swift_rust_future_complete_rust_buffer,
+            freeFunc: ffi_filen_swift_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterTypeRemoteFile_lift,
+            errorHandler: FfiConverterTypeFilenClientError_lift
+        )
+}
+    
+open func listDir(dirUuid: String)async throws  -> ListDir  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_filen_swift_fn_method_filenclient_list_dir(
+                    self.uniffiClonePointer(),
+                    FfiConverterString.lower(dirUuid)
+                )
+            },
+            pollFunc: ffi_filen_swift_rust_future_poll_rust_buffer,
+            completeFunc: ffi_filen_swift_rust_future_complete_rust_buffer,
+            freeFunc: ffi_filen_swift_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterTypeListDir_lift,
+            errorHandler: FfiConverterTypeFilenClientError_lift
+        )
 }
     
 open func rootUuid() -> String  {
@@ -1312,13 +1388,25 @@ private let initializationResult: InitializationResult = {
     if (uniffi_filen_swift_checksum_method_filenclient_create_dir_in_dir() != 914) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_filen_swift_checksum_method_filenclient_dirs_in_dir() != 35760) {
+    if (uniffi_filen_swift_checksum_method_filenclient_delete_dir() != 25040) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_filen_swift_checksum_method_filenclient_delete_file() != 8975) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_filen_swift_checksum_method_filenclient_download_file_to_path() != 47710) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_filen_swift_checksum_method_filenclient_export_credentials() != 37485) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_filen_swift_checksum_method_filenclient_get_dir_info() != 26955) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_filen_swift_checksum_method_filenclient_get_file_info() != 14617) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_filen_swift_checksum_method_filenclient_list_dir() != 33482) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_filen_swift_checksum_method_filenclient_root_uuid() != 61878) {
