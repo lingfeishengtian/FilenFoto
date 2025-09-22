@@ -10,10 +10,6 @@ import Foundation
 import Photos.PHAssetResource
 import os.log
 
-enum CacheError: Error {
-    case invalidFile
-}
-
 class FFResourceCacheManager {
     static let shared = FFResourceCacheManager()
 
@@ -106,7 +102,7 @@ class FFResourceCacheManager {
     /// This will move the file from the given URL into the cache and create a corresponding CachedResource object
     func insert(remoteResource: RemoteResource, fileUrl: URL) throws {
         guard let fileSize = FileManager.default.sizeOfFile(at: fileUrl) else {
-            throw CacheError.invalidFile
+            throw FilenFotoError.invalidFile
         }
 
         let cachedResource = CachedResource(context: objectContext)
@@ -129,6 +125,11 @@ class FFResourceCacheManager {
         }
         
         try objectContext.save()
+    }
+    
+    // TODO: Temp move all instances of getting the cache directory into an extension of the cache NSManagedObject
+    func destinationUrl(for cachedResource: CachedResource) -> URL {
+        persistedPhotoCacheFolder.appending(path: cachedResource.fileName!.uuidString)
     }
 }
 

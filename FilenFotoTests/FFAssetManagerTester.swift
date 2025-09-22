@@ -120,7 +120,7 @@ struct FFAssetManagerTester {
     }
 
     func fetchAssetsFromLibrary(testAsset: PHAsset) async throws -> FotoAsset {
-        let assetsManager = FFAssetManager()
+        let assetsManager = FFResourceManager()
 
         let insertedFotoAsset = await FFCoreDataManager.shared.insert(for: testAsset)
         let workingDirectory = workingDirectory(for: insertedFotoAsset)
@@ -151,7 +151,7 @@ struct FFAssetManagerTester {
     }
     
     func uploadAssetsAndValidate(testAsset: PHAsset, insertedFotoAsset: FotoAsset) async {
-        let assetManager = FFAssetManager()
+        let assetManager = FFResourceManager()
         let workingDirectory = workingDirectory(for: insertedFotoAsset)
         
         do {

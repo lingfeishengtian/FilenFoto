@@ -14,6 +14,10 @@ public class FotoAsset: NSManagedObject {
     @CoreDataEnumAttribute(keyPath: \.mediaSubtypesRaw) var mediaSubtypes: PHAssetMediaSubtype
     @CoreDataEnumAttribute(keyPath: \.mediaTypeRaw) var mediaType: PHAssetMediaType
     
+    var thumbnailIndex: ThumbnailIndex {
+        ThumbnailIndex(self.uuid!)
+    }
+    
     var countOfRemoteResources: Int {
         remoteResources?.count ?? 0
     }

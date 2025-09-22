@@ -1803,22 +1803,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "40550EFC-98E4-489D-B4C8-E87ED04529CD"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoSync/PhotoSyncController.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "67"
-            endingLineNumber = "67"
-            landmarkName = "beginSync()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "D73D916F-7BE5-42C6-BA2E-72FB71914CC2"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -1922,8 +1906,8 @@
             filePath = "FilenFoto/PhotoSync/WorkingSetFotoAsset/WorkingSetFotoAsset.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "60"
-            endingLineNumber = "60"
+            startingLineNumber = "59"
+            endingLineNumber = "59"
             landmarkName = "retrieveResources(withSupportingPHAsset:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1938,8 +1922,8 @@
             filePath = "FilenFoto/PhotoSync/WorkingSetFotoAsset/WorkingSetFotoAsset.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "46"
-            endingLineNumber = "46"
+            startingLineNumber = "40"
+            endingLineNumber = "40"
             landmarkName = "retrieveResources(withSupportingPHAsset:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1954,8 +1938,8 @@
             filePath = "FilenFoto/PhotoSync/WorkingSetFotoAsset/WorkingSetFotoAsset.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "45"
-            endingLineNumber = "45"
+            startingLineNumber = "39"
+            endingLineNumber = "39"
             landmarkName = "retrieveResources(withSupportingPHAsset:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1990,6 +1974,82 @@
             endingLineNumber = "91"
             landmarkName = "doesUUIDExistInFilen(fileUuid:parentUuid:)"
             landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "AC9D024B-A44F-496F-9464-7C8316022CDB"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/Utilities/FileManager+Utilities.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "27"
+            endingLineNumber = "27"
+            landmarkName = "createAppDirectory(folderName:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "2973B7C4-EB7A-4BFC-B824-1284C68F9522"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoSync/PhotoSyncProviders/ThumbnailProvider.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "26"
+            endingLineNumber = "26"
+            landmarkName = "initiateProtocol(for:with:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "2973B7C4-EB7A-4BFC-B824-1284C68F9522 - 6c50bbe602d75459"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for FilenFoto.ThumbnailProvider.initiateProtocol(for: FilenFoto.WorkingSetFotoAsset, with: FilenFoto.FotoAsset) async throws -&gt; Swift.Optional&lt;() -&gt; ()&gt;"
+                  moduleName = "FilenFoto.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/hunterhan/Documents/FilenFoto/FilenFoto/PhotoSync/PhotoSyncProviders/ThumbnailProvider.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "26"
+                  endingLineNumber = "26">
+               </Location>
+               <Location
+                  uuid = "2973B7C4-EB7A-4BFC-B824-1284C68F9522 - 33c34b7eea88e397"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(2) await resume partial function for FilenFoto.ThumbnailProvider.initiateProtocol(for: FilenFoto.WorkingSetFotoAsset, with: FilenFoto.FotoAsset) async throws -&gt; Swift.Optional&lt;() -&gt; ()&gt;"
+                  moduleName = "FilenFoto.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/hunterhan/Documents/FilenFoto/FilenFoto/PhotoSync/PhotoSyncProviders/ThumbnailProvider.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "26"
+                  endingLineNumber = "26">
+               </Location>
+               <Location
+                  uuid = "2973B7C4-EB7A-4BFC-B824-1284C68F9522 - f9319fd0cb894a56"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for FilenFoto.ThumbnailProvider.initiateProtocol(for: FilenFoto.WorkingSetFotoAsset, with: FilenFoto.FotoAsset) async throws -&gt; Swift.Optional&lt;() -&gt; ()&gt;"
+                  moduleName = "FilenFoto.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/hunterhan/Documents/FilenFoto/FilenFoto/PhotoSync/PhotoSyncProviders/ThumbnailProvider.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "26"
+                  endingLineNumber = "26">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

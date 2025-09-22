@@ -7,15 +7,11 @@
 
 import Foundation
 
-private enum PhotoContextConvienienceError: Error {
-    case filenClientUnavailable
-    case rootFolderDirectoryUnavailable
-}
 
 extension PhotoContext {
     func unwrappedFilenClient() throws -> FilenClient  {
         guard let filenClient else {
-            throw PhotoContextConvienienceError.filenClientUnavailable
+            throw FilenFotoError.filenClientUnavailable
         }
         
         return filenClient
@@ -23,7 +19,7 @@ extension PhotoContext {
     
     func unwrappedRootFolderDirectory() throws -> UUID  {
         guard let rootPhotoDirectory else {
-            throw PhotoContextConvienienceError.rootFolderDirectoryUnavailable
+            throw FilenFotoError.filenRootFolderDirectoryUnavailable
         }
         
         return rootPhotoDirectory

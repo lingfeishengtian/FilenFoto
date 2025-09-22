@@ -6,13 +6,9 @@
 //
 
 import Foundation
+import CoreData
 import Photos.PHAssetResource
 import os.log
-
-enum WorkingSetError: Error {
-    case missingResources
-    case retrieveResourcesNotCalled
-}
 
 enum WorkingAssetState {
     case unknown
@@ -21,29 +17,32 @@ enum WorkingAssetState {
     case alreadySynced
 }
 
-class WorkingSetFotoAsset {
-    let asset: FotoAsset
-    let assetManager: FFAssetManager = .init()
+actor WorkingSetFotoAsset {
+    private let asset: FotoAsset
+    let workingSetRootFolder: URL
+    let assetManager: FFResourceManager = .init()
     let logger: Logger
     
     private var resourceState: WorkingAssetState = .unknown
     
-    var workingSetRootFolder: URL {
-        FileManager.workingSetDirectory.appendingPathComponent(asset.uuid!.uuidString, conformingTo: .folder)
-    }
-
     init(asset: FotoAsset) {
-        self.asset = asset
-        self.logger = .init(subsystem: "com.github.hunterhan.FilenFoto", category: "WorkingSetFotoAsset")
-
         if asset.uuid == nil {
             fatalError("Asset must have a UUID")
         }
+        
+        self.asset = asset
+        self.workingSetRootFolder = FileManager.workingSetDirectory.appendingPathComponent(asset.uuid!.uuidString, conformingTo: .folder)
+        self.logger = .init(subsystem: "com.github.hunterhan.FilenFoto", category: "WorkingSetFotoAsset")
     }
     
     func retrieveResources(withSupportingPHAsset iosAsset: PHAsset? = nil) async throws {
         if iosAsset == nil && asset.countOfRemoteResources == 0 {
-            throw WorkingSetError.missingResources
+            throw FilenFotoError.missingResources
+        }
+        
+        let isAssetInBackgroundContext = await FFCoreDataManager.shared.validateIsInBackgroundContext(object: asset)
+        if !isAssetInBackgroundContext {
+            throw FilenFotoError.coreDataContext
         }
         
         if let iosAsset {
@@ -53,7 +52,7 @@ class WorkingSetFotoAsset {
         }
         
         if asset.countOfRemoteResources == 0 {
-            throw WorkingSetError.missingResources
+            throw FilenFotoError.missingResources
         }
         
         if resourceState == .needsSync {
@@ -63,35 +62,55 @@ class WorkingSetFotoAsset {
         }
     }
     
-    func resource(for resourceType: PHAssetResourceType) async throws -> URL? {
-        if resourceState == .unknown {
-            throw WorkingSetError.retrieveResourcesNotCalled
+    func resource(for resourceType: PHAssetResourceType) async throws -> URL {
+        if resourceState == .unknown || resourceState == .needsSync {
+            throw FilenFotoError.internalError("retrieveResources function was not called for asset: \(asset)")
         }
-        // TODO: Sync resources if needed
         
-        // TODO: This should pull from cloud if its requested and the file isn't in cache.
         let remoteResource = asset.remoteResourcesArray.first {
             $0.assetResourceType == resourceType
         }
         
         let fileUrl = remoteResource?.fileURL(in: workingSetRootFolder)
         
+        guard let fileUrl else {
+            throw FilenFotoError.invalidFile
+        }
+        
+        if FileManager.default.fileExists(atPath: fileUrl.path()) {
+            return fileUrl
+        }
+        
+        guard let remoteResource else {
+            throw FilenFotoError.remoteResourceNotFoundInFilen
+        }
+        
+        if let cachedResource = remoteResource.cachedResource {
+            return FFResourceCacheManager.shared.destinationUrl(for: cachedResource)
+        }
+        
+        try await assetManager.filenDownload(resource: remoteResource, toLocalFolder: workingSetRootFolder)
+        
         return fileUrl
+    }
+    
+    func asset(in temporaryContext: NSManagedObjectContext) -> FotoAsset? {
+        temporaryContext.object(with: self.asset.objectID) as? FotoAsset
     }
     
     deinit {
         for remoteResource in asset.remoteResourcesArray {
             let fileURL = remoteResource.fileURL(in: workingSetRootFolder)!
-            
+
             do {
                 try FFResourceCacheManager.shared.insert(remoteResource: remoteResource, fileUrl: fileURL)
             } catch {
                 logger.error("Failed to insert remote resource into cache: \(error)")
-                
+
                 try? FileManager.default.removeItem(at: fileURL)
             }
         }
-        
+
         // Clean working directory just in case a session before exited abnormally
         try? FileManager.default.clearDirectoryContents(at: workingSetRootFolder)
         try? FileManager.default.removeItem(at: workingSetRootFolder)

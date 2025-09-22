@@ -45,6 +45,10 @@ actor FFCoreDataManager {
         }
     }
     
+    func validateIsInBackgroundContext(object: NSManagedObject) -> Bool {
+        object.managedObjectContext === backgroundContext
+    }
+    
     func insert(for phAsset: PHAsset) -> FotoAsset {
         if let existingFotoAsset = findFotoAsset(for: phAsset.localIdentifier) {
             return existingFotoAsset

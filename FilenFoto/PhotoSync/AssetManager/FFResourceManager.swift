@@ -10,12 +10,7 @@ import Foundation
 import Photos
 import os.log
 
-enum FFAssetManagerError: Error {
-    case resourcesLeftOverAfterFetch
-    case contextError
-}
-
-class FFAssetManager {
+class FFResourceManager {
     let logger = Logger(subsystem: Bundle.main.bundlePath, category: "FFAssetManager")
 
     private func validate(remoteResources: [RemoteResource], existIn workingDirectory: URL) -> Bool {
@@ -47,7 +42,7 @@ class FFAssetManager {
         if existingRemoteResourcesCount > 0 {
             let wasAssetModified = iosPhotoAsset.modificationDate != parentContextFotoAsset.dateModified
             let numberOfResourcesOnCloud = fotoAsset.remoteResourcesArray.filter({ $0.filenUuid != nil }).count
-            
+
             let hasAllResourcesUploaded = existingRemoteResourcesCount == numberOfResourcesOnCloud
             let doResourceCountsMismatch = assetResources.count != existingRemoteResourcesCount
 
@@ -67,7 +62,7 @@ class FFAssetManager {
                     return .needsSync
                 case (false, false):
                     logger.error("Error state occurred in asset \(iosPhotoAsset.localIdentifier), resetting resources")
-                    
+
                     for resource in fotoAsset.remoteResourcesArray {
                         resource.isMarkedForDeletion = true
                     }
@@ -105,19 +100,10 @@ class FFAssetManager {
     /// Syncs resources from working directory with the remoteResources. Delete resources marked for deletion and upload new resources
     func syncResources(in workingDirectory: URL, for fotoAsset: FotoAsset) async throws {
         let sharedPhotoContext = PhotoContext.shared
-        let filenClient = try sharedPhotoContext.unwrappedFilenClient()
-        let rootPhotoDirectory = try sharedPhotoContext.unwrappedRootFolderDirectory()
 
         let remoteResources = fotoAsset.remoteResourcesArray
 
-        if fotoAsset.filenResourceFolderUuid == nil {
-            // The asset's uuid is used for local identification purposes. Generating a new UUID here protects against the scenario where someone kills the application between creation of a directory and saving CoreData
-            let directory = try await filenClient.createDirInDir(parentUuid: rootPhotoDirectory.uuidString, name: UUID().uuidString)
-            fotoAsset.filenResourceFolderUuid = UUID(uuidString: directory.uuid)
-
-            // After the folder is created in the cloud, immediately try to save the context
-            await FFCoreDataManager.shared.saveContextIfNeeded()
-        }
+        try await filenCreateRootFolderIfNeeded(fotoAsset: fotoAsset)
 
         let filenResourceFolderUuidString = fotoAsset.filenResourceFolderUuid!.uuidString
         let stagedRemoteResourcesToUpload = remoteResources.filter { $0.filenUuid == nil }
@@ -129,49 +115,11 @@ class FFAssetManager {
         }
 
         for resourceToUpload in stagedRemoteResourcesToUpload {
-            let pathToFile = resourceToUpload.fileURL(in: workingDirectory)!
-            print("Trying to upload \(pathToFile.path())")
-            let uploadedFile = try await filenClient.uploadFileFromPath(
-                dirUuid: filenResourceFolderUuidString,
-                filePath: pathToFile.path(),
-                fileName: UUID().uuidString
-            )
-
-            resourceToUpload.filenUuid = UUID(uuidString: uploadedFile.uuid)
-
-            // After we finish uploading an asset, persist that change immediately
-            await FFCoreDataManager.shared.saveContextIfNeeded()
+            try await filenUpload(resource: resourceToUpload, inCloudFolder: filenResourceFolderUuidString, inLocalFolder: workingDirectory)
         }
 
         for resourceToDeleteParentContext in stagedRemoteResourcesToDelete {
-            print("Trying to delete \(resourceToDeleteParentContext.originalFilename)")
-            let temporaryContext = FFCoreDataManager.shared.newChildContext()
-            let resourceToDelete = temporaryContext.object(with: resourceToDeleteParentContext.objectID) as? RemoteResource
-
-            guard let resourceToDelete else {
-                throw FFAssetManagerError.contextError
-            }
-
-            let pathToFile = resourceToDelete.fileURL(in: workingDirectory)
-
-            if let filenUuid = resourceToDelete.filenUuid {
-                try await filenClient.deleteFile(fileUuid: filenUuid.uuidString)
-            }
-
-            resourceToDelete.filenUuid = nil
-
-            // The file might not even exist, so don't error out when deleting
-            if let pathToFile {
-                try? FileManager.default.removeItem(at: pathToFile)
-            }
-
-            // Need to push to parent before deleting or else it causes validation errors
-            try temporaryContext.save()
-
-            temporaryContext.delete(resourceToDelete)
-            try temporaryContext.save()
-
-            await FFCoreDataManager.shared.saveContextIfNeeded()
+            try await filenDelete(resource: resourceToDeleteParentContext, inLocalFolder: workingDirectory)
         }
     }
 

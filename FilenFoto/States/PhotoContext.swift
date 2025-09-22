@@ -46,4 +46,14 @@ class PhotoContext: ObservableObject {
     }
     
     @Published var errorMessages: [String] = []
+    
+    func report(error: FilenClientError) {
+        self.report(error.errorDescription ?? "Unknown error")
+    }
+    
+    func report(_ errorString: String) {
+        DispatchQueue.main.async {
+            self.errorMessages.append(errorString)
+        }
+    }
 }

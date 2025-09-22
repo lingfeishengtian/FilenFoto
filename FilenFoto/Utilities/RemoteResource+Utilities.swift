@@ -7,10 +7,6 @@
 
 import Foundation
 
-enum RemoteResourceError: Error {
-    case stillExistsInFilen
-}
-
 extension RemoteResource {
     func fileURL(in directory: URL) -> URL? {
         guard let fileName = uuid?.uuidString else {
@@ -24,8 +20,7 @@ extension RemoteResource {
         try super.validateForDelete()
         
         if filenUuid != nil {
-            print("Has filenUuid \(filenUuid?.uuidString)")
-            throw RemoteResourceError.stillExistsInFilen
+            throw FilenFotoError.remoteResourceStillExistsInFilen
         }
     }
 }

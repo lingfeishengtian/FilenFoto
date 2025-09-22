@@ -10,6 +10,7 @@
 		963D31672E78A8AA00C602C9 /* FotoAsset+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 963D31632E78A8AA00C602C9 /* FotoAsset+CoreDataClass.swift */; };
 		963D316A2E78A8AA00C602C9 /* CachedResource+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 963D31612E78A8AA00C602C9 /* CachedResource+CoreDataClass.swift */; };
 		963D316B2E78A8AA00C602C9 /* RemoteResource+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 963D31652E78A8AA00C602C9 /* RemoteResource+CoreDataClass.swift */; };
+		967A5F002E7FC7CD008ED1FC /* ProviderStatus+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 967A5EFE2E7FC7CD008ED1FC /* ProviderStatus+CoreDataClass.swift */; };
 		96BEF75E2E64C325003B1BA8 /* libfilen_swift.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96BEF75D2E64C325003B1BA8 /* libfilen_swift.xcframework */; };
 		96BEF75F2E64C325003B1BA8 /* libfilen_swift.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 96BEF75D2E64C325003B1BA8 /* libfilen_swift.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -52,6 +53,7 @@
 		963D31612E78A8AA00C602C9 /* CachedResource+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CachedResource+CoreDataClass.swift"; path = "FilenFoto/Persistence/Models/CachedResource+CoreDataClass.swift"; sourceTree = "<group>"; };
 		963D31632E78A8AA00C602C9 /* FotoAsset+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FotoAsset+CoreDataClass.swift"; path = "FilenFoto/Persistence/Models/FotoAsset+CoreDataClass.swift"; sourceTree = "<group>"; };
 		963D31652E78A8AA00C602C9 /* RemoteResource+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RemoteResource+CoreDataClass.swift"; path = "FilenFoto/Persistence/Models/RemoteResource+CoreDataClass.swift"; sourceTree = "<group>"; };
+		967A5EFE2E7FC7CD008ED1FC /* ProviderStatus+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ProviderStatus+CoreDataClass.swift"; path = "FilenFoto/Persistence/Models/ProviderStatus+CoreDataClass.swift"; sourceTree = "<group>"; };
 		96A3EA092E7686CD005F235B /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 		96BEF75D2E64C325003B1BA8 /* libfilen_swift.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libfilen_swift.xcframework; path = "filen-swift/target/ios/libfilen_swift.xcframework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -116,6 +118,7 @@
 		960052662E5A1AB8005176EE = {
 			isa = PBXGroup;
 			children = (
+				967A5EFE2E7FC7CD008ED1FC /* ProviderStatus+CoreDataClass.swift */,
 				963D31612E78A8AA00C602C9 /* CachedResource+CoreDataClass.swift */,
 				963D31632E78A8AA00C602C9 /* FotoAsset+CoreDataClass.swift */,
 				963D31652E78A8AA00C602C9 /* RemoteResource+CoreDataClass.swift */,
@@ -292,6 +295,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				963D31672E78A8AA00C602C9 /* FotoAsset+CoreDataClass.swift in Sources */,
+				967A5F002E7FC7CD008ED1FC /* ProviderStatus+CoreDataClass.swift in Sources */,
 				963D316A2E78A8AA00C602C9 /* CachedResource+CoreDataClass.swift in Sources */,
 				963D316B2E78A8AA00C602C9 /* RemoteResource+CoreDataClass.swift in Sources */,
 			);

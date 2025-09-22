@@ -10,130 +10,50 @@ import Foundation
 import Photos
 import UIKit
 
+actor ThumbnailProvider: PhotoActionProviderDelegate {
+    let version: Int16 = 1
 
-private let thumbnailRootURL: URL = {
-    let fileManager = FileManager.default
-    let thumbnailDirectory = FileManager.photoThumbnailDirectory
-
-    var isDirectoryPointer: ObjCBool = false
-    if fileManager.fileExists(atPath: thumbnailDirectory.path(), isDirectory: &isDirectoryPointer) {
-        if !isDirectoryPointer.boolValue {
-            fatalError("A file exists at the thumbnail directory path, but it's not a directory.")  // TODO: Handle errors prettier!
-        }
-    } else {
-        do {
-            try fileManager.createDirectory(at: thumbnailDirectory, withIntermediateDirectories: true, attributes: nil)
-        } catch {
-            fatalError("Failed to create thumbnail directory: \(error)")  // TODO: Handle errors prettier!
-        }
-    }
-
-    return thumbnailDirectory
-}()
-
-actor ThumbnailProviderActor {
-    private var latestPendingThumbnailIndex: ThumbnailIndex {
-        get {
-            let rawValue = UserDefaults.standard.object(forKey: "latestPendingThumbnailIndex") as? Int64
-            return ThumbnailIndex(rawValue: rawValue ?? 0)
-        }
-
-        set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: "latestPendingThumbnailIndex")
-        }
-    }
-
-    func saveThumbnail(for compressedData: Data, to fotoAsset: FotoAsset) throws {
-        let folderURL = thumbnailRootURL.appendingPathComponent(
-            String(latestPendingThumbnailIndex.folderIndex)
-        )
-
-        let thumbnailURL = folderURL.appendingPathComponent(
-            "\(latestPendingThumbnailIndex.thumbnailIndex).thumb"
-        )
-
-        try FileManager.default.createDirectory(
-            at: folderURL,
-            withIntermediateDirectories: true,
-            attributes: nil
-        )
-
-        try compressedData.write(to: thumbnailURL)
-        
-        fotoAsset.thumbnailIndex = latestPendingThumbnailIndex.rawValue
-        latestPendingThumbnailIndex = latestPendingThumbnailIndex.incremented()
-    }
-}
-
-class ThumbnailProvider: PhotoActionProviderDelegate {
-    
     private init() {}
     static let shared = ThumbnailProvider()
-    let thumbnailActor = ThumbnailProviderActor()
     
-    func initiateProtocol(with workingSetAsset: WorkingSetFotoAsset) async -> Bool {
-        let fotoAsset = workingSetAsset.asset
-        print("Initiate ThumbnailProvider for photo with identifier: \(fotoAsset.id)")
-
-
-//        let photoFile = PHAssetResource.assetResources(for: photo)
-//        let phAssetResourceManager = PHAssetResourceManager.default()
-//        for resource in photoFile {
-//            if resource.type == .photo {
-//                try! await phAssetResourceManager.writeData(for: resource, toFile: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("test.jpg"), options: nil)
-//                let uiImage = UIImage(contentsOfFile: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("test.jpg").path)!
-//                
-//                try! await thumbnailActor.saveThumbnail(for: compressImageToJpeg(uiImage), to: fotoAsset)
-//            }
-//        }
-        
-
-        return true
-    }
-
-    func thumbnail(for fotoAsset: FotoAsset) -> UIImage? {
-        let index = ThumbnailIndex(rawValue: fotoAsset.thumbnailIndex)
-        
-        let folderURL = thumbnailRootURL.appendingPathComponent(
-            String(index.folderIndex)
-        )
-
-        let thumbnailURL = folderURL.appendingPathComponent(
-            "\(index.thumbnailIndex).thumb"
-        )
-
-        guard FileManager.default.fileExists(atPath: thumbnailURL.path) else {
-            return nil
+    static let audioThumbnail = UIImage() // TODO: Load the default audio image from assets (maybe later generate thumbnail from soundwave???)
+    
+    func initiateProtocol(for workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset) async throws -> ProviderCompletion? {
+        switch fotoAsset.mediaType {
+        case .unknown:
+            fatalError("Not supported for now")
+        case .image:
+            let resource = try await workingSetAsset.resource(for: .photo)
+            let image = UIImage(contentsOfFile: resource.path())
+            
+            guard let image else {
+                throw FilenFotoError.invalidImage
+            }
+            
+            let compressedImage = compressImageToJpeg(image)
+            
+            guard let compressedImage else {
+                // TODO: There might be some wonkiness in converting to jpeg. investigate this
+                throw FilenFotoError.invalidImage
+            }
+            
+            try storeThumbnail(compressedImage, for: fotoAsset)
+        case .video:
+            fatalError("Not supported for now")
+        case .audio:
+            fatalError("Not supported for now")
+        @unknown default:
+            fatalError("TODO: Fix this")
         }
         
-        return UIImage(contentsOfFile: thumbnailURL.path)
+        return nil
     }
     
-    func compressedPixelSize(pixelHeight: Int64, pixelWidth: Int64) -> CGSize {
-        let maxDimension: CGFloat = 200.0
-        let size = CGSize(width: CGFloat(pixelWidth), height: CGFloat(pixelHeight))
-        let aspectRatio = size.width / size.height
-        
-        let newSize: CGSize
-        if aspectRatio > 1 {
-            newSize = CGSize(width: maxDimension, height: maxDimension / aspectRatio)
-        } else {
-            newSize = CGSize(width: maxDimension * aspectRatio, height: maxDimension)
-        }
-        
-        return newSize
+    func incrementlyMigrate(_ workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset, from currentVersion: Int16) async throws -> ProviderCompletion? {
+        fatalError("No migrations required")
     }
     
-    func compressImageToJpeg(_ image: UIImage) -> Data {
-        let newSize = compressedPixelSize(pixelHeight: Int64(image.size.height), pixelWidth: Int64(image.size.width))
-        
-        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
-        image.draw(in: CGRect(origin: .zero, size: newSize))
-        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
-        return resizedImage!.jpegData(compressionQuality: 0.8)!
+    func retryFailedActions(for workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset) async throws -> ProviderCompletion? {
+        try await initiateProtocol(for: workingSetAsset, with: fotoAsset)
     }
-
-
 }

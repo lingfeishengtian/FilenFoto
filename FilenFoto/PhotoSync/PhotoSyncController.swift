@@ -10,31 +10,19 @@ import Foundation
 import Photos
 import os
 
-let REGISTERED_PROVIDERS = [
-    "ThumbnailProvider": ThumbnailProvider.shared
-]
-
-enum SyncError: Error {
-    case askForPermissions
-    case runtimeError(LocalizedStringResource)
-}
-
 let MAX_CONCURRENT_TASKS = 3
-typealias ProviderAction = () async -> Bool
 
 class PhotoSyncController {
     private init() {}
 
     static let shared = PhotoSyncController()
-    private let logger = Logger(subsystem: "com.hunterhan.filenfoto", category: "PhotoSyncController")
-
-    private var taskStream: AsyncStream<(PHAsset, UUID, PhotoActionProviderDelegate)>? = nil
+    let logger = Logger(subsystem: "com.hunterhan.filenfoto", category: "PhotoSyncController")
 
     var stopped = false
 
     func beginSync() throws {
         if !(try checkPermissionStatus()) {
-            throw SyncError.askForPermissions
+            throw FilenFotoError.noCameraPermissions
         }
 
         if stopped {
@@ -45,10 +33,10 @@ class PhotoSyncController {
         logger.info("Starting sync of \(photoLibrary.count) photos")
 
         Task.detached(priority: .background) {
-            await withTaskGroup(of: Bool.self) { group in
+            await withTaskGroup(of: Void.self) { group in
                 var initialTasks = 0
 
-                func addToWorker(task: @escaping ProviderAction) async {
+                func addToWorker(task: @escaping () async -> Void) async {
                     if initialTasks < MAX_CONCURRENT_TASKS {
                         initialTasks += 1
                         group.addTask {
@@ -63,42 +51,39 @@ class PhotoSyncController {
                     }
                 }
 
-                await self.batchedTaskGroup(addToWorker: addToWorker, photoLibrary: photoLibrary)
+                for fotoAssetIndex in 0..<photoLibrary.count {
+                    let asset = photoLibrary.object(at: fotoAssetIndex)
+
+                    if self.stopped {
+                        break
+                    }
+
+                    await addToWorker {
+                        await self.startProviderActions(for: asset)
+                    }
+                }
             }
-            
+
             await FFCoreDataManager.shared.saveContextIfNeeded()
         }
     }
 
-    func batchedTaskGroup(addToWorker: (@escaping ProviderAction) async -> Void, photoLibrary: PHFetchResult<PHAsset>) async {
-        for index in 0..<photoLibrary.count {
-            let asset = photoLibrary.object(at: index)
-            print("Enumerating asset \(index + 1) of \(photoLibrary.count)")
+    func startProviderActions(for asset: PHAsset) async {
+        let fotoAsset = await FFCoreDataManager.shared.insert(for: asset)
+        let workingAsset = WorkingSetFotoAsset(asset: fotoAsset)
 
-            if self.stopped {
-                return
-            }
-
-            let fotoAsset = await FFCoreDataManager.shared.insert(for: asset)
-            let workingAsset = WorkingSetFotoAsset(asset: fotoAsset)
-            
-            do {
-                try await workingAsset.retrieveResources(withSupportingPHAsset: asset)
-            } catch {
-                print(error)
-                PhotoContext.shared.errorMessages.append("An error ocurred on asset \(index + 1) of \(photoLibrary.count)")
-            }
-            
-                // Maybe use provider in a different class?
-            for provider in REGISTERED_PROVIDERS.values {
-                await addToWorker {
-                    let result = await provider.initiateProtocol(with: workingAsset)
-                    return result
-                }
-            }
+        do {
+            try await workingAsset.retrieveResources(withSupportingPHAsset: asset)
+        } catch {
+            logger.error("\(error)")
+            PhotoContext.shared.report("An error ocurred while pulling resources for \(asset.localIdentifier)")
+            return
         }
+
+        let context = FFCoreDataManager.shared.newChildContext()
+
+        await runProviders(for: workingAsset)
     }
-    
 }
 
 extension PhotoSyncController {
@@ -108,9 +93,9 @@ extension PhotoSyncController {
         case .notDetermined:
             return false
         case .restricted:
-            throw SyncError.runtimeError("App entitlements are incorrect.")
+            throw FilenFotoError.appBundleBroken
         case .denied:
-            throw SyncError.runtimeError("Permission to access photos was denied.")
+            throw FilenFotoError.cameraPermissionDenied
         case .authorized, .limited:
             return true
         @unknown default:

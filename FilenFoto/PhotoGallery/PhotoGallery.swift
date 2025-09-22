@@ -105,7 +105,7 @@ struct PhotoGallery: View {
                 .onAppear {
                     do {
                         try PhotoSyncController.shared.beginSync()
-                    } catch SyncError.askForPermissions {
+                    } catch FilenFotoError.noCameraPermissions {
                         PhotoSyncController.shared.requestPermission { succeeded in
                             if succeeded {
                                 print("Permission granted.")

@@ -16,9 +16,8 @@
         <attribute name="mediaTypeRaw" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pixelHeight" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pixelWidth" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="providerFailures" optional="YES" attributeType="Binary"/>
-        <attribute name="thumbnailIndex" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="uuid" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="providerStatuses" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ProviderStatus" inverseName="parentAsset" inverseEntity="ProviderStatus"/>
         <relationship name="remoteResources" optional="YES" toMany="YES" deletionRule="Deny" destinationEntity="RemoteResource" inverseName="parentAsset" inverseEntity="RemoteResource"/>
         <fetchIndex name="byCreatedDate">
             <fetchIndexElement property="dateCreated" type="Binary" order="descending"/>
@@ -30,6 +29,13 @@
             <fetchIndexElement property="cloudUuid" type="Binary" order="ascending"/>
         </fetchIndex>
     </entity>
+    <entity name="ProviderStatus" representedClassName="ProviderStatus" syncable="YES" codeGenerationType="category">
+        <attribute name="failureMessage" optional="YES" attributeType="String"/>
+        <attribute name="providerIDRaw" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="stateRaw" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="version" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="parentAsset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FotoAsset" inverseName="providerStatuses" inverseEntity="FotoAsset"/>
+    </entity>
     <entity name="RemoteResource" representedClassName=".RemoteResource" syncable="YES" codeGenerationType="category">
         <attribute name="assetResourceTypeRaw" optional="YES" attributeType="Integer 64" valueTransformerName="AssetResourceTypeTransformer" defaultValueString="0" usesScalarValueType="YES" customClassName="Photos.PHAssetResourceType"/>
         <attribute name="fileHashBinary" optional="YES" attributeType="Binary"/>
@@ -40,4 +46,5 @@
         <relationship name="cachedResource" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="CachedResource" inverseName="remoteResource" inverseEntity="CachedResource"/>
         <relationship name="parentAsset" maxCount="1" deletionRule="Nullify" destinationEntity="FotoAsset" inverseName="remoteResources" inverseEntity="FotoAsset"/>
     </entity>
+    <fetchRequest name="MainPhotoGallery" entity="FotoAsset" predicateString="thumbnailIndexRaw != 0"/>
 </model>
