@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 
 extension PhotosViewerViewController: UICollectionViewDataSource {
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         photoDataSource().numberOfPhotos()
     }

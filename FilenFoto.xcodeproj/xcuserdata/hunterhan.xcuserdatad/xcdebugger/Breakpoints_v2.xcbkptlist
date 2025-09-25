@@ -1074,8 +1074,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotosViewerViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "45"
-            endingLineNumber = "45"
+            startingLineNumber = "47"
+            endingLineNumber = "47"
             landmarkName = "viewDidLoad()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1090,8 +1090,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotosViewerViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "44"
-            endingLineNumber = "44"
+            startingLineNumber = "46"
+            endingLineNumber = "46"
             landmarkName = "viewDidLoad()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1794,26 +1794,10 @@
             filePath = "FilenFoto/PhotoGallery/PhotoGallery.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "107"
-            endingLineNumber = "107"
+            startingLineNumber = "130"
+            endingLineNumber = "130"
             landmarkName = "body"
             landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "D73D916F-7BE5-42C6-BA2E-72FB71914CC2"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoGallery/PhotosViewer/Views/PhotoViewCell.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "37"
-            endingLineNumber = "37"
-            landmarkName = "configure(with:)"
-            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -1995,61 +1979,65 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "2973B7C4-EB7A-4BFC-B824-1284C68F9522"
+            uuid = "8A9BB847-3E48-4D41-9838-26F7FA412505"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoSync/PhotoSyncProviders/ThumbnailProvider.swift"
+            filePath = "FilenFoto/PhotoGallery/PhotosViewer/Views/PhotoViewCell.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "26"
-            endingLineNumber = "26"
-            landmarkName = "initiateProtocol(for:with:)"
+            startingLineNumber = "37"
+            endingLineNumber = "37"
+            landmarkName = "PhotoViewCell"
+            landmarkType = "3">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F02B2693-20ED-4044-B30F-DCED096421C3"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/Utilities/ImageUtilities/YUV+Converter.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "89"
+            endingLineNumber = "89"
+            landmarkName = "aspectFillCGImage(_:to:)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "3CAD9822-7566-496B-8010-2B5090FA94C6"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/Utilities/ImageUtilities/Image+YUV.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "22"
+            endingLineNumber = "22"
+            landmarkName = "exportToRawThumbnail(at:targetSize:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "2973B7C4-EB7A-4BFC-B824-1284C68F9522 - 6c50bbe602d75459"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(1) suspend resume partial function for FilenFoto.ThumbnailProvider.initiateProtocol(for: FilenFoto.WorkingSetFotoAsset, with: FilenFoto.FotoAsset) async throws -&gt; Swift.Optional&lt;() -&gt; ()&gt;"
-                  moduleName = "FilenFoto.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/hunterhan/Documents/FilenFoto/FilenFoto/PhotoSync/PhotoSyncProviders/ThumbnailProvider.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "26"
-                  endingLineNumber = "26">
-               </Location>
-               <Location
-                  uuid = "2973B7C4-EB7A-4BFC-B824-1284C68F9522 - 33c34b7eea88e397"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(2) await resume partial function for FilenFoto.ThumbnailProvider.initiateProtocol(for: FilenFoto.WorkingSetFotoAsset, with: FilenFoto.FotoAsset) async throws -&gt; Swift.Optional&lt;() -&gt; ()&gt;"
-                  moduleName = "FilenFoto.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/hunterhan/Documents/FilenFoto/FilenFoto/PhotoSync/PhotoSyncProviders/ThumbnailProvider.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "26"
-                  endingLineNumber = "26">
-               </Location>
-               <Location
-                  uuid = "2973B7C4-EB7A-4BFC-B824-1284C68F9522 - f9319fd0cb894a56"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(4) suspend resume partial function for FilenFoto.ThumbnailProvider.initiateProtocol(for: FilenFoto.WorkingSetFotoAsset, with: FilenFoto.FotoAsset) async throws -&gt; Swift.Optional&lt;() -&gt; ()&gt;"
-                  moduleName = "FilenFoto.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/hunterhan/Documents/FilenFoto/FilenFoto/PhotoSync/PhotoSyncProviders/ThumbnailProvider.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "26"
-                  endingLineNumber = "26">
-               </Location>
-            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B4586F0A-C8E9-45EF-8F9E-EE962E3994F8"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/Utilities/ImageUtilities/YUV+Converter.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "80"
+            endingLineNumber = "80"
+            landmarkName = "uiImageToARGBPixelBuffer(_:targetSize:)"
+            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

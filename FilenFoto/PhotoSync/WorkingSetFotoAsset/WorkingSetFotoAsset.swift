@@ -101,6 +101,11 @@ actor WorkingSetFotoAsset {
     deinit {
         for remoteResource in asset.remoteResourcesArray {
             let fileURL = remoteResource.fileURL(in: workingSetRootFolder)!
+            let doesFileExist = FileManager.default.fileExists(atPath: fileURL.path())
+            
+            if !doesFileExist {
+                continue
+            }
 
             do {
                 try FFResourceCacheManager.shared.insert(remoteResource: remoteResource, fileUrl: fileURL)

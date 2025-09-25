@@ -8,32 +8,38 @@
 import Foundation
 import UIKit
 
-let JPEG_COMPRESSION_QUALITY: CGFloat = 0.8
-
 extension ThumbnailProvider {
-    func compressedPixelSize(pixelHeight: Int64, pixelWidth: Int64) -> CGSize {
-        let maxDimension: CGFloat = 200.0
+    static let MAX_COMPRESSED_DIMENSION: CGFloat = 350
+
+    nonisolated func compressedPixelSize(pixelHeight: Int64, pixelWidth: Int64) -> CGSize {
+        let maxDimension: CGFloat = ThumbnailProvider.MAX_COMPRESSED_DIMENSION
         let size = CGSize(width: CGFloat(pixelWidth), height: CGFloat(pixelHeight))
         let aspectRatio = size.width / size.height
 
         let newSize: CGSize
         if aspectRatio > 1 {
-            newSize = CGSize(width: maxDimension, height: maxDimension / aspectRatio)
+            let height = floor(maxDimension / aspectRatio).roundedToEven
+            newSize = CGSize(width: maxDimension, height: height)
         } else {
-            newSize = CGSize(width: maxDimension * aspectRatio, height: maxDimension)
+            let width = floor(maxDimension * aspectRatio).roundedToEven
+            newSize = CGSize(width: width, height: maxDimension)
         }
 
         return newSize
     }
+}
 
-    func compressImageToJpeg(_ image: UIImage) -> Data? {
-        let newSize = compressedPixelSize(pixelHeight: Int64(image.size.height), pixelWidth: Int64(image.size.width))
+fileprivate extension CGFloat {
+    /// Rounds the CGFloat to the nearest multiple of `divisor` treating it as an integer
+    func roundedToNearest(_ divisor: CGFloat) -> CGFloat {
+        guard divisor != 0 else { return self }
+        let intValue = Int(self.rounded())  // round to nearest integer first
+        let roundedInt = (intValue + Int(divisor) / 2) / Int(divisor) * Int(divisor)
+        return CGFloat(roundedInt)
+    }
 
-        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
-        image.draw(in: CGRect(origin: .zero, size: newSize))
-        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-
-        return resizedImage?.jpegData(compressionQuality: JPEG_COMPRESSION_QUALITY)
+    /// Shortcut for rounding to nearest even number
+    var roundedToEven: CGFloat {
+        return self.roundedToNearest(2)
     }
 }
