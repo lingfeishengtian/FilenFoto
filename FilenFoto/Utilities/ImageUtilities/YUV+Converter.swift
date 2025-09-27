@@ -1,5 +1,5 @@
 //
-//  YUV+Writer.swift
+//  YUV+Converter.swift
 //  FilenFoto
 //
 //  Created by Hunter Han on 9/24/25.
@@ -146,7 +146,6 @@ private func argbPixelBufferToYUV420PixelBuffer(_ srcPixelBuffer: CVPixelBuffer)
         ),
     ]
 
-    // TODO: Make this a constant
     var pixelRange = ImageUtilitiesConstants.YUV420P_PIXEL_RANGE
 
     var conversionInfo = vImage_ARGBToYpCbCr()
