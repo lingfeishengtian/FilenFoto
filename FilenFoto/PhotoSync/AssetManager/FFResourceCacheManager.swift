@@ -104,6 +104,11 @@ class FFResourceCacheManager {
         guard let fileSize = FileManager.default.sizeOfFile(at: fileUrl) else {
             throw FilenFotoError.invalidFile
         }
+        
+        if let cachedResource = remoteResource.cachedResource {
+            cachedResource.lastAccessDate = .now
+            return
+        }
 
         let cachedResource = CachedResource(context: objectContext)
         cachedResource.remoteResource = objectContext.object(with: remoteResource.objectID) as? RemoteResource
@@ -128,8 +133,11 @@ class FFResourceCacheManager {
     }
     
     // TODO: Temp move all instances of getting the cache directory into an extension of the cache NSManagedObject
-    func destinationUrl(for cachedResource: CachedResource) -> URL {
-        persistedPhotoCacheFolder.appending(path: cachedResource.fileName!.uuidString)
+    func copyCache(from cachedResource: CachedResource, to destinationURL: URL) throws {
+        cachedResource.lastAccessDate = .now
+        
+        let cachedUrlLocation = persistedPhotoCacheFolder.appending(path: cachedResource.fileName!.uuidString)
+        try FileManager.default.copyItem(at: cachedUrlLocation, to: destinationURL)
     }
 }
 

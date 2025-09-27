@@ -9,12 +9,14 @@ import Foundation
 import SwiftUI
 import UIKit
 import os
+import CoreData
 
 class PhotosViewerViewController: PhotoGalleryTemplateViewController {
     var collectionView: UICollectionView!
     var itemSize: CGSize!
 
     var animationController: PhotoHeroAnimationController!
+    var diffableDataSource: UICollectionViewDiffableDataSource<Int, NSManagedObjectID>!
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PhotosViewerViewController")
 
@@ -36,7 +38,6 @@ class PhotosViewerViewController: PhotoGalleryTemplateViewController {
 
         collectionView = UICollectionView(frame: self.view.bounds, collectionViewLayout: layout)
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(PhotoViewCell.self, forCellWithReuseIdentifier: "PhotoCell")
         
@@ -46,6 +47,18 @@ class PhotosViewerViewController: PhotoGalleryTemplateViewController {
 
         animationController = PhotoHeroAnimationController()
         self.navigationController?.delegate = animationController
+        
+        self.diffableDataSource = UICollectionViewDiffableDataSource<Int, NSManagedObjectID> (collectionView: self.collectionView) { collectionView, indexPath, itemIdentifier in
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCell", for: indexPath) as! PhotoViewCell
+            
+            let photo = self.photo(at: indexPath)
+            cell.configure(with: photo ?? UIImage())
+            
+            return cell
+        }
+        collectionView.dataSource = diffableDataSource
+        fetchResultsController.delegate = self
+        try? fetchResultsController.performFetch()
     }
 
     func getSelectedIndexPath() -> IndexPath {

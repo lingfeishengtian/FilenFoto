@@ -15,6 +15,7 @@ extension PhotosViewerViewController: PhotoHeroAnimatorDelegate {
             return AnimationReferences(size: itemSize)
         }
         
+        // TODO: This is unacceptable, fix this
         return AnimationReferences(imageReference: cell.imageView, frame: self.collectionView.convert(cell.frame, to: self.view.superview?.superview))
     }
     

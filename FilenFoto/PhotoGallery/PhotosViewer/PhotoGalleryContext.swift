@@ -11,6 +11,7 @@ import SwiftUI
 class PhotoGalleryContext: ObservableObject {
     @Published var selectedPhotoIndex: Int?
     
+    // TODO: This might not be doable anymore
     let photoDataSource: any PhotoDataSourceProtocol
     let swiftUIProvider: any SwiftUIProviderProtocol
     

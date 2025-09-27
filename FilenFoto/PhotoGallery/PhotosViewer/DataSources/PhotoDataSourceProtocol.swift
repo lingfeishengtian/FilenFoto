@@ -7,8 +7,9 @@
 
 import Foundation
 import UIKit
+import CoreData
 
 protocol PhotoDataSourceProtocol {
-    func numberOfPhotos() -> Int
-    func photoAt(index: Int) -> UIImage? // TODO: Change to custom Photo Model
+    func photo(for photoId: FotoAsset) -> UIImage?
+    func fetchRequestController() -> NSFetchedResultsController<FotoAsset>
 }

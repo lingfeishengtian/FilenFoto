@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-
-
 @main
 struct FilenFotoApp: App {
     @StateObject var photoContext = PhotoContext.shared

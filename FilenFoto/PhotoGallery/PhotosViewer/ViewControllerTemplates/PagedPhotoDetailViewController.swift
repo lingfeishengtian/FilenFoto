@@ -24,7 +24,9 @@ class PagedPhotoDetailViewController: PhotoGalleryTemplateViewController {
 
         addChild(pagedController)
         view.addSubview(pagedController.view)
-
+        
+        try? fetchResultsController.performFetch()
+        
         pagedController.delegate = self
         pagedController.dataSource = self
         pagedController.setViewControllers(currentViewControllers(), direction: .forward, animated: false, completion: nil)
@@ -33,7 +35,7 @@ class PagedPhotoDetailViewController: PhotoGalleryTemplateViewController {
 
     override func willUpdateSelectedPhotoIndex(_ index: Int?) {
         super.willUpdateSelectedPhotoIndex(index)
-        
+
         pagedController.setViewControllers(currentViewControllers(with: index), direction: .forward, animated: false)
     }
 
@@ -41,19 +43,20 @@ class PagedPhotoDetailViewController: PhotoGalleryTemplateViewController {
         guard let selectedIndex = newIndex ?? selectedPhotoIndex(), let currentViewController = getViewController(at: selectedIndex) else {
             return nil
         }
-        
+
         return [currentViewController]
     }
 
     func getViewController(at index: Int) -> UIViewController? {
-        if index < 0 || index >= photoDataSource().numberOfPhotos() {
+        if index < 0 || index >= countOfPhotos {
             return nil
         }
 
         return ScrollableImageViewController(
-            animationController: animationController, image: photoDataSource().photoAt(index: index), imageIndex: index,
+            animationController: animationController,
+            image: photo(at: index), imageIndex: index,
             photoGalleryContext: photoGalleryContext)
     }
-    
-    func onPageChanged(to index: Int) { }
+
+    func onPageChanged(to index: Int) {}
 }

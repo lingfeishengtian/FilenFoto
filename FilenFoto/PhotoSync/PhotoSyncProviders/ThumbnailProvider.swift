@@ -30,30 +30,6 @@ actor ThumbnailProvider: PhotoActionProviderDelegate {
         return nil
     }
     
-    func resizedImageWith(image: UIImage, targetSize: CGSize) -> UIImage {
-        let imageSize = image.size
-        let newWidth  = targetSize.width  / image.size.width
-        let newHeight = targetSize.height / image.size.height
-        var newSize: CGSize
-
-        if(newWidth > newHeight) {
-            newSize = CGSizeMake(imageSize.width * newHeight, imageSize.height * newHeight)
-        } else {
-            newSize = CGSizeMake(imageSize.width * newWidth,  imageSize.height * newWidth)
-        }
-
-        let rect = CGRectMake(0, 0, newSize.width, newSize.height)
-
-        UIGraphicsBeginImageContextWithOptions(newSize, false, 0.0)
-
-        image.draw(in: rect)
-
-        let newImage = UIGraphicsGetImageFromCurrentImageContext()!
-        UIGraphicsEndImageContext()
-
-        return newImage
-    }
-
     func incrementlyMigrate(_ workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset, from currentVersion: Int16) async throws
         -> ProviderCompletion?
     {
