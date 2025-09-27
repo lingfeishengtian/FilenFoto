@@ -70,6 +70,10 @@ actor FFCoreDataManager {
         persistentContainer.viewContext
     }
     
+    nonisolated var managedObjectModel: NSManagedObjectModel {
+        persistentContainer.managedObjectModel
+    }
+    
     func saveContextIfNeeded() {
         if backgroundContext.hasChanges {
             do {

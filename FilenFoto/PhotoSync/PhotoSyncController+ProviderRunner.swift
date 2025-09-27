@@ -12,12 +12,12 @@ extension PhotoSyncController {
     func runProviders(for workingAsset: WorkingSetFotoAsset) async {
         let providerManagedContext = FFCoreDataManager.shared.newChildContext()
         let fotoAsset = await workingAsset.asset(in: providerManagedContext)
-        
+
         guard let fotoAsset else {
             logger.error("FotoAsset was nil")
             return
         }
-        
+
         let providerStatuses = fotoAsset.providerStatuses as? Set<ProviderStatus>
 
         for potentialProvider in AvailableProvider.allCases {
@@ -41,6 +41,9 @@ extension PhotoSyncController {
                     currentProviderStatus.state = .succeded
                     currentProviderStatus.failureMessage = nil
                     currentProviderStatus.version = providerDelegate.version
+                } catch let error as FilenFotoError {
+                    currentProviderStatus.state = .failed
+                    currentProviderStatus.failureMessage = "\(error.errorDescription)"
                 } catch {
                     currentProviderStatus.state = .failed
                     currentProviderStatus.failureMessage = "\(error.localizedDescription)"
@@ -64,10 +67,16 @@ extension PhotoSyncController {
                         try await providerDelegate.retryFailedActions(for: workingAsset, with: fotoAsset)
                     }
                 case .succeded:
-                    for versionUpgrade in currentProviderStatus.version...providerDelegate.version {
+                    for versionUpgrade in currentProviderStatus.version..<providerDelegate.version {
                         try await execute {
                             try await providerDelegate.incrementlyMigrate(workingAsset, with: fotoAsset, from: versionUpgrade)
                         }
+                    }
+
+                    if providerDelegate.version != currentProviderStatus.version {
+                        logger.critical(
+                            "The version after migration is not updated or is different from the current provider version. Current version: \(currentProviderStatus.version), Current provider version: \(providerDelegate.version)"
+                        )
                     }
                 }
             } catch {

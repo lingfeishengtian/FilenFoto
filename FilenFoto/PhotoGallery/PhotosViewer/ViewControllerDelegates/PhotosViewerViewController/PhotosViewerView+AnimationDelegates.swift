@@ -15,7 +15,7 @@ extension PhotosViewerViewController: PhotoHeroAnimatorDelegate {
             return AnimationReferences(size: itemSize)
         }
         
-        return AnimationReferences(imageReference: cell.imageView, frame: self.collectionView.convert(cell.frame, to: self.view))
+        return AnimationReferences(imageReference: cell.imageView, frame: self.collectionView.convert(cell.frame, to: self.view.superview?.superview))
     }
     
     func getAnimationReferences() -> AnimationReferences {

@@ -39,6 +39,8 @@ class PhotosViewerViewController: PhotoGalleryTemplateViewController {
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(PhotoViewCell.self, forCellWithReuseIdentifier: "PhotoCell")
+        
+        collectionView.contentInset.top = 70
 
         self.view.addSubview(collectionView)
 

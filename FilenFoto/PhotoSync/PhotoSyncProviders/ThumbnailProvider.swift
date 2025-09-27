@@ -7,52 +7,64 @@
 
 import CoreData
 import Foundation
-import Photos
 import UIKit
 
 actor ThumbnailProvider: PhotoActionProviderDelegate {
-    let version: Int16 = 1
+    let version: Int16 = 2
 
     private init() {}
     static let shared = ThumbnailProvider()
-    
-    static let audioThumbnail = UIImage() // TODO: Load the default audio image from assets (maybe later generate thumbnail from soundwave???)
-    
+
+    static let audioThumbnail = UIImage()  // TODO: Load the default audio image from assets (maybe later generate thumbnail from soundwave???)
+
     func initiateProtocol(for workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset) async throws -> ProviderCompletion? {
-        switch fotoAsset.mediaType {
-        case .unknown:
-            fatalError("Not supported for now")
-        case .image:
-            let resource = try await workingSetAsset.resource(for: .photo)
-            let image = UIImage(contentsOfFile: resource.path())
-            
-            guard let image else {
-                throw FilenFotoError.invalidImage
-            }
-            
-            let compressedImage = compressImageToJpeg(image)
-            
-            guard let compressedImage else {
-                // TODO: There might be some wonkiness in converting to jpeg. investigate this
-                throw FilenFotoError.invalidImage
-            }
-            
-            try storeThumbnail(compressedImage, for: fotoAsset)
-        case .video:
-            fatalError("Not supported for now")
-        case .audio:
-            fatalError("Not supported for now")
-        @unknown default:
-            fatalError("TODO: Fix this")
-        }
-        
+        let image = try await imageResource(for: workingSetAsset, mediaType: fotoAsset.mediaType)
+        try image.exportToRawThumbnail(
+            at: destinationUrl(for: fotoAsset),
+            targetSize: compressedPixelSize(
+                pixelHeight: fotoAsset.pixelHeight,
+                pixelWidth: fotoAsset.pixelWidth
+            )
+        )
+
         return nil
     }
     
-    func incrementlyMigrate(_ workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset, from currentVersion: Int16) async throws -> ProviderCompletion? {
-        fatalError("No migrations required")
+    func resizedImageWith(image: UIImage, targetSize: CGSize) -> UIImage {
+        let imageSize = image.size
+        let newWidth  = targetSize.width  / image.size.width
+        let newHeight = targetSize.height / image.size.height
+        var newSize: CGSize
+
+        if(newWidth > newHeight) {
+            newSize = CGSizeMake(imageSize.width * newHeight, imageSize.height * newHeight)
+        } else {
+            newSize = CGSizeMake(imageSize.width * newWidth,  imageSize.height * newWidth)
+        }
+
+        let rect = CGRectMake(0, 0, newSize.width, newSize.height)
+
+        UIGraphicsBeginImageContextWithOptions(newSize, false, 0.0)
+
+        image.draw(in: rect)
+
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+
+        return newImage
     }
-    
+
+    func incrementlyMigrate(_ workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset, from currentVersion: Int16) async throws
+        -> ProviderCompletion?
+    {
+        switch currentVersion {
+        case 1:
+            return try await initiateProtocol(for: workingSetAsset, with: fotoAsset)
+        default:
+            return nil
+        }
+    }
+
     func retryFailedActions(for workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset) async throws -> ProviderCompletion? {
         try await initiateProtocol(for: workingSetAsset, with: fotoAsset)
     }

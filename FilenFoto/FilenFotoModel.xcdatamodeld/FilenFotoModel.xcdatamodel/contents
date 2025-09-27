@@ -46,5 +46,4 @@
         <relationship name="cachedResource" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="CachedResource" inverseName="remoteResource" inverseEntity="CachedResource"/>
         <relationship name="parentAsset" maxCount="1" deletionRule="Nullify" destinationEntity="FotoAsset" inverseName="remoteResources" inverseEntity="FotoAsset"/>
     </entity>
-    <fetchRequest name="MainPhotoGallery" entity="FotoAsset" predicateString="thumbnailIndexRaw != 0"/>
 </model>

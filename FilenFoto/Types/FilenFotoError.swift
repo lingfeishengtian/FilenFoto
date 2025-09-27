@@ -26,6 +26,7 @@ enum FilenFotoError: LocalizedError {
     case remoteResourceNotFoundInFilen
     
     case internalError(String)
+    case yuvError(YUVError)
     case appBundleBroken
     
     var errorDescription: LocalizedStringResource? {
@@ -48,6 +49,8 @@ enum FilenFotoError: LocalizedError {
             return "Tried to download a resource that was never uploaded to Filen"
         case .internalError(let englishInternalError):
             return "An internal error occurred: \(englishInternalError)"
+        case .yuvError(let yuvError):
+            return yuvError.errorDescription
         case .appBundleBroken:
             return "The app was modified in a way that this app cannot recover from. Please reinstall the app."
         case .invalidImage:
