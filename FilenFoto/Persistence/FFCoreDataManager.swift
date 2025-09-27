@@ -75,13 +75,15 @@ actor FFCoreDataManager {
     }
     
     func saveContextIfNeeded() {
-        if backgroundContext.hasChanges {
-            do {
-                logger.info("Saving background context with \(self.backgroundContext.insertedObjects.count) inserted objects, \(self.backgroundContext.updatedObjects.count) updated objects, and \(self.backgroundContext.deletedObjects.count) deleted objects.")
-                try backgroundContext.save()
-            } catch {
-                logger.error("Error saving background context: \(error)")
-                // TODO: Handle error
+        backgroundContext.perform { [self] in
+            if backgroundContext.hasChanges {
+                do {
+                    logger.info("Saving background context with \(self.backgroundContext.insertedObjects.count) inserted objects, \(self.backgroundContext.updatedObjects.count) updated objects, and \(self.backgroundContext.deletedObjects.count) deleted objects.")
+                    try backgroundContext.save()
+                } catch {
+                    logger.error("Error saving background context: \(error)")
+                    // TODO: Handle error
+                }
             }
         }
     }

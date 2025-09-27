@@ -86,7 +86,9 @@ actor WorkingSetFotoAsset {
         }
         
         if let cachedResource = remoteResource.cachedResource {
-            return FFResourceCacheManager.shared.destinationUrl(for: cachedResource)
+            try FFResourceCacheManager.shared.copyCache(from: cachedResource, to: fileUrl)
+            
+            return fileUrl
         }
         
         try await assetManager.filenDownload(resource: remoteResource, toLocalFolder: workingSetRootFolder)

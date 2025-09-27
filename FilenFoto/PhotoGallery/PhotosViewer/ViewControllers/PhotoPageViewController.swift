@@ -6,6 +6,7 @@
 //
 
 import AVKit
+import CoreData
 import Foundation
 import SwiftUI
 import UIKit
@@ -14,6 +15,8 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
     var swiftUITopBar: UIHostingController<AnyView>!
     var swiftUIBottomBar: UIHostingController<AnyView>!
     var collectionView: UICollectionView!
+
+    var diffableDataSource: UICollectionViewDiffableDataSource<Int, NSManagedObjectID>!
 
     static let PHOTO_SCRUBBER_HEIGHT: CGFloat = 34
     static let PHOTO_SCRUBBER_WIDTH: CGFloat = 25
@@ -30,7 +33,6 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
 
         collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: layout)
         collectionView.delegate = self
-        collectionView.dataSource = self
         collectionView.decelerationRate = .fast
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.register(TinyPhotoViewCell.self, forCellWithReuseIdentifier: "TinyPhotoCell")
@@ -72,16 +74,27 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
             swiftUIBottomBar.view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
             swiftUIBottomBar.view.heightAnchor.constraint(equalToConstant: 100),
         ])
-        
+
         DispatchQueue.main.async {
             self.scrollScrubberToSelectedPhoto(animated: false)
         }
+
+        fetchResultsController.delegate = self
+        diffableDataSource = .init(collectionView: collectionView) { collectionView, indexPath, itemIdentifier in
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TinyPhotoCell", for: indexPath) as! TinyPhotoViewCell
+
+            let photo = self.photo(at: indexPath)
+            cell.configure(with: photo ?? UIImage())
+
+            return cell
+        }
+        collectionView.dataSource = self.diffableDataSource
+        try? fetchResultsController.performFetch()
     }
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
-        
+
         guard let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else { return }
 
         let inset = (collectionView.bounds.width - layout.itemSize.width) / 2
@@ -94,23 +107,23 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
         swiftUITopBar.rootView = AnyView(swiftUIProvider().topBar(with: image))
         swiftUIBottomBar.rootView = AnyView(swiftUIProvider().bottomBar(with: image))
     }
-    
+
     func scrollScrubberToSelectedPhoto(animated: Bool, at newIndex: Int? = nil) {
         guard let selectedIndex = newIndex ?? selectedPhotoIndex() else { return }
-        
+
         collectionView.setContentOffset(CGPoint(x: Int(itemWidth()) * selectedIndex, y: 0), animated: animated)
     }
-    
+
     override func willUpdateSelectedPhotoIndex(_ index: Int?) {
         super.willUpdateSelectedPhotoIndex(index)
-        
+
         if !collectionView.isDragging {
             scrollScrubberToSelectedPhoto(animated: true, at: index)
         }
-        
+
         resetSwiftUIViews()
     }
-    
+
     override func onPageChanged(to index: Int) {
         scrollScrubberToSelectedPhoto(animated: true)
     }

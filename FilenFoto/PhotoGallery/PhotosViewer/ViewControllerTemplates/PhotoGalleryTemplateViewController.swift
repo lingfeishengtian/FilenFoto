@@ -9,11 +9,13 @@ import Foundation
 import UIKit
 import Combine
 import os
+import CoreData
 
 class PhotoGalleryTemplateViewController: UIViewController {
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "FilenFoto", category: "PhotoGalleryTemplateViewController")
 
     var photoGalleryContext: PhotoGalleryContext
+    var fetchResultsController: NSFetchedResultsController<FotoAsset>
     
     var cancellable: AnyCancellable?
     
@@ -23,6 +25,7 @@ class PhotoGalleryTemplateViewController: UIViewController {
     
     init (photoGalleryContext: PhotoGalleryContext) {
         self.photoGalleryContext = photoGalleryContext
+        self.fetchResultsController = photoGalleryContext.photoDataSource.fetchRequestController()
         
         super.init(nibName: nil, bundle: nil)
         
@@ -40,13 +43,25 @@ class PhotoGalleryTemplateViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    var countOfPhotos: Int {
+        fetchResultsController.sections?.first?.numberOfObjects ?? 0
+    }
+    
+    func photo(at index: Int) -> UIImage? {
+        photo(at: IndexPath(row: index, section: 0))
+    }
+    
+    func photo(at indexPath: IndexPath) -> UIImage? {
+        photoDataSource().photo(for: fetchResultsController.object(at: indexPath))
+    }
+    
     func selectedPhoto() -> UIImage? {
         guard let index = photoGalleryContext.selectedPhotoIndex else {
             logger.error("Tried to access selected photo but no index was set")
             return nil
         }
         
-        return photoGalleryContext.photoDataSource.photoAt(index: index)
+        return photo(at: index)
     }
     
     func photoDataSource() -> PhotoDataSourceProtocol {
@@ -67,7 +82,7 @@ class PhotoGalleryTemplateViewController: UIViewController {
     /// This allows for temporary changes that can be committed later to prevent animation jumps within the current view
     /// Every change *must* be committed before the view is dismissed or a new view is presented to prevent inconsistencies
     func setSelectedPhotoIndex(_ index: Int) {
-        guard index >= 0 && index < photoDataSource().numberOfPhotos() else {
+        guard index >= 0 && index < countOfPhotos else {
             return
         }
         
