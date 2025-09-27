@@ -120,7 +120,9 @@ fileprivate func makeCGImage(from buffer: vImage_Buffer) -> CGImage? {
         data: data,
         size: rowBytes * height,
         releaseData: { _, pointer, _ in
-            pointer.deallocate() // Free the pointer just in case
+            // Release the memory because CGImage (via CGDataProvider) takes ownership of the buffer
+            // and will call this release function when it is deallocated.
+            pointer.deallocate()
         })!
 
     return CGImage(
