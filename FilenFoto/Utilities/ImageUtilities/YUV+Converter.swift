@@ -34,7 +34,7 @@ private func uiImageToARGBPixelBuffer(_ image: UIImage, targetSize: CGSize? = ni
     let width = Int(targetSize?.width ?? CGFloat(cgImage.width))
     let height = Int(targetSize?.height ?? CGFloat(cgImage.height))
     
-    // Must be divisble by 2 for ARGB to convert well into YUV420 or else we get color artifacts
+    // Must be divisible by 2 for ARGB to convert well into YUV420 or else we get color artifacts
     if width % 2 != 0 || height % 2 != 0 {
         return nil
     }
