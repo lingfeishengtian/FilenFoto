@@ -22,7 +22,7 @@ class PhotoGalleryTemplateViewController: UIViewController {
     
     /// Called just before the selected photo index is updated from the context.
     /// *Note:* The new Index will be different from the current selected index since this function is called before the update occurs.
-    func willUpdateSelectedPhotoId(_ newId: NSManagedObjectID?) { }
+    func willUpdateSelectedPhotoId(_ newId: PhotoIdentifier?) { }
     
     init (photoGalleryContext: PhotoGalleryContext) {
         self.photoGalleryContext = photoGalleryContext
@@ -101,20 +101,9 @@ class PhotoGalleryTemplateViewController: UIViewController {
         photoGalleryContext.swiftUIProvider
     }
     
-    func selectedPhotoId() -> NSManagedObjectID? {
+    func selectedPhotoId() -> PhotoIdentifier? {
         photoGalleryContext.selectedPhotoId
     }
-    
-        // TODO: Delete this is a dangerous function
-//    func selectedPhotoIndex() -> Int? {
-//        let selectedPhotoId = localSelectedPhotoId ?? photoGalleryContext.selectedPhotoId
-//        
-//        if let selectedPhotoId, let fotoAsset = fotoAsset(for: selectedPhotoId) {
-//            return fetchResultsController.indexPath(forObject: fotoAsset)?.row
-//        }
-//        
-//        return nil
-//    }
     
     /// Sets the local selected photo without committing it to the context.
     /// This allows for temporary changes that can be committed later to prevent animation jumps within the current view
@@ -131,7 +120,7 @@ class PhotoGalleryTemplateViewController: UIViewController {
         localSelectedPhotoId = id
     }
     
-    /// Commits any local selected photo index changes to the context and calls `willUpdateSelectedPhotoIndex` on all subscribers
+    /// Commits any local selected photo index changes to the context and calls `willUpdateSelectedPhotoId` on all subscribers
     func commitLocalSelectedPhotoIndex() {
         if let localPhotoId = localSelectedPhotoId {
             photoGalleryContext.selectedPhotoId = localPhotoId
