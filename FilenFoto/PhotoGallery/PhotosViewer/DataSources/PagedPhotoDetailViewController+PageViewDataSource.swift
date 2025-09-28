@@ -14,18 +14,16 @@ extension PagedPhotoDetailViewController: UIPageViewControllerDataSource {
             return nil
         }
         
-        guard let object = fotoAsset(for: currentId), let currentIndex = fetchResultsController.indexPath(forObject: object) else {
+        guard let selectedIndexPath else {
             return nil
         }
         
-        let indexBefore = currentIndex.row - 1
-        
+        let indexBefore = selectedIndexPath.row - 1
         if indexBefore < 0 {
             return nil
         }
         
-        let idAtIndexBefore = fetchResultsController.object(at: IndexPath(row: indexBefore, section: 0)).objectID
-        
+        let idAtIndexBefore = fetchResultsController.object(at: IndexPath(row: indexBefore, section: selectedIndexPath.section)).objectID
         return getViewController(at: idAtIndexBefore)
     }
     
@@ -34,18 +32,16 @@ extension PagedPhotoDetailViewController: UIPageViewControllerDataSource {
             return nil
         }
         
-        guard let object = fotoAsset(for: currentId), let currentIndex = fetchResultsController.indexPath(forObject: object) else {
+        guard let selectedIndexPath else {
             return nil
         }
         
-        let indexAfter = currentIndex.row + 1
-        
+        let indexAfter = selectedIndexPath.row + 1
         if indexAfter >= countOfPhotos {
             return nil
         }
         
-        let idAtIndexAfter = fetchResultsController.object(at: IndexPath(row: indexAfter, section: 0)).objectID
-        
+        let idAtIndexAfter = fetchResultsController.object(at: IndexPath(row: indexAfter, section: selectedIndexPath.section)).objectID
         return getViewController(at: idAtIndexAfter)
     }
 }
