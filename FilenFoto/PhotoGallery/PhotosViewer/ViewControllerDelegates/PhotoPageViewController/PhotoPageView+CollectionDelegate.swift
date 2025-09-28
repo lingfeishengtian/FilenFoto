@@ -10,12 +10,12 @@ import UIKit
 
 extension PhotoPageViewController: UICollectionViewDelegate {
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        
+
         let page = Int(scrollView.contentOffset.x / scrollView.frame.size.width)
-        
+
         //TODO: Finish
     }
-    
+
     func itemWidth() -> CGFloat {
         guard let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else { return -1 }
         return layout.itemSize.width + layout.minimumLineSpacing
@@ -33,11 +33,11 @@ extension PhotoPageViewController: UICollectionViewDelegate {
         let adjustedOffset = index * itemWidth
 
         targetContentOffset.pointee = CGPoint(x: adjustedOffset, y: 0)
-        
+
         setSelectedPhotoIndex(Int(index))
-        
+
         // We don't want to update this collection, so rather we manually set the states necessary internally
-        super.willUpdateSelectedPhotoId(fetchResultsController.object(at: IndexPath(row: Int(index), section: 0)).objectID)
+        super.willUpdateSelectedPhotoId(fotoAsset(at: Int(index)).objectID)
         resetSwiftUIViews()
     }
 }

@@ -80,6 +80,10 @@ class PhotoGalleryTemplateViewController: UIViewController {
         fetchResultsController.object(at: indexPath)
     }
     
+    func fotoAsset(at index: Int) -> FotoAsset {
+        fetchResultsController.object(at: IndexPath(row: index, section: 0))
+    }
+    
     func indexPath(for objectId: PhotoIdentifier) -> IndexPath? {
         guard let object = fetchResultsController.managedObjectContext.object(with: objectId) as? FotoAsset else {
             return nil
