@@ -1659,38 +1659,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "C3B833BB-7A3D-4A0F-812D-C5DE9BC97D9F"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotoPageViewController.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "119"
-            endingLineNumber = "119"
-            landmarkName = "willUpdateSelectedPhotoIndex(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "C30530B2-E2D5-4885-AA2F-59648A96CD5B"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllerTemplates/PagedPhotoDetailViewController/PagedPhotoDetailView+PageDelegate.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "17"
-            endingLineNumber = "17"
-            landmarkName = "pageViewController(_:didFinishAnimating:previousViewControllers:transitionCompleted:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "7937660B-7B23-400A-9D7A-284351EE78AB"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -1723,22 +1691,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "AAC21BB9-3751-4406-A1C3-1A5D351D9E10"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotoPageViewController.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "121"
-            endingLineNumber = "121"
-            landmarkName = "willUpdateSelectedPhotoIndex(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "A9F0197A-5DD3-4640-9BF8-D63575527DF7"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -1746,25 +1698,9 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllerTemplates/PagedPhotoDetailViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "39"
-            endingLineNumber = "39"
-            landmarkName = "willUpdateSelectedPhotoIndex(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "90C16B06-AEE1-424E-896E-381F2F8C0F36"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotoPageViewController.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "122"
-            endingLineNumber = "122"
-            landmarkName = "willUpdateSelectedPhotoIndex(_:)"
+            startingLineNumber = "40"
+            endingLineNumber = "40"
+            landmarkName = "willUpdateSelectedPhotoId(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -2082,8 +2018,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllerTemplates/PagedPhotoDetailViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "32"
-            endingLineNumber = "32"
+            startingLineNumber = "33"
+            endingLineNumber = "33"
             landmarkName = "viewDidLoad()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2091,16 +2027,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "446FE070-BEF6-4ABF-BCD3-7F48940E8350"
+            uuid = "04F8E60B-F895-4942-B91B-80CC2582F204"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllerTemplates/PagedPhotoDetailViewController.swift"
+            filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotoPageViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "51"
-            endingLineNumber = "51"
-            landmarkName = "getViewController(at:)"
+            startingLineNumber = "112"
+            endingLineNumber = "112"
+            landmarkName = "scrollScrubberToSelectedPhoto(animated:at:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

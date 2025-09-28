@@ -37,7 +37,7 @@ extension PhotoPageViewController: UICollectionViewDelegate {
         setSelectedPhotoIndex(Int(index))
         
         // We don't want to update this collection, so rather we manually set the states necessary internally
-        super.willUpdateSelectedPhotoIndex(Int(index))
+        super.willUpdateSelectedPhotoId(fetchResultsController.object(at: IndexPath(row: Int(index), section: 0)).objectID)
         resetSwiftUIViews()
     }
 }

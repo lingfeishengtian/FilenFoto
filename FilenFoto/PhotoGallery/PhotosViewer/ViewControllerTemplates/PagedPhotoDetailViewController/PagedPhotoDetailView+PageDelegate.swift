@@ -14,8 +14,8 @@ extension PagedPhotoDetailViewController: UIPageViewControllerDelegate {
             return
         }
         
-        setSelectedPhotoIndex(currentPage.imageIndex)
-        onPageChanged(to: currentPage.imageIndex)
+        setSelectedPhotoId(currentPage.imageId)
+        onPageChanged(to: currentPage.imageId)
     }
 }
 

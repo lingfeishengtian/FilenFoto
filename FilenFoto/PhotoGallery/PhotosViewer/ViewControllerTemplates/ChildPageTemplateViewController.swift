@@ -11,12 +11,12 @@ import UIKit
 class ChildPageTemplateViewController: PhotoGalleryTemplateViewController {
     let animationController: PhotoHeroAnimationController
     let image: UIImage?
-    var imageIndex: Int
+    var imageId: PhotoIdentifier
     /// Purely for tagging purposes during transition
     
-    required init(animationController: PhotoHeroAnimationController, image: UIImage?, imageIndex: Int, photoGalleryContext: PhotoGalleryContext) {
+    required init(animationController: PhotoHeroAnimationController, image: UIImage?, imageId: PhotoIdentifier, photoGalleryContext: PhotoGalleryContext) {
         self.image = image
-        self.imageIndex = imageIndex
+        self.imageId = imageId
         self.animationController = animationController
         
         super.init(photoGalleryContext: photoGalleryContext)
