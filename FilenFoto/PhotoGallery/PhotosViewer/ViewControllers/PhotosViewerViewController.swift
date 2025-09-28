@@ -60,12 +60,12 @@ class PhotosViewerViewController: PhotoGalleryTemplateViewController {
         fetchResultsController.delegate = self
         try? fetchResultsController.performFetch()
     }
-
-    func getSelectedIndexPath() -> IndexPath {
-        return IndexPath(item: selectedPhotoIndex() ?? 0, section: 0)
-    }
-
-    func willUpdateSelectedPhotoIndex(_ index: Int) {
-        focusOnCell(at: getSelectedIndexPath())
+    
+    override func willUpdateSelectedPhotoId(_ newId: NSManagedObjectID?) {
+        guard let newId, let indexPath = indexPath(for: newId) else {
+            return
+        }
+        
+        focusOnCell(at: indexPath)
     }
 }

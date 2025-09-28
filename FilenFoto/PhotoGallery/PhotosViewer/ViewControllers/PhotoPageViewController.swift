@@ -102,29 +102,29 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
     }
 
     func resetSwiftUIViews() {
-        guard let image = selectedPhoto() else { return }
+        guard let image = selectedPhoto else { return }
 
-        swiftUITopBar.rootView = AnyView(swiftUIProvider().topBar(with: image))
-        swiftUIBottomBar.rootView = AnyView(swiftUIProvider().bottomBar(with: image))
+        swiftUITopBar.rootView = AnyView(swiftUIProvider.topBar(with: image))
+        swiftUIBottomBar.rootView = AnyView(swiftUIProvider.bottomBar(with: image))
     }
 
-    func scrollScrubberToSelectedPhoto(animated: Bool, at newIndex: Int? = nil) {
-        guard let selectedIndex = newIndex ?? selectedPhotoIndex() else { return }
+    func scrollScrubberToSelectedPhoto(animated: Bool, to newId: PhotoIdentifier? = nil) {
+        guard let selectedId = newId ?? selectedPhotoId, let indexPath = indexPath(for: selectedId) else { return }
 
-        collectionView.setContentOffset(CGPoint(x: Int(itemWidth()) * selectedIndex, y: 0), animated: animated)
+        collectionView.setContentOffset(CGPoint(x: Int(itemWidth()) * indexPath.row, y: 0), animated: animated)
     }
-
-    override func willUpdateSelectedPhotoIndex(_ index: Int?) {
-        super.willUpdateSelectedPhotoIndex(index)
-
+    
+    override func willUpdateSelectedPhotoId(_ newId: NSManagedObjectID?) {
+        super.willUpdateSelectedPhotoId(newId)
+        
         if !collectionView.isDragging {
-            scrollScrubberToSelectedPhoto(animated: true, at: index)
+            scrollScrubberToSelectedPhoto(animated: true, to: newId)
         }
 
         resetSwiftUIViews()
     }
 
-    override func onPageChanged(to index: Int) {
-        scrollScrubberToSelectedPhoto(animated: true)
+    override func onPageChanged(to id: PhotoIdentifier) {
+        scrollScrubberToSelectedPhoto(animated: true, to: id)
     }
 }

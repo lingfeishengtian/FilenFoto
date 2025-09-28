@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import SwiftUI
 import os
+import CoreData
 
 fileprivate let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "AnimationReferences")
 
@@ -37,3 +38,4 @@ enum Direction {
 }
 
 typealias DetailedPhotoViewBuilder = (UIImage) -> AnyView
+typealias PhotoIdentifier = NSManagedObjectID

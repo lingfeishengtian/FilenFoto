@@ -9,12 +9,8 @@ import Foundation
 import UIKit
 
 class DetailPageViewController: PagedPhotoDetailViewController {
-    override func getViewController(at index: Int) -> UIViewController? {
-        if index < 0 || index >= countOfPhotos {
-            return nil
-        }
-
-        return DetailedPhotoViewController(
-            animationController: animationController, image: photo(at: index), imageIndex: index, photoGalleryContext: photoGalleryContext)
+    override func getViewController(at objectId: PhotoIdentifier) -> UIViewController? {
+        DetailedPhotoViewController(
+            animationController: animationController, image: photo(for: objectId), imageId: objectId, photoGalleryContext: photoGalleryContext)
     }
 }

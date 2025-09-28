@@ -20,11 +20,17 @@ extension PhotosViewerViewController: PhotoHeroAnimatorDelegate {
     }
     
     func getAnimationReferences() -> AnimationReferences {
-        getAnimationReferencesFromCollectionView(for: getSelectedIndexPath())
+        if let selectedIndexPath {
+            return getAnimationReferencesFromCollectionView(for: selectedIndexPath)
+        } else {
+            return .init(size: .zero)
+        }
     }
     
     func transitionDidEnd() {
-        focusOnCell(at: getSelectedIndexPath())
+        if let selectedIndexPath {
+            focusOnCell(at: selectedIndexPath)
+        }
         
         self.collectionView.isScrollEnabled = true
     }

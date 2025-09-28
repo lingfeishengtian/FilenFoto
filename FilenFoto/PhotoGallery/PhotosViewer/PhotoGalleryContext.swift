@@ -7,9 +7,10 @@
 
 import Foundation
 import SwiftUI
+import CoreData
 
 class PhotoGalleryContext: ObservableObject {
-    @Published var selectedPhotoIndex: Int?
+    @Published var selectedPhotoId: NSManagedObjectID?
     
     // TODO: This might not be doable anymore
     let photoDataSource: any PhotoDataSourceProtocol

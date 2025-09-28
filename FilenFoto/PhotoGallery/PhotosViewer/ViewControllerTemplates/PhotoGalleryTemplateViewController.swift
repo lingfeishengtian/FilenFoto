@@ -18,10 +18,11 @@ class PhotoGalleryTemplateViewController: UIViewController {
     var fetchResultsController: NSFetchedResultsController<FotoAsset>
     
     var cancellable: AnyCancellable?
+    private var localSelectedPhotoId: PhotoIdentifier? = nil
     
     /// Called just before the selected photo index is updated from the context.
     /// *Note:* The new Index will be different from the current selected index since this function is called before the update occurs.
-    func willUpdateSelectedPhotoIndex(_ newIndex: Int?) { }
+    func willUpdateSelectedPhotoId(_ newId: PhotoIdentifier?) { }
     
     init (photoGalleryContext: PhotoGalleryContext) {
         self.photoGalleryContext = photoGalleryContext
@@ -29,12 +30,12 @@ class PhotoGalleryTemplateViewController: UIViewController {
         
         super.init(nibName: nil, bundle: nil)
         
-        self.cancellable = self.photoGalleryContext.$selectedPhotoIndex
+        self.cancellable = self.photoGalleryContext.$selectedPhotoId
             .removeDuplicates()
-            .sink { [weak self] newIndex in
-                guard let self, self.isViewLoaded, localSelectedPhotoIndex != newIndex else { return }
+            .sink { [weak self] newId in
+                guard let self, self.isViewLoaded, localSelectedPhotoId != newId else { return }
 
-                self.willUpdateSelectedPhotoIndex(newIndex)
+                self.willUpdateSelectedPhotoId(newId)
         }
     }
     
@@ -47,53 +48,90 @@ class PhotoGalleryTemplateViewController: UIViewController {
         fetchResultsController.sections?.first?.numberOfObjects ?? 0
     }
     
-    func photo(at index: Int) -> UIImage? {
-        photo(at: IndexPath(row: index, section: 0))
-    }
-    
-    func photo(at indexPath: IndexPath) -> UIImage? {
-        photoDataSource().photo(for: fetchResultsController.object(at: indexPath))
-    }
-    
-    func selectedPhoto() -> UIImage? {
-        guard let index = photoGalleryContext.selectedPhotoIndex else {
-            logger.error("Tried to access selected photo but no index was set")
-            return nil
-        }
-        
-        return photo(at: index)
-    }
-    
-    func photoDataSource() -> PhotoDataSourceProtocol {
+    var photoDataSource: PhotoDataSourceProtocol {
         photoGalleryContext.photoDataSource
     }
     
-    func swiftUIProvider() -> SwiftUIProviderProtocol {
+    var swiftUIProvider: SwiftUIProviderProtocol {
         photoGalleryContext.swiftUIProvider
     }
     
-    private var localSelectedPhotoIndex: Int? = nil
-    
-    func selectedPhotoIndex() -> Int? {
-        localSelectedPhotoIndex ?? photoGalleryContext.selectedPhotoIndex
+    var selectedPhotoId: PhotoIdentifier? {
+        photoGalleryContext.selectedPhotoId
     }
     
-    /// Sets the local selected photo index without committing it to the context.
+    func photo(at indexPath: IndexPath) -> UIImage? {
+        photoDataSource.photo(for: fotoAsset(at: indexPath))
+    }
+    
+    func photo(for objectId: PhotoIdentifier) -> UIImage? {
+        guard let fotoAsset = fotoAsset(for: objectId) else {
+            return nil
+        }
+        
+        return photoDataSource.photo(for: fotoAsset)
+    }
+    
+    func fotoAsset(for objectId: PhotoIdentifier) -> FotoAsset? {
+        fetchResultsController.managedObjectContext.object(with: objectId) as? FotoAsset
+    }
+    
+    func fotoAsset(at indexPath: IndexPath) -> FotoAsset {
+        fetchResultsController.object(at: indexPath)
+    }
+    
+    func fotoAsset(at index: Int) -> FotoAsset {
+        fetchResultsController.object(at: IndexPath(row: index, section: 0))
+    }
+    
+    func indexPath(for objectId: PhotoIdentifier) -> IndexPath? {
+        guard let object = fetchResultsController.managedObjectContext.object(with: objectId) as? FotoAsset else {
+            return nil
+        }
+        
+        return fetchResultsController.indexPath(forObject: object)
+    }
+    
+    var selectedPhoto: UIImage? {
+        guard let selectedPhotoId = photoGalleryContext.selectedPhotoId else {
+            logger.error("Tried to access selected photo but no photo was set")
+            return nil
+        }
+        
+        return photo(for: selectedPhotoId)
+    }
+    
+    var selectedIndexPath: IndexPath? {
+        guard let selectedPhotoId = photoGalleryContext.selectedPhotoId else {
+            return nil
+        }
+        
+        return self.indexPath(for: selectedPhotoId)
+    }
+    
+    /// Sets the local selected photo without committing it to the context.
     /// This allows for temporary changes that can be committed later to prevent animation jumps within the current view
-    /// Every change *must* be committed before the view is dismissed or a new view is presented to prevent inconsistencies
+    /// Every change **must** be committed before the view is dismissed or a new view is presented to prevent inconsistencies
     func setSelectedPhotoIndex(_ index: Int) {
         guard index >= 0 && index < countOfPhotos else {
             return
         }
         
-        localSelectedPhotoIndex = index
+        localSelectedPhotoId = fetchResultsController.object(at: IndexPath(row: index, section: 0)).objectID
     }
     
-    /// Commits any local selected photo index changes to the context and calls `willUpdateSelectedPhotoIndex` on all subscribers
+    /// Sets the local selected photo without committing it to the context.
+    /// This allows for temporary changes that can be committed later to prevent animation jumps within the current view
+    /// Every change **must** be committed before the view is dismissed or a new view is presented to prevent inconsistencies
+    func setSelectedPhotoId(_ id: PhotoIdentifier) {
+        localSelectedPhotoId = id
+    }
+    
+    /// Commits any local selected photo index changes to the context and calls `willUpdateSelectedPhotoId` on all subscribers
     func commitLocalSelectedPhotoIndex() {
-        if let localIndex = localSelectedPhotoIndex {
-            photoGalleryContext.selectedPhotoIndex = localIndex
-            localSelectedPhotoIndex = nil
+        if let localPhotoId = localSelectedPhotoId {
+            photoGalleryContext.selectedPhotoId = localPhotoId
+            localSelectedPhotoId = nil
         }
     }
 }

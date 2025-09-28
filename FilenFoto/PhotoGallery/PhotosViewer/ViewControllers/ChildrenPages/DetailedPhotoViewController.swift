@@ -39,7 +39,7 @@ class DetailedPhotoViewController: ChildPageTemplateViewController, PagedPhotoHe
         imageView.image = image
 
         if let image {
-            swiftUIView = UIHostingController(rootView: AnyView(swiftUIProvider().detailedView(for: image)))
+            swiftUIView = UIHostingController(rootView: AnyView(swiftUIProvider.detailedView(for: image)))
         } else {
             swiftUIView = UIHostingController(rootView: AnyView(EmptyView()))
         }
