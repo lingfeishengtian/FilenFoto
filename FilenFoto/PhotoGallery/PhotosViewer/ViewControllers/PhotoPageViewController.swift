@@ -102,14 +102,14 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
     }
 
     func resetSwiftUIViews() {
-        guard let image = selectedPhoto() else { return }
+        guard let image = selectedPhoto else { return }
 
-        swiftUITopBar.rootView = AnyView(swiftUIProvider().topBar(with: image))
-        swiftUIBottomBar.rootView = AnyView(swiftUIProvider().bottomBar(with: image))
+        swiftUITopBar.rootView = AnyView(swiftUIProvider.topBar(with: image))
+        swiftUIBottomBar.rootView = AnyView(swiftUIProvider.bottomBar(with: image))
     }
 
     func scrollScrubberToSelectedPhoto(animated: Bool, to newId: PhotoIdentifier? = nil) {
-        guard let selectedId = newId ?? selectedPhotoId(), let indexPath = indexPath(for: selectedId) else { return }
+        guard let selectedId = newId ?? selectedPhotoId, let indexPath = indexPath(for: selectedId) else { return }
 
         collectionView.setContentOffset(CGPoint(x: Int(itemWidth()) * indexPath.row, y: 0), animated: animated)
     }

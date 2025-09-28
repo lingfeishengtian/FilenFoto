@@ -48,12 +48,20 @@ class PhotoGalleryTemplateViewController: UIViewController {
         fetchResultsController.sections?.first?.numberOfObjects ?? 0
     }
     
-    func photo(at index: Int) -> UIImage? {
-        photo(at: IndexPath(row: index, section: 0))
+    var photoDataSource: PhotoDataSourceProtocol {
+        photoGalleryContext.photoDataSource
+    }
+    
+    var swiftUIProvider: SwiftUIProviderProtocol {
+        photoGalleryContext.swiftUIProvider
+    }
+    
+    var selectedPhotoId: PhotoIdentifier? {
+        photoGalleryContext.selectedPhotoId
     }
     
     func photo(at indexPath: IndexPath) -> UIImage? {
-        photoDataSource().photo(for: fetchResultsController.object(at: indexPath))
+        photoDataSource.photo(for: fotoAsset(at: indexPath))
     }
     
     func photo(for objectId: PhotoIdentifier) -> UIImage? {
@@ -61,11 +69,15 @@ class PhotoGalleryTemplateViewController: UIViewController {
             return nil
         }
         
-        return photoDataSource().photo(for: fotoAsset)
+        return photoDataSource.photo(for: fotoAsset)
     }
     
     func fotoAsset(for objectId: PhotoIdentifier) -> FotoAsset? {
         fetchResultsController.managedObjectContext.object(with: objectId) as? FotoAsset
+    }
+    
+    func fotoAsset(at indexPath: IndexPath) -> FotoAsset {
+        fetchResultsController.object(at: indexPath)
     }
     
     func indexPath(for objectId: PhotoIdentifier) -> IndexPath? {
@@ -76,7 +88,7 @@ class PhotoGalleryTemplateViewController: UIViewController {
         return fetchResultsController.indexPath(forObject: object)
     }
     
-    func selectedPhoto() -> UIImage? {
+    var selectedPhoto: UIImage? {
         guard let selectedPhotoId = photoGalleryContext.selectedPhotoId else {
             logger.error("Tried to access selected photo but no photo was set")
             return nil
@@ -91,18 +103,6 @@ class PhotoGalleryTemplateViewController: UIViewController {
         }
         
         return self.indexPath(for: selectedPhotoId)
-    }
-    
-    func photoDataSource() -> PhotoDataSourceProtocol {
-        photoGalleryContext.photoDataSource
-    }
-    
-    func swiftUIProvider() -> SwiftUIProviderProtocol {
-        photoGalleryContext.swiftUIProvider
-    }
-    
-    func selectedPhotoId() -> PhotoIdentifier? {
-        photoGalleryContext.selectedPhotoId
     }
     
     /// Sets the local selected photo without committing it to the context.

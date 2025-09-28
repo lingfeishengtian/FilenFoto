@@ -10,38 +10,37 @@ import UIKit
 
 extension PagedPhotoDetailViewController: UIPageViewControllerDataSource {
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        guard let currentId = (viewController as? ChildPageTemplateViewController)?.imageId else {
+        guard let currentObjectId = (viewController as? ChildPageTemplateViewController)?.imageId,
+            let currentIndexPath = indexPath(for: currentObjectId)
+        else {
             return nil
         }
-        
-        guard let selectedIndexPath else {
-            return nil
-        }
-        
-        let indexBefore = selectedIndexPath.row - 1
+
+        let indexBefore = currentIndexPath.row - 1
         if indexBefore < 0 {
             return nil
         }
         
-        let idAtIndexBefore = fetchResultsController.object(at: IndexPath(row: indexBefore, section: selectedIndexPath.section)).objectID
-        return getViewController(at: idAtIndexBefore)
+        let prevIndexPath = IndexPath(row: indexBefore, section: currentIndexPath.section)
+        let prevIndexObjectId = fotoAsset(at: prevIndexPath).objectID
+        return getViewController(at: prevIndexObjectId)
     }
-    
+
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        guard let currentId = (viewController as? ChildPageTemplateViewController)?.imageId else {
+        guard let currentObjectId = (viewController as? ChildPageTemplateViewController)?.imageId,
+            let currentIndexPath = indexPath(for: currentObjectId)
+        else {
             return nil
         }
-        
-        guard let selectedIndexPath else {
-            return nil
-        }
-        
-        let indexAfter = selectedIndexPath.row + 1
+
+        let indexAfter = currentIndexPath.row + 1
+        // TODO: I imagine this might generate a bug where count of photos hasn't updated yet?
         if indexAfter >= countOfPhotos {
             return nil
         }
         
-        let idAtIndexAfter = fetchResultsController.object(at: IndexPath(row: indexAfter, section: selectedIndexPath.section)).objectID
-        return getViewController(at: idAtIndexAfter)
+        let nextIndexPath = IndexPath(row: indexAfter, section: currentIndexPath.section)
+        let nextIndexObjectId = fotoAsset(at: nextIndexPath).objectID
+        return getViewController(at: nextIndexObjectId)
     }
 }

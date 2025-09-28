@@ -7,7 +7,6 @@
 
 import Foundation
 import UIKit
-import CoreData
 
 /// Other classes inherit this class if they need a more detailed paged detail view controller
 class PagedPhotoDetailViewController: PhotoGalleryTemplateViewController {
@@ -34,14 +33,14 @@ class PagedPhotoDetailViewController: PhotoGalleryTemplateViewController {
         pagedController.didMove(toParent: self)
     }
 
-    override func willUpdateSelectedPhotoId(_ newId: NSManagedObjectID?) {
+    override func willUpdateSelectedPhotoId(_ newId: PhotoIdentifier?) {
         super.willUpdateSelectedPhotoId(newId)
 
         pagedController.setViewControllers(currentViewControllers(with: newId), direction: .forward, animated: false)
     }
 
-    func currentViewControllers(with newId: NSManagedObjectID? = nil) -> [UIViewController]? {
-        guard let selectedId = newId ?? selectedPhotoId(), let currentViewController = getViewController(at: selectedId) else {
+    func currentViewControllers(with newId: PhotoIdentifier? = nil) -> [UIViewController]? {
+        guard let selectedId = newId ?? selectedPhotoId, let currentViewController = getViewController(at: selectedId) else {
             return nil
         }
 
