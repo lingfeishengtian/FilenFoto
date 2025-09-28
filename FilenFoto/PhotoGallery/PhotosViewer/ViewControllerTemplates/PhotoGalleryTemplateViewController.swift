@@ -116,6 +116,9 @@ class PhotoGalleryTemplateViewController: UIViewController {
         localSelectedPhotoId = fetchResultsController.object(at: IndexPath(row: index, section: 0)).objectID
     }
     
+    /// Sets the local selected photo without committing it to the context.
+    /// This allows for temporary changes that can be committed later to prevent animation jumps within the current view
+    /// Every change **must** be committed before the view is dismissed or a new view is presented to prevent inconsistencies
     func setSelectedPhotoId(_ id: PhotoIdentifier) {
         localSelectedPhotoId = id
     }
