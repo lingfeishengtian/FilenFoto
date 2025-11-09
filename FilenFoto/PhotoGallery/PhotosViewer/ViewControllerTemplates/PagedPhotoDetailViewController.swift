@@ -48,9 +48,13 @@ class PagedPhotoDetailViewController: PhotoGalleryTemplateViewController {
     }
 
     func getViewController(at objectId: PhotoIdentifier) -> UIViewController? {
+        guard let image = photo(for: objectId) else {
+            return nil
+        }
+        
         return ScrollableImageViewController(
             animationController: animationController,
-            image: photo(for: objectId), imageId: objectId,
+            image: image, imageId: objectId,
             photoGalleryContext: photoGalleryContext)
     }
 

@@ -19,6 +19,9 @@ extension PhotoSyncController {
         }
 
         let providerStatuses = fotoAsset.providerStatuses as? Set<ProviderStatus>
+        
+        let providerProgress = Progress(totalUnitCount: AvailableProvider.totalProgressWeight)
+        progress.addChild(providerProgress, withPendingUnitCount: AvailableProvider.totalProgressWeight)
 
         for potentialProvider in AvailableProvider.allCases {
             let providerDelegate = potentialProvider.provider
@@ -43,7 +46,7 @@ extension PhotoSyncController {
                     currentProviderStatus.version = providerDelegate.version
                 } catch let error as FilenFotoError {
                     currentProviderStatus.state = .failed
-                    currentProviderStatus.failureMessage = "\(error.errorDescription)"
+                    currentProviderStatus.failureMessage = "\(error.errorDescription ?? "No error description found")"
                 } catch {
                     currentProviderStatus.state = .failed
                     currentProviderStatus.failureMessage = "\(error.localizedDescription)"
@@ -79,9 +82,16 @@ extension PhotoSyncController {
                         )
                     }
                 }
+                
+                providerProgress.completedUnitCount += potentialProvider.progressWeight
+                
+                // TODO: Remove I'm on a plane so simulating slow operation
+//                try await Task.sleep(nanoseconds: 2_000_000_000)
             } catch {
                 logger.error("An unrecoverable error occurred in the photoSyncController: \(error)")
 
+                providerProgress.cancel()
+                providerProgress.completedUnitCount += providerProgress.totalUnitCount
                 return
             }
         }

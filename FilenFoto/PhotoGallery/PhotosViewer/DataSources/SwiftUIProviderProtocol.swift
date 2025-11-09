@@ -9,7 +9,8 @@ import Foundation
 import SwiftUI
 
 protocol SwiftUIProviderProtocol {
-    func topBar(with image: UIImage) -> any View
-    func bottomBar(with image: UIImage) -> any View
-    func detailedView(for image: UIImage) -> any View
+    func topBar(with image: WorkingSetFotoAsset) -> any View
+    func bottomBar(with image: WorkingSetFotoAsset) -> any View
+    func detailedView(for image: WorkingSetFotoAsset) -> any View
+    func noImagesAvailableView() -> any View
 }

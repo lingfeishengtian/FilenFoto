@@ -10,7 +10,11 @@ import UIKit
 
 class DetailPageViewController: PagedPhotoDetailViewController {
     override func getViewController(at objectId: PhotoIdentifier) -> UIViewController? {
-        DetailedPhotoViewController(
-            animationController: animationController, image: photo(for: objectId), imageId: objectId, photoGalleryContext: photoGalleryContext)
+        guard let image = photo(for: objectId) else {
+            return nil
+        }
+        
+        return DetailedPhotoViewController(
+            animationController: animationController, image: image, imageId: objectId, photoGalleryContext: photoGalleryContext)
     }
 }

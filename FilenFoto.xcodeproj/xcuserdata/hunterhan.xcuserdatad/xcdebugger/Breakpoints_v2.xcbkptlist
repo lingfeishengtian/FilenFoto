@@ -1058,8 +1058,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotosViewerViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "31"
-            endingLineNumber = "31"
+            startingLineNumber = "32"
+            endingLineNumber = "32"
             landmarkName = "viewDidLoad()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1074,8 +1074,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotosViewerViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "48"
-            endingLineNumber = "48"
+            startingLineNumber = "59"
+            endingLineNumber = "59"
             landmarkName = "viewDidLoad()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1090,8 +1090,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotosViewerViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "47"
-            endingLineNumber = "47"
+            startingLineNumber = "58"
+            endingLineNumber = "58"
             landmarkName = "viewDidLoad()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1586,8 +1586,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/ChildrenPages/ScrollableImageViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "115"
-            endingLineNumber = "115"
+            startingLineNumber = "112"
+            endingLineNumber = "112"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1618,8 +1618,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/ChildrenPages/ScrollableImageViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "109"
-            endingLineNumber = "109"
+            startingLineNumber = "106"
+            endingLineNumber = "106"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1634,8 +1634,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/ChildrenPages/ScrollableImageViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "105"
-            endingLineNumber = "105"
+            startingLineNumber = "102"
+            endingLineNumber = "102"
             landmarkName = "handlePan(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1716,22 +1716,6 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "20"
             endingLineNumber = "20"
-            landmarkName = "body"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "0AC53986-C4FB-4F72-A443-B5C45DA555E8"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoGallery/PhotoGallery.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "74"
-            endingLineNumber = "74"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>
@@ -2034,8 +2018,8 @@
             filePath = "FilenFoto/PhotoGallery/PhotosViewer/ViewControllers/PhotoPageViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "112"
-            endingLineNumber = "112"
+            startingLineNumber = "113"
+            endingLineNumber = "113"
             landmarkName = "scrollScrubberToSelectedPhoto(animated:to:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2053,6 +2037,102 @@
             startingLineNumber = "17"
             endingLineNumber = "17"
             landmarkName = "pageViewController(_:viewControllerBefore:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9F049FB0-34B3-441A-8B28-31E7B5D484FD"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoSync/PhotoSyncController/PhotoSyncController+Progress.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "22"
+            endingLineNumber = "22"
+            landmarkName = "completeWorkingSetAssetRetrieval()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "76583B8D-02DB-40FC-B6F1-15348A27DDC1"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceManager.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "35"
+            endingLineNumber = "35"
+            landmarkName = "fetchAssets(for:from:writeTo:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B5457B12-1EB6-4E3C-AB48-20B7587EA640"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceManager.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "88"
+            endingLineNumber = "88"
+            landmarkName = "fetchAssets(for:from:writeTo:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "65F7BCE7-7F6D-4D49-9B5D-C808F1EB0EE7"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceManager.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "89"
+            endingLineNumber = "89"
+            landmarkName = "fetchAssets(for:from:writeTo:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "2D7B90F6-4EE6-468F-8D0E-A46E1C6779DF"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoSync/WorkingSet/WorkingSetFotoAsset.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "64"
+            endingLineNumber = "64"
+            landmarkName = "retrieveResources(withSupportingPHAsset:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "C7AC8D32-1C8E-4503-A9F9-F8B78AA89145"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/PhotoSync/WorkingSet/FFDisplayableImage.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "27"
+            endingLineNumber = "27"
+            landmarkName = "init(workingAsset:thumbnail:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

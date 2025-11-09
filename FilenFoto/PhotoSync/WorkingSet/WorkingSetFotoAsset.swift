@@ -9,6 +9,7 @@ import Foundation
 import CoreData
 import Photos.PHAssetResource
 import os.log
+import UIKit
 
 enum WorkingAssetState {
     case unknown
@@ -18,12 +19,16 @@ enum WorkingAssetState {
 }
 
 actor WorkingSetFotoAsset {
-    private let asset: FotoAsset
+    let asset: FotoAsset
     let workingSetRootFolder: URL
     let assetManager: FFResourceManager = .init()
     let logger: Logger
-    
+
     private var resourceState: WorkingAssetState = .unknown
+    
+    var thumbnail: UIImage? {
+        ThumbnailProvider.shared.thumbnail(for: asset)
+    }
     
     init(asset: FotoAsset) {
         if asset.uuid == nil {
@@ -62,11 +67,9 @@ actor WorkingSetFotoAsset {
         }
     }
     
-    func resource(for resourceType: PHAssetResourceType) async throws -> URL {
-        if resourceState == .unknown || resourceState == .needsSync {
-            throw FilenFotoError.internalError("retrieveResources function was not called for asset: \(asset)")
-        }
-        
+    func resource(for resourceType: PHAssetResourceType, cancellable: Bool = false) async throws -> URL {
+        try? FileManager.default.createDirectory(at: workingSetRootFolder, withIntermediateDirectories: true)
+
         let remoteResource = asset.remoteResourcesArray.first {
             $0.assetResourceType == resourceType
         }
@@ -85,13 +88,12 @@ actor WorkingSetFotoAsset {
             throw FilenFotoError.remoteResourceNotFoundInFilen
         }
         
-        if let cachedResource = remoteResource.cachedResource {
-            try FFResourceCacheManager.shared.copyCache(from: cachedResource, to: fileUrl)
-            
+        if let cachedResource = remoteResource.cachedResource,
+            FFResourceCacheManager.shared.copyCache(from: cachedResource, to: fileUrl) {
             return fileUrl
         }
         
-        try await assetManager.filenDownload(resource: remoteResource, toLocalFolder: workingSetRootFolder)
+        try await assetManager.filenDownload(resource: remoteResource, toLocalFolder: workingSetRootFolder, cancellable: cancellable)
         
         return fileUrl
     }
@@ -111,8 +113,9 @@ actor WorkingSetFotoAsset {
 
             do {
                 try FFResourceCacheManager.shared.insert(remoteResource: remoteResource, fileUrl: fileURL)
+                try assetManager.cancelDownload(resource: remoteResource)
             } catch {
-                logger.error("Failed to insert remote resource into cache: \(error)")
+                logger.error("Failed to insert remote resource into cache or failed to cancel download: \(error)")
 
                 try? FileManager.default.removeItem(at: fileURL)
             }

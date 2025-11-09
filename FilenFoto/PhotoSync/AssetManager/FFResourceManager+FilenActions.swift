@@ -26,6 +26,9 @@ extension FFResourceManager {
         let filenClient = try PhotoContext.shared.unwrappedFilenClient()
 
         let pathToFile = resource.fileURL(in: workingDirectory)!
+        
+        print(pathToFile)
+        
         let uploadedFile = try await filenClient.uploadFileFromPath(
             dirUuid: filenResourceFolderUuid,
             filePath: pathToFile.path(),
@@ -70,7 +73,7 @@ extension FFResourceManager {
         await FFCoreDataManager.shared.saveContextIfNeeded()
     }
 
-    func filenDownload(resource: RemoteResource, toLocalFolder workingDirectory: URL) async throws {
+    func filenDownload(resource: RemoteResource, toLocalFolder workingDirectory: URL, cancellable: Bool) async throws {
         let filenClient = try PhotoContext.shared.unwrappedFilenClient()
 
         let destinationFilePath = resource.fileURL(in: workingDirectory)
@@ -83,6 +86,18 @@ extension FFResourceManager {
             throw FilenFotoError.remoteResourceNotFoundInFilen
         }
 
-        try await filenClient.downloadFileToPath(fileUuid: filenUuid.uuidString, path: destinationFilePath.path())
+        if cancellable {
+            try await filenClient.cancellableDownloadFileToPath(fileUuid: filenUuid.uuidString, path: destinationFilePath.path())
+        } else {
+            try await filenClient.downloadFileToPath(fileUuid: filenUuid.uuidString, path: destinationFilePath.path())
+        }
+    }
+    
+    func cancelDownload(resource: RemoteResource) throws {
+        let filenClient = try PhotoContext.shared.unwrappedFilenClient()
+        
+        if let filenUuid = resource.filenUuid {
+            filenClient.cancelDownload(uuid: filenUuid.uuidString)
+        }
     }
 }

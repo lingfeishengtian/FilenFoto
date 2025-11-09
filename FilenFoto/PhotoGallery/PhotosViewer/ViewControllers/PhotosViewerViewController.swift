@@ -13,6 +13,7 @@ import CoreData
 
 class PhotosViewerViewController: PhotoGalleryTemplateViewController {
     var collectionView: UICollectionView!
+    var noImagesHostingController: UIHostingController<AnyView>!
     var itemSize: CGSize!
 
     var animationController: PhotoHeroAnimationController!
@@ -40,10 +41,20 @@ class PhotosViewerViewController: PhotoGalleryTemplateViewController {
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         collectionView.delegate = self
         collectionView.register(PhotoViewCell.self, forCellWithReuseIdentifier: "PhotoCell")
-        
         collectionView.contentInset.top = 70
+        
+        noImagesHostingController = UIHostingController(rootView: AnyView(swiftUIProvider.noImagesAvailableView()))
+        noImagesHostingController.view.translatesAutoresizingMaskIntoConstraints = false
 
         self.view.addSubview(collectionView)
+        self.view.addSubview(noImagesHostingController.view)
+        
+        NSLayoutConstraint.activate([
+            noImagesHostingController.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            noImagesHostingController.view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            noImagesHostingController.view.topAnchor.constraint(equalTo: self.view.topAnchor),
+            noImagesHostingController.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
+        ])
 
         animationController = PhotoHeroAnimationController()
         self.navigationController?.delegate = animationController

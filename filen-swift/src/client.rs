@@ -1,7 +1,11 @@
 pub use crate::with_client;
+use dashmap::{DashMap, DashSet};
 use filen_types::fs::{ParentUuid, UuidStr};
 use std::{str::FromStr, sync::Arc};
-use tokio_util::compat::{TokioAsyncReadCompatExt, TokioAsyncWriteCompatExt};
+use tokio_util::{
+    compat::{TokioAsyncReadCompatExt, TokioAsyncWriteCompatExt},
+    sync::CancellationToken,
+};
 
 use crate::types::{Directory, DirectoryAsHasContents, RemoteFile};
 use filen_sdk_rs::fs::{HasUUID, dir::RemoteDirectory};
@@ -10,6 +14,8 @@ use filen_sdk_rs::fs::{HasUUID, dir::RemoteDirectory};
 pub struct FilenClient {
     pub(crate) tokio_runtime: tokio::runtime::Runtime,
     pub(crate) client: Arc<filen_sdk_rs::auth::Client>,
+    // pub(crate) files_paths_in_progress: DashSet<String>,
+    pub(crate) downloads_to_cancellation_tokens: DashMap<String, CancellationToken>,
 }
 
 #[derive(Debug, uniffi::Error, thiserror::Error)]
@@ -95,6 +101,57 @@ impl FilenClient {
                 .await?;
             Ok(())
         })?
+    }
+
+    pub async fn cancellable_download_file_to_path(
+        &self,
+        file_uuid: String,
+        path: String,
+    ) -> Result<(), FilenClientError> {
+        let client = self.client.clone();
+
+        let cancellation_token = CancellationToken::new();
+        let cloned_uuid = file_uuid.clone();
+        self.downloads_to_cancellation_tokens
+            .insert(cloned_uuid.clone(), cancellation_token.clone());
+
+        let path_for_removal = path.clone();
+        let res = with_client!(self, {
+            let file = client.get_file(UuidStr::from_str(&file_uuid)?).await?;
+
+            let mut async_writer = tokio::fs::File::create(path).await?.compat_write();
+
+            tokio::select! {
+                biased;
+
+                _ = cancellation_token.cancelled() => {
+                    drop(async_writer);
+                    let _ = tokio::fs::remove_file(&path_for_removal).await;
+                    return Err(FilenClientError::ConcurrencyError { msg: "Download cancelled".to_string() });
+                }
+                res = client.download_file_to_writer(&file, &mut async_writer, None) => {
+                    res?
+                }
+            }
+
+            Ok(())
+        })?;
+
+        self.downloads_to_cancellation_tokens.remove(&cloned_uuid);
+        res
+    }
+
+    pub fn cancel_download(&self, uuid: String) {
+        if let Some((_, token)) = self.downloads_to_cancellation_tokens.remove(&uuid) {
+            token.cancel();
+        }
+    }
+
+    pub fn cancel_all_downloads(&self) {
+        for entry in self.downloads_to_cancellation_tokens.iter() {
+            entry.value().cancel();
+        }
+        self.downloads_to_cancellation_tokens.clear();
     }
 
     pub async fn upload_file_from_path(

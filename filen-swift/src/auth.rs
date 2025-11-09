@@ -1,12 +1,14 @@
+use filen_sdk_rs::auth::StringifiedClient;
 use std::sync::Arc;
 use tokio::runtime::Builder;
-use filen_sdk_rs::auth::StringifiedClient;
 
 use crate::client::{FilenClient, FilenClientError};
 
 pub trait ToCbor {
     fn to_cbor(&self) -> Vec<u8>;
-    fn from_cbor(bytes: &[u8]) -> Option<Self> where Self: Sized;
+    fn from_cbor(bytes: &[u8]) -> Option<Self>
+    where
+        Self: Sized;
 }
 
 impl ToCbor for StringifiedClient {
@@ -29,12 +31,17 @@ fn generate_tokio_runtime() -> Result<tokio::runtime::Runtime, FilenClientError>
 }
 
 #[uniffi::export]
-pub fn client_from_credentials(client_credentials: Vec<u8>) -> Result<FilenClient, FilenClientError> {
-    let client = filen_sdk_rs::auth::Client::from_stringified(StringifiedClient::from_cbor(&client_credentials).ok_or_else(|| {
-        FilenClientError::TypeConversionError {
-            msg: "Failed to parse client credentials".into(),
-        }
-    })?).map_err(|e| FilenClientError::TypeConversionError {
+pub fn client_from_credentials(
+    client_credentials: Vec<u8>,
+) -> Result<FilenClient, FilenClientError> {
+    let client = filen_sdk_rs::auth::Client::from_stringified(
+        StringifiedClient::from_cbor(&client_credentials).ok_or_else(|| {
+            FilenClientError::TypeConversionError {
+                msg: "Failed to parse client credentials".into(),
+            }
+        })?,
+    )
+    .map_err(|e| FilenClientError::TypeConversionError {
         msg: format!("Failed to create client from credentials: {}", e),
     })?;
 
@@ -43,6 +50,7 @@ pub fn client_from_credentials(client_credentials: Vec<u8>) -> Result<FilenClien
     Ok(FilenClient {
         client: Arc::new(client),
         tokio_runtime,
+        downloads_to_cancellation_tokens: Default::default(),
     })
 }
 
@@ -54,15 +62,20 @@ pub async fn login(
 ) -> Result<FilenClient, FilenClientError> {
     let tokio_runtime = generate_tokio_runtime()?;
 
-    let handle = tokio_runtime.handle().spawn(async move {
-        filen_sdk_rs::auth::Client::login(email, &pwd, &two_factor_code).await
-    }).await.map_err(|e| FilenClientError::ConcurrencyError {
-        msg: format!("Runtime task (login) failed: {}", e),
-    })?;
+    let handle = tokio_runtime
+        .handle()
+        .spawn(
+            async move { filen_sdk_rs::auth::Client::login(email, &pwd, &two_factor_code).await },
+        )
+        .await
+        .map_err(|e| FilenClientError::ConcurrencyError {
+            msg: format!("Runtime task (login) failed: {}", e),
+        })?;
 
     Ok(FilenClient {
         client: Arc::new(handle?),
         tokio_runtime,
+        downloads_to_cancellation_tokens: Default::default(),
     })
 }
 

@@ -67,8 +67,8 @@ class FFResourceCacheManager {
         let fileURL = persistedPhotoCacheFolder.appendingPathComponent(name.uuidString)
 
         do {
-            try FileManager.default.removeItem(at: fileURL)
             currentSizeOfCache -= UInt64(cachedResource.fileSize)
+            try FileManager.default.removeItem(at: fileURL)
         } catch {
             logger.error("Failed to delete cached asset file at \(fileURL.path): \(error.localizedDescription)")
         }
@@ -133,11 +133,20 @@ class FFResourceCacheManager {
     }
     
     // TODO: Temp move all instances of getting the cache directory into an extension of the cache NSManagedObject
-    func copyCache(from cachedResource: CachedResource, to destinationURL: URL) throws {
+    func copyCache(from cachedResource: CachedResource, to destinationURL: URL) -> Bool {
         cachedResource.lastAccessDate = .now
         
         let cachedUrlLocation = persistedPhotoCacheFolder.appending(path: cachedResource.fileName!.uuidString)
-        try FileManager.default.copyItem(at: cachedUrlLocation, to: destinationURL)
+        do {
+            try FileManager.default.copyItem(at: cachedUrlLocation, to: destinationURL)
+            
+            return true
+        } catch {
+            logger.warning("The cache file doesn't exist at \(cachedUrlLocation) or \(error), deleting the CacheResource")
+            cachedResource.prepareForDeletion()
+            
+            return false
+        }
     }
 }
 

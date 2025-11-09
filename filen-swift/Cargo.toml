@@ -13,6 +13,7 @@ serde_cbor = "0.11.2"
 serde = "*"
 uuid = "1.18.1"
 tokio-util = "0.7.16"
+dashmap = "6.1.0"
 
 [build-dependencies]
 uniffi = { version = "0.29.4", features = ["build"] }

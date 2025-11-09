@@ -12,5 +12,6 @@ import UIKit
 extension PhotosViewerViewController : NSFetchedResultsControllerDelegate {
     func controller(_ controller: NSFetchedResultsController<any NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {
         self.diffableDataSource.apply(snapshot as NSDiffableDataSourceSnapshot<Int, NSManagedObjectID>)
+        self.noImagesHostingController.view.isHidden = snapshot.numberOfItems > 0
     }
 }
