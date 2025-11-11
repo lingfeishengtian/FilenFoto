@@ -70,31 +70,34 @@ actor WorkingSetFotoAsset {
     func resource(for resourceType: PHAssetResourceType, cancellable: Bool = false) async throws -> URL {
         try? FileManager.default.createDirectory(at: workingSetRootFolder, withIntermediateDirectories: true)
 
-        let remoteResource = asset.remoteResourcesArray.first {
+        let objectContext = FFCoreDataManager.shared.newChildContext()
+        let remoteResourceObjectId = asset.remoteResourcesArray.first {
             $0.assetResourceType == resourceType
+        }?.objectID
+        
+        guard let remoteResourceObjectId, let remoteResource = objectContext.object(with: remoteResourceObjectId) as? RemoteResource else {
+            throw FilenFotoError.remoteResourceNotFoundInFilen
         }
         
-        let fileUrl = remoteResource?.fileURL(in: workingSetRootFolder)
+        let fileUrl = remoteResource.fileURL(in: workingSetRootFolder)
         
         guard let fileUrl else {
             throw FilenFotoError.invalidFile
         }
         
         if FileManager.default.fileExists(atPath: fileUrl.path()) {
+            await cache(remoteResource)
             return fileUrl
         }
         
-        guard let remoteResource else {
-            throw FilenFotoError.remoteResourceNotFoundInFilen
-        }
-        
         if let cachedResource = remoteResource.cachedResource,
-            FFResourceCacheManager.shared.copyCache(from: cachedResource, to: fileUrl) {
+            await FFResourceCacheManager.shared.copyCache(from: cachedResource, to: fileUrl) {
             return fileUrl
         }
         
         try await assetManager.filenDownload(resource: remoteResource, toLocalFolder: workingSetRootFolder, cancellable: cancellable)
-        
+        await cache(remoteResource)
+
         return fileUrl
     }
     
@@ -102,26 +105,27 @@ actor WorkingSetFotoAsset {
         temporaryContext.object(with: self.asset.objectID) as? FotoAsset
     }
     
-    deinit {
-        for remoteResource in asset.remoteResourcesArray {
-            let fileURL = remoteResource.fileURL(in: workingSetRootFolder)!
-            let doesFileExist = FileManager.default.fileExists(atPath: fileURL.path())
-            
-            if !doesFileExist {
-                continue
-            }
-
-            do {
-                try FFResourceCacheManager.shared.insert(remoteResource: remoteResource, fileUrl: fileURL)
-                try assetManager.cancelDownload(resource: remoteResource)
-            } catch {
-                logger.error("Failed to insert remote resource into cache or failed to cancel download: \(error)")
-
-                try? FileManager.default.removeItem(at: fileURL)
-            }
+    func cache(_ remoteResource: RemoteResource) async {
+        let fileURL = remoteResource.fileURL(in: workingSetRootFolder)!
+        let doesFileExist = FileManager.default.fileExists(atPath: fileURL.path())
+        
+        if !doesFileExist {
+            return
         }
-
+        
+        do {
+            try await FFResourceCacheManager.shared.insert(remoteResource: remoteResource, fileUrl: fileURL)
+        } catch {
+            logger.error("Failed to insert remote resource into cache or failed to cancel download: \(error)")
+        }
+    }
+    
+    deinit {
         // Clean working directory just in case a session before exited abnormally
+        for remoteResource in asset.remoteResourcesArray {
+            try? assetManager.cancelDownload(resource: remoteResource)
+        }
+        
         try? FileManager.default.clearDirectoryContents(at: workingSetRootFolder)
         try? FileManager.default.removeItem(at: workingSetRootFolder)
     }

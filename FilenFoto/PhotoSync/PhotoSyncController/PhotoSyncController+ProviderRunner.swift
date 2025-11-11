@@ -84,9 +84,6 @@ extension PhotoSyncController {
                 }
                 
                 providerProgress.completedUnitCount += potentialProvider.progressWeight
-                
-                // TODO: Remove I'm on a plane so simulating slow operation
-//                try await Task.sleep(nanoseconds: 2_000_000_000)
             } catch {
                 logger.error("An unrecoverable error occurred in the photoSyncController: \(error)")
 

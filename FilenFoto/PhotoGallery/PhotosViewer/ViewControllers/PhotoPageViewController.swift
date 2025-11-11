@@ -83,7 +83,7 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
         diffableDataSource = .init(collectionView: collectionView) { collectionView, indexPath, itemIdentifier in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TinyPhotoCell", for: indexPath) as! TinyPhotoViewCell
 
-            let photo = self.photo(at: indexPath)
+            let photo = self.thumbnail(at: indexPath)
             cell.configure(with: photo ?? UIImage())
 
             return cell

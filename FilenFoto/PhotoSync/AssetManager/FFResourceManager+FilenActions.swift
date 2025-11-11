@@ -26,9 +26,7 @@ extension FFResourceManager {
         let filenClient = try PhotoContext.shared.unwrappedFilenClient()
 
         let pathToFile = resource.fileURL(in: workingDirectory)!
-        
-        print(pathToFile)
-        
+                
         let uploadedFile = try await filenClient.uploadFileFromPath(
             dirUuid: filenResourceFolderUuid,
             filePath: pathToFile.path(),

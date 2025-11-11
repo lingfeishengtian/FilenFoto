@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 protocol SwiftUIProviderProtocol {
+    // TODO: Refactor to `FotoAsset`?
     func topBar(with image: WorkingSetFotoAsset) -> any View
     func bottomBar(with image: WorkingSetFotoAsset) -> any View
     func detailedView(for image: WorkingSetFotoAsset) -> any View

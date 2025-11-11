@@ -90,24 +90,7 @@ struct PhotoGallery: View {
                                 Text("Syncing Photos...")
                             }.padding()
                         }.padding()
-
-                        Button {
-                            print(testPath)
-                            Task {
-                                try? await photoContext.unwrappedFilenClient().cancellableDownloadFileToPath(
-                                    fileUuid: "780b6fd0-a95d-4cc0-956b-360e33c1dd61", path: testPath.path())
-                                print("Finished")
-                            }
-                        } label: {
-                            Text("Test Download")
-                        }
-
-                        Button {
-                            print(testPath)
-                            try? photoContext.unwrappedFilenClient().cancelDownload(uuid: "780b6fd0-a95d-4cc0-956b-360e33c1dd61")
-                        } label: {
-                            Text("Cancel Download")
-                        }
+                        
                         Spacer()
                     }
                 }

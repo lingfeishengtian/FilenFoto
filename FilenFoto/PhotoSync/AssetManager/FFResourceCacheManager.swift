@@ -10,7 +10,7 @@ import Foundation
 import Photos.PHAssetResource
 import os.log
 
-class FFResourceCacheManager {
+actor FFResourceCacheManager {
     static let shared = FFResourceCacheManager()
 
     // Temporary constant variable for now
@@ -19,8 +19,6 @@ class FFResourceCacheManager {
 
     let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "AssetManager")
     let persistedPhotoCacheFolder = FileManager.photoCacheDirectory
-
-    private let objectContext = FFCoreDataManager.shared.newChildContext()
 
     // TODO: Register onto FotoAsset for an onDelete trigger to remove from cache
 
@@ -45,6 +43,7 @@ class FFResourceCacheManager {
         cacheFetchRequest.propertiesToFetch = [sumExpressionDescription]
 
         do {
+            let objectContext = FFCoreDataManager.shared.newChildContext()
             let fetchedQueryResult = try objectContext.fetch(cacheFetchRequest)
 
             if let resultDict = fetchedQueryResult.first as? [String: Any],
@@ -67,8 +66,8 @@ class FFResourceCacheManager {
         let fileURL = persistedPhotoCacheFolder.appendingPathComponent(name.uuidString)
 
         do {
-            currentSizeOfCache -= UInt64(cachedResource.fileSize)
             try FileManager.default.removeItem(at: fileURL)
+            currentSizeOfCache -= UInt64(cachedResource.fileSize)
         } catch {
             logger.error("Failed to delete cached asset file at \(fileURL.path): \(error.localizedDescription)")
         }
@@ -79,6 +78,8 @@ class FFResourceCacheManager {
             return
         }
 
+        let objectContext = FFCoreDataManager.shared.newChildContext()
+        
         let fetchRequest = CachedResource.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: #keyPath(CachedResource.lastAccessDate), ascending: true)]
 
@@ -105,13 +106,22 @@ class FFResourceCacheManager {
             throw FilenFotoError.invalidFile
         }
         
-        if let cachedResource = remoteResource.cachedResource {
+        let objectContext = FFCoreDataManager.shared.newChildContext()
+        let remoteResourceInLocalContext = objectContext.object(with: remoteResource.objectID) as? RemoteResource
+        
+        guard let remoteResourceInLocalContext else {
+            throw FilenFotoError.coreDataContext
+        }
+        
+        //TODO: Cleanup?
+        if let cachedResource = remoteResourceInLocalContext.cachedResource {
             cachedResource.lastAccessDate = .now
+            try objectContext.save()
             return
         }
 
         let cachedResource = CachedResource(context: objectContext)
-        cachedResource.remoteResource = objectContext.object(with: remoteResource.objectID) as? RemoteResource
+        cachedResource.remoteResource = remoteResourceInLocalContext
         cachedResource.fileName = UUID()
         cachedResource.fileSize = fileSize
         cachedResource.lastAccessDate = Date()
@@ -119,7 +129,7 @@ class FFResourceCacheManager {
         let destinationUrl = persistedPhotoCacheFolder.appendingPathComponent(cachedResource.fileName!.uuidString)
 
         do {
-            try FileManager.default.moveItem(at: fileUrl, to: destinationUrl)
+            try FileManager.default.copyItem(at: fileUrl, to: destinationUrl)
             currentSizeOfCache += UInt64(fileSize)
 
             ensureCacheSizeLimit()
@@ -143,7 +153,19 @@ class FFResourceCacheManager {
             return true
         } catch {
             logger.warning("The cache file doesn't exist at \(cachedUrlLocation) or \(error), deleting the CacheResource")
-            cachedResource.prepareForDeletion()
+        }
+        
+        do {
+            let objectContext = FFCoreDataManager.shared.newChildContext()
+            
+            let cachedResourceInCurrentObjectContext = objectContext.object(with: cachedResource.objectID)
+            objectContext.delete(cachedResourceInCurrentObjectContext)
+            
+            try objectContext.save()
+            
+            return false
+        } catch {
+            logger.error("The cache file could not be deleted because of \(error)")
             
             return false
         }
@@ -154,6 +176,8 @@ extension CachedResource {
     override public func prepareForDeletion() {
         super.prepareForDeletion()
 
-        FFResourceCacheManager.shared.delete(self)
+        Task {
+            await FFResourceCacheManager.shared.delete(self)
+        }
     }
 }

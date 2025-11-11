@@ -36,7 +36,6 @@ class ScrollableImageViewController: ChildPageTemplateViewController, PagedPhoto
         contentView = UIImageView(frame: self.parent!.view.frame)
         contentView.translatesAutoresizingMaskIntoConstraints = false
 
-        image.frame = self.parent!.view.frame
         image.contentMode = .scaleAspectFill
 
         contentView.addSubview(image)

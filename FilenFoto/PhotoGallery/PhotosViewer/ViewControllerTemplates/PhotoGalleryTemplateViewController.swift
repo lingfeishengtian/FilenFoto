@@ -60,17 +60,16 @@ class PhotoGalleryTemplateViewController: UIViewController {
         photoGalleryContext.selectedPhotoId
     }
     
-    // TODO: Probably rename this
-    func photo(at indexPath: IndexPath) -> UIImage? {
-        photoDataSource.thumbnail(for: fotoAsset(at: indexPath))
-    }
-    
     func photo(for objectId: PhotoIdentifier) -> FFDisplayableImage? {
         guard let fotoAsset = fotoAsset(for: objectId) else {
             return nil
         }
         
         return photoDataSource.photo(for: fotoAsset)
+    }
+    
+    func thumbnail(at indexPath: IndexPath) -> UIImage? {
+        photoDataSource.thumbnail(for: fotoAsset(at: indexPath))
     }
     
     func thumbnail(for objectId: PhotoIdentifier) -> UIImage? {
@@ -99,16 +98,6 @@ class PhotoGalleryTemplateViewController: UIViewController {
         }
         
         return fetchResultsController.indexPath(forObject: object)
-    }
-    
-    // TODO: Rename
-    var selectedPhoto: UIImage? {
-        guard let selectedPhotoId = photoGalleryContext.selectedPhotoId else {
-            logger.error("Tried to access selected photo but no photo was set")
-            return nil
-        }
-        
-        return thumbnail(for: selectedPhotoId)
     }
     
     var selectedIndexPath: IndexPath? {
