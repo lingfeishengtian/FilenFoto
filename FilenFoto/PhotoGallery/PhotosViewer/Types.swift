@@ -14,7 +14,7 @@ import CoreData
 fileprivate let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "AnimationReferences")
 
 struct AnimationReferences {
-    var imageReference: UIImageView
+    var imageReference: ViewWithImage
     var frame: CGRect
     
     // Initialize wtih defaults values when something goes wrong
@@ -25,7 +25,7 @@ struct AnimationReferences {
         frame = CGRect(origin: .zero, size: size)
     }
     
-    init(imageReference: UIImageView, frame: CGRect) {
+    init(imageReference: ViewWithImage, frame: CGRect) {
         self.imageReference = imageReference
         self.frame = frame
     }

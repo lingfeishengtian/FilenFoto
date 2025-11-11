@@ -9,7 +9,6 @@ import Foundation
 import UIKit
 
 class ScrollableImageViewController: ChildPageTemplateViewController, PagedPhotoHeroAnimatorDelegate {
-    var imageView: UIImageView!
     var scrollView: UIScrollView!
     var contentView: UIView!
     
@@ -37,10 +36,9 @@ class ScrollableImageViewController: ChildPageTemplateViewController, PagedPhoto
         contentView = UIImageView(frame: self.parent!.view.frame)
         contentView.translatesAutoresizingMaskIntoConstraints = false
 
-        imageView = UIImageView(frame: self.parent!.view.frame)
-        imageView.contentMode = .scaleAspectFill
+        image.contentMode = .scaleAspectFill
 
-        contentView.addSubview(imageView)
+        contentView.addSubview(image)
         scrollView.addSubview(contentView)
         view.addSubview(scrollView)
         
@@ -63,27 +61,25 @@ class ScrollableImageViewController: ChildPageTemplateViewController, PagedPhoto
         
         panGestureRecognizer.delegate = self
         
-        configure(with: image)
+        recenterImage()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        configure(with: image)
+        recenterImage()
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        configure(with: image)
+        recenterImage()
     }
 
-    func configure(with image: UIImage?) {
-        self.imageView.image = image
-
-        guard let image else {
+    func recenterImage() {
+        guard let uiImage = image.image else {
             return
         }
-
-        self.imageView.frame = centeredAndResizedFrame(for: image, in: self.contentView.frame)
+        
+        image.frame = centeredAndResizedFrame(for: uiImage, in: self.contentView.frame)
     }
     
     // MARK: - Gesture Recognizers
@@ -138,12 +134,12 @@ class ScrollableImageViewController: ChildPageTemplateViewController, PagedPhoto
     
     func getAnimationReferences(in view: UIView) -> AnimationReferences {
         view.layoutIfNeeded()
-        configure(with: image)
+        recenterImage()
         
         return AnimationReferences(
-            imageReference: imageView,
+            imageReference: image,
             frame: scrollView.convert(
-                imageView.frame,
+                image.frame,
                 to: view
             )
         )

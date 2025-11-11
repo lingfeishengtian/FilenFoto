@@ -73,6 +73,9 @@ class FFResourceManager {
         try FileManager.default.createDirectory(at: destinationFolder, withIntermediateDirectories: true)
         try FileManager.default.clearDirectoryContents(at: destinationFolder)
 
+        let assetRequestOptions = PHAssetResourceRequestOptions()
+        assetRequestOptions.isNetworkAccessAllowed = true
+        
         for assetResource in assetResources {
             let remoteResource = RemoteResource(context: tempContext)
             remoteResource.uuid = UUID()
@@ -85,7 +88,7 @@ class FFResourceManager {
             try await PHAssetResourceManager.default().writeData(
                 for: assetResource,
                 toFile: destinationFileUrl,
-                options: nil
+                options: assetRequestOptions
             )
 
             remoteResource.fileHashBinary = Data(try FileManager.getSHA256(forFile: destinationFileUrl))
@@ -99,21 +102,19 @@ class FFResourceManager {
 
     /// Syncs resources from working directory with the remoteResources. Delete resources marked for deletion and upload new resources
     func syncResources(in workingDirectory: URL, for fotoAsset: FotoAsset) async throws {
-        let sharedPhotoContext = PhotoContext.shared
-
         let remoteResources = fotoAsset.remoteResourcesArray
 
         try await filenCreateRootFolderIfNeeded(fotoAsset: fotoAsset)
 
         let filenResourceFolderUuidString = fotoAsset.filenResourceFolderUuid!.uuidString
-        let stagedRemoteResourcesToUpload = remoteResources.filter { $0.filenUuid == nil }
+        let stagedRemoteResourcesToUpload = remoteResources.filter { $0.filenUuid == nil && $0.isMarkedForDeletion == false }
         let stagedRemoteResourcesToDelete = remoteResources.filter { $0.isMarkedForDeletion }
 
         if stagedRemoteResourcesToUpload.isEmpty && stagedRemoteResourcesToDelete.isEmpty {
             logger.info("No new files to upload or delete for asset with uuid: \(fotoAsset.uuid!.uuidString)")
             return
         }
-
+        
         for resourceToUpload in stagedRemoteResourcesToUpload {
             try await filenUpload(resource: resourceToUpload, inCloudFolder: filenResourceFolderUuidString, inLocalFolder: workingDirectory)
         }

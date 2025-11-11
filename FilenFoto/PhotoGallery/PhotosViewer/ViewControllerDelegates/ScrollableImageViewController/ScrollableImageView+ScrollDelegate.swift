@@ -13,15 +13,7 @@ extension ScrollableImageViewController: UIScrollViewDelegate {
         return self.contentView
     }
 
-    func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
-        for gestureRecognizer in (parent as! UIPageViewController).gestureRecognizers {
-            gestureRecognizer.isEnabled = false
-        }
-    }
-
     func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
-        for gestureRecognizer in (parent as! UIPageViewController).gestureRecognizers {
-            gestureRecognizer.isEnabled = true
-        }
+        setPageScroll(scale == scrollView.minimumZoomScale)
     }
 }

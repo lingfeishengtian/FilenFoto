@@ -10,11 +10,11 @@ import UIKit
 
 class ChildPageTemplateViewController: PhotoGalleryTemplateViewController {
     let animationController: PhotoHeroAnimationController
-    let image: UIImage?
+    let image: FFDisplayableImage
     var imageId: PhotoIdentifier
     /// Purely for tagging purposes during transition
     
-    required init(animationController: PhotoHeroAnimationController, image: UIImage?, imageId: PhotoIdentifier, photoGalleryContext: PhotoGalleryContext) {
+    required init(animationController: PhotoHeroAnimationController, image: FFDisplayableImage, imageId: PhotoIdentifier, photoGalleryContext: PhotoGalleryContext) {
         self.image = image
         self.imageId = imageId
         self.animationController = animationController
@@ -28,6 +28,12 @@ class ChildPageTemplateViewController: PhotoGalleryTemplateViewController {
         }
         
         fatalError("ChildPageTemplateViewController must be a child of PagedPhotoDetailViewController")
+    }
+    
+    func setPageScroll(_ isEnabled: Bool) {
+        for case let scrollView as UIScrollView in pagingViewController.pagedController.view.subviews {
+            scrollView.isScrollEnabled = isEnabled
+        }
     }
     
     override func commitLocalSelectedPhotoIndex() {

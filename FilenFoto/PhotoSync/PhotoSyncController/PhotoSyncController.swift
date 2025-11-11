@@ -5,6 +5,7 @@
 //  Created by Hunter Han on 9/3/25.
 //
 
+import Combine
 import CoreData
 import Foundation
 import Photos
@@ -12,8 +13,18 @@ import os
 
 let MAX_CONCURRENT_TASKS = 3
 
-class PhotoSyncController {
-    private init() {}
+class PhotoSyncController: ObservableObject {
+    var progress = Progress()
+    private var cancellables = Set<AnyCancellable>()
+
+    private init() {
+        progress.publisher(for: \.fractionCompleted)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+    }
 
     static let shared = PhotoSyncController()
     let logger = Logger(subsystem: "com.hunterhan.filenfoto", category: "PhotoSyncController")
@@ -31,6 +42,8 @@ class PhotoSyncController {
 
         let photoLibrary = PHAsset.fetchAssets(with: PHFetchOptions())
         logger.info("Starting sync of \(photoLibrary.count) photos")
+
+        progress.totalUnitCount = calculateTotalProgressUnits(for: photoLibrary.count)
 
         Task.detached(priority: .background) {
             await withTaskGroup(of: Void.self) { group in
@@ -70,7 +83,7 @@ class PhotoSyncController {
 
     func startProviderActions(for asset: PHAsset) async {
         let fotoAsset = await FFCoreDataManager.shared.insert(for: asset)
-        let workingAsset = WorkingSetFotoAsset(asset: fotoAsset)
+        let workingAsset = await FFWorkingSet.default.requestWorkingSet(for: fotoAsset)
 
         do {
             try await workingAsset.retrieveResources(withSupportingPHAsset: asset)
@@ -80,7 +93,8 @@ class PhotoSyncController {
             return
         }
 
-        let context = FFCoreDataManager.shared.newChildContext()
+        // TODO: Make working set asset actually report progress
+        completeWorkingSetAssetRetrieval()
 
         await runProviders(for: workingAsset)
     }

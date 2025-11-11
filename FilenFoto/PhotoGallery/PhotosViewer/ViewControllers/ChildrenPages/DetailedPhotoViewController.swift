@@ -17,7 +17,6 @@ let IMAGE_PERCENT_OF_SCREEN: CGFloat = 0.5
 class DetailedPhotoViewController: ChildPageTemplateViewController, PagedPhotoHeroAnimatorDelegate{
     private let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "DetailedPhotoViewController")
     
-    var imageView: UIImageView!
     var swiftUIView: UIHostingController<AnyView>!
     lazy var panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
     
@@ -33,23 +32,18 @@ class DetailedPhotoViewController: ChildPageTemplateViewController, PagedPhotoHe
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        imageView = UIImageView(frame: calculateImageFrame())
-        imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
-        imageView.image = image
+        image.frame = calculateImageFrame()
+        image.contentMode = .scaleAspectFill
+        image.clipsToBounds = true
 
-        if let image {
-            swiftUIView = UIHostingController(rootView: AnyView(swiftUIProvider.detailedView(for: image)))
-        } else {
-            swiftUIView = UIHostingController(rootView: AnyView(EmptyView()))
-        }
+        swiftUIView = UIHostingController(rootView: AnyView(swiftUIProvider.detailedView(for: image.workingAsset)))
 
         swiftUIView.view.frame = calculateSwiftUIFrame()
         swiftUIView.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
         panGestureRecognizer.delegate = self
         
-        self.view.addSubview(imageView)
+        self.view.addSubview(image)
         self.view.addSubview(swiftUIView.view)
         self.view.addGestureRecognizer(panGestureRecognizer)
     }
@@ -68,6 +62,6 @@ class DetailedPhotoViewController: ChildPageTemplateViewController, PagedPhotoHe
     }
     
     func getAnimationReferences(in view: UIView) -> AnimationReferences {
-        return AnimationReferences(imageReference: self.imageView, frame: self.view.convert(calculateImageFrame(), to: view))
+        return AnimationReferences(imageReference: self.image, frame: self.view.convert(calculateImageFrame(), to: view))
     }
 }

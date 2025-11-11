@@ -21,7 +21,7 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
     static let PHOTO_SCRUBBER_HEIGHT: CGFloat = 34
     static let PHOTO_SCRUBBER_WIDTH: CGFloat = 25
     static let PHOTO_SCRUBBER_SPACING: CGFloat = 5
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -83,7 +83,7 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
         diffableDataSource = .init(collectionView: collectionView) { collectionView, indexPath, itemIdentifier in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TinyPhotoCell", for: indexPath) as! TinyPhotoViewCell
 
-            let photo = self.photo(at: indexPath)
+            let photo = self.thumbnail(at: indexPath)
             cell.configure(with: photo ?? UIImage())
 
             return cell
@@ -102,7 +102,8 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
     }
 
     func resetSwiftUIViews() {
-        guard let image = selectedPhoto else { return }
+        guard let currentView = pagedController.viewControllers?.first as? ChildPageTemplateViewController else { return }
+        let image = currentView.image.workingAsset
 
         swiftUITopBar.rootView = AnyView(swiftUIProvider.topBar(with: image))
         swiftUIBottomBar.rootView = AnyView(swiftUIProvider.bottomBar(with: image))

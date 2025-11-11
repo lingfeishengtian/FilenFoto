@@ -21,35 +21,55 @@ struct PhotoDataSource: PhotoDataSourceProtocol {
             fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
         return controller
     }
-    
-    func photo(for photoId: FotoAsset) -> UIImage? {
+
+    func thumbnail(for photoId: FotoAsset) -> UIImage? {
         ThumbnailProvider.shared.thumbnail(for: photoId)
+    }
+
+    func photo(for photoId: FotoAsset) -> FFDisplayableImage? {
+        let workingSetFotoAsset = FFWorkingSet.default.requestWorkingSet(for: photoId)
+        let displayableImage = FFImage(workingAsset: workingSetFotoAsset, thumbnail: thumbnail(for: photoId))
+        return displayableImage
     }
 }
 
 struct PhotoViewProvider: SwiftUIProviderProtocol {
-    func topBar(with image: UIImage) -> any View {
-        Text(image.debugDescription)
+    func topBar(with image: WorkingSetFotoAsset) -> any View {
+        Text(image.asset.debugDescription)
     }
 
-    func bottomBar(with image: UIImage) -> any View {
+    func bottomBar(with image: WorkingSetFotoAsset) -> any View {
         Button("Test Filen") {
         }
     }
 
-    func detailedView(for image: UIImage) -> any View {
+    func detailedView(for image: WorkingSetFotoAsset) -> any View {
         VStack {
             Text("Photo Detail View")
                 .font(.headline)
                 .padding()
-            Text("Size: \(Int(image.size.width)) x \(Int(image.size.height))")
-                .font(.subheadline)
+        }
+    }
+
+    func noImagesAvailableView() -> any View {
+        VStack {
+            Image(systemName: "photo.trianglebadge.exclamationmark")
+                .font(.title)
+                .padding()
+                .symbolRenderingMode(.multicolor)
+                .symbolEffect(.breathe)
+            Text("Your library is empty")
+                .bold()
         }
     }
 }
 
+let testPath = FileManager.default.documentsDirectory.appendingPathComponent("Test")
+
 struct PhotoGallery: View {
     @Environment(\.managedObjectContext) var viewContext
+    @EnvironmentObject var photoContext: PhotoContext
+    @StateObject private var syncController: PhotoSyncController = .shared
 
     var body: some View {
         TabView {
@@ -65,10 +85,12 @@ struct PhotoGallery: View {
                             Text("Library")
                                 .font(.largeTitle)
                                 .bold()
-                                .padding()
                             Spacer()
-
-                        }
+                            ProgressView(value: syncController.progress.fractionCompleted) {
+                                Text("Syncing Photos...")
+                            }.padding()
+                        }.padding()
+                        
                         Spacer()
                     }
                 }
@@ -97,6 +119,8 @@ struct PhotoGallery: View {
 
 #Preview {
     PhotoGallery()
+        .environmentObject(PhotoContext.shared)
+        .environment(\.managedObjectContext, FFCoreDataManager.shared.mainContext)
 }
 
 func deepClone<T: NSManagedObject>(

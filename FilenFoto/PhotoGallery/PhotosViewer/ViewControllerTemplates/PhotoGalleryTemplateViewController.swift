@@ -20,7 +20,7 @@ class PhotoGalleryTemplateViewController: UIViewController {
     var cancellable: AnyCancellable?
     private var localSelectedPhotoId: PhotoIdentifier? = nil
     
-    /// Called just before the selected photo index is updated from the context.
+    /// Called just before the selected thumbnail index is updated from the context.
     /// *Note:* The new Index will be different from the current selected index since this function is called before the update occurs.
     func willUpdateSelectedPhotoId(_ newId: PhotoIdentifier?) { }
     
@@ -60,11 +60,7 @@ class PhotoGalleryTemplateViewController: UIViewController {
         photoGalleryContext.selectedPhotoId
     }
     
-    func photo(at indexPath: IndexPath) -> UIImage? {
-        photoDataSource.photo(for: fotoAsset(at: indexPath))
-    }
-    
-    func photo(for objectId: PhotoIdentifier) -> UIImage? {
+    func photo(for objectId: PhotoIdentifier) -> FFDisplayableImage? {
         guard let fotoAsset = fotoAsset(for: objectId) else {
             return nil
         }
@@ -72,6 +68,18 @@ class PhotoGalleryTemplateViewController: UIViewController {
         return photoDataSource.photo(for: fotoAsset)
     }
     
+    func thumbnail(at indexPath: IndexPath) -> UIImage? {
+        photoDataSource.thumbnail(for: fotoAsset(at: indexPath))
+    }
+    
+    func thumbnail(for objectId: PhotoIdentifier) -> UIImage? {
+        guard let fotoAsset = fotoAsset(for: objectId) else {
+            return nil
+        }
+        
+        return photoDataSource.thumbnail(for: fotoAsset)
+    }
+
     func fotoAsset(for objectId: PhotoIdentifier) -> FotoAsset? {
         fetchResultsController.managedObjectContext.object(with: objectId) as? FotoAsset
     }
@@ -90,15 +98,6 @@ class PhotoGalleryTemplateViewController: UIViewController {
         }
         
         return fetchResultsController.indexPath(forObject: object)
-    }
-    
-    var selectedPhoto: UIImage? {
-        guard let selectedPhotoId = photoGalleryContext.selectedPhotoId else {
-            logger.error("Tried to access selected photo but no photo was set")
-            return nil
-        }
-        
-        return photo(for: selectedPhotoId)
     }
     
     var selectedIndexPath: IndexPath? {

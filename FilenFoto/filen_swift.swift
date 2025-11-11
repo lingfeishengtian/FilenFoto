@@ -501,6 +501,12 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
 
 public protocol FilenClientProtocol: AnyObject, Sendable {
     
+    func cancelAllDownloads()
+    
+    func cancelDownload(uuid: String)
+    
+    func cancellableDownloadFileToPath(fileUuid: String, path: String) async throws
+    
     func createDirInDir(parentUuid: String, name: String) async throws  -> Directory
     
     func deleteDir(dirUuid: String) async throws
@@ -573,6 +579,36 @@ open class FilenClient: FilenClientProtocol, @unchecked Sendable {
 
     
 
+    
+open func cancelAllDownloads()  {try! rustCall() {
+    uniffi_filen_swift_fn_method_filenclient_cancel_all_downloads(self.uniffiClonePointer(),$0
+    )
+}
+}
+    
+open func cancelDownload(uuid: String)  {try! rustCall() {
+    uniffi_filen_swift_fn_method_filenclient_cancel_download(self.uniffiClonePointer(),
+        FfiConverterString.lower(uuid),$0
+    )
+}
+}
+    
+open func cancellableDownloadFileToPath(fileUuid: String, path: String)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_filen_swift_fn_method_filenclient_cancellable_download_file_to_path(
+                    self.uniffiClonePointer(),
+                    FfiConverterString.lower(fileUuid),FfiConverterString.lower(path)
+                )
+            },
+            pollFunc: ffi_filen_swift_rust_future_poll_void,
+            completeFunc: ffi_filen_swift_rust_future_complete_void,
+            freeFunc: ffi_filen_swift_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeFilenClientError_lift
+        )
+}
     
 open func createDirInDir(parentUuid: String, name: String)async throws  -> Directory  {
     return
@@ -1383,6 +1419,15 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_filen_swift_checksum_func_login() != 49467) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_filen_swift_checksum_method_filenclient_cancel_all_downloads() != 62888) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_filen_swift_checksum_method_filenclient_cancel_download() != 23438) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_filen_swift_checksum_method_filenclient_cancellable_download_file_to_path() != 1583) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_filen_swift_checksum_method_filenclient_create_dir_in_dir() != 914) {
