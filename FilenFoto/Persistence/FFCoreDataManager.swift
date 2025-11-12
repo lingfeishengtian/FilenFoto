@@ -58,6 +58,7 @@ actor FFCoreDataManager {
         set(filenFoto: newFotoAsset, for: phAsset)
         
         backgroundContext.insert(newFotoAsset)
+        // TODO: This function needs to guarantee that a permanent ID exists for this object exists, if we make saveContextIfNeeded use perform, this function needs to handle saving this immediately
         saveContextIfNeeded()
         
         return newFotoAsset
@@ -73,6 +74,7 @@ actor FFCoreDataManager {
     }
     
     func saveContextIfNeeded() {
+        // TODO: Test the use of perform to not block the main thread
         backgroundContext.performAndWait { [self] in
             if backgroundContext.hasChanges {
                 do {

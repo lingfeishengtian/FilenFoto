@@ -142,8 +142,12 @@ actor FFResourceCacheManager {
     func copyCache(from cachedResourceId: FFObjectID<CachedResource>, to destinationURL: URL) async -> Bool {
         do {
             return try await withTemporaryManagedObjectContext(cachedResourceId) { cachedResource, objectContext in
+                guard let fileName = cachedResource.fileName, cachedResource.remoteResource != nil else {
+                    return false
+                }
+                
                 cachedResource.lastAccessDate = .now
-                let cachedUrlLocation = persistedPhotoCacheFolder.appending(path: cachedResource.fileName!.uuidString)
+                let cachedUrlLocation = persistedPhotoCacheFolder.appending(path: fileName.uuidString)
                 
                 do {
                     try FileManager.default.copyItem(at: cachedUrlLocation, to: destinationURL)
