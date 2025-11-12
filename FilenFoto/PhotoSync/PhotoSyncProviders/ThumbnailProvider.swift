@@ -20,7 +20,7 @@ actor ThumbnailProvider: PhotoActionProviderDelegate {
     func initiateProtocol(for workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset) async throws -> ProviderCompletion? {
         let image = try await imageResource(for: workingSetAsset, mediaType: fotoAsset.mediaType)
         try image.exportToRawThumbnail(
-            at: destinationUrl(for: fotoAsset),
+            at: destinationUrl(for: typedID(fotoAsset).getReadOnlyObject()!),
             targetSize: compressedPixelSize(
                 pixelHeight: fotoAsset.pixelHeight,
                 pixelWidth: fotoAsset.pixelWidth

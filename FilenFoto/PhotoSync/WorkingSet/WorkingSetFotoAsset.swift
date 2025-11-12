@@ -19,7 +19,7 @@ enum WorkingAssetState {
 }
 
 actor WorkingSetFotoAsset {
-    let asset: FotoAsset
+    let asset: ReadOnlyNSManagedObject<FotoAsset>
     let workingSetRootFolder: URL
     let assetManager: FFResourceManager = .init()
     let logger: Logger
@@ -30,7 +30,11 @@ actor WorkingSetFotoAsset {
         ThumbnailProvider.shared.thumbnail(for: asset)
     }
     
-    init(asset: FotoAsset) {
+    init(asset: FFObjectID<FotoAsset>) {
+        guard let asset = asset.getReadOnlyObject() else {
+            fatalError("Tried making a WorkingSetFotoAsset with a nil asset")
+        }
+        
         if asset.uuid == nil {
             fatalError("Asset must have a UUID")
         }
@@ -45,13 +49,8 @@ actor WorkingSetFotoAsset {
             throw FilenFotoError.missingResources
         }
         
-        let isAssetInBackgroundContext = await FFCoreDataManager.shared.validateIsInBackgroundContext(object: asset)
-        if !isAssetInBackgroundContext {
-            throw FilenFotoError.coreDataContext
-        }
-        
         if let iosAsset {
-            resourceState = try await assetManager.fetchAssets(for: asset, from: iosAsset, writeTo: workingSetRootFolder)
+            resourceState = try await assetManager.fetchAssets(for: typedID(asset), from: iosAsset, writeTo: workingSetRootFolder)
         } else {
             resourceState = .needsDownloadFromCloud
         }
@@ -61,7 +60,7 @@ actor WorkingSetFotoAsset {
         }
         
         if resourceState == .needsSync {
-            try await assetManager.syncResources(in: workingSetRootFolder, for: asset)
+            try await assetManager.syncResources(in: workingSetRootFolder, for: typedID(asset))
             
             resourceState = .alreadySynced
         }
@@ -70,12 +69,11 @@ actor WorkingSetFotoAsset {
     func resource(for resourceType: PHAssetResourceType, cancellable: Bool = false) async throws -> URL {
         try? FileManager.default.createDirectory(at: workingSetRootFolder, withIntermediateDirectories: true)
 
-        let objectContext = FFCoreDataManager.shared.newChildContext()
-        let remoteResourceObjectId = asset.remoteResourcesArray.first {
+        let remoteResource = asset.remoteResourcesArray.first {
             $0.assetResourceType == resourceType
-        }?.objectID
+        }
         
-        guard let remoteResourceObjectId, let remoteResource = objectContext.object(with: remoteResourceObjectId) as? RemoteResource else {
+        guard let remoteResource else {
             throw FilenFotoError.remoteResourceNotFoundInFilen
         }
         
@@ -91,11 +89,11 @@ actor WorkingSetFotoAsset {
         }
         
         if let cachedResource = remoteResource.cachedResource,
-            await FFResourceCacheManager.shared.copyCache(from: cachedResource, to: fileUrl) {
+            await FFResourceCacheManager.shared.copyCache(from: typedID(cachedResource), to: fileUrl) {
             return fileUrl
         }
         
-        try await assetManager.filenDownload(resource: remoteResource, toLocalFolder: workingSetRootFolder, cancellable: cancellable)
+        try await assetManager.filenDownload(resource: ReadOnlyNSManagedObject(remoteResource), toLocalFolder: workingSetRootFolder, cancellable: cancellable)
         await cache(remoteResource)
 
         return fileUrl
@@ -114,7 +112,7 @@ actor WorkingSetFotoAsset {
         }
         
         do {
-            try await FFResourceCacheManager.shared.insert(remoteResource: remoteResource, fileUrl: fileURL)
+            try await FFResourceCacheManager.shared.insert(remoteResourceId: typedID(remoteResource), fileUrl: fileURL)
         } catch {
             logger.error("Failed to insert remote resource into cache or failed to cancel download: \(error)")
         }
@@ -123,7 +121,7 @@ actor WorkingSetFotoAsset {
     deinit {
         // Clean working directory just in case a session before exited abnormally
         for remoteResource in asset.remoteResourcesArray {
-            try? assetManager.cancelDownload(resource: remoteResource)
+            try? assetManager.cancelDownload(resource: ReadOnlyNSManagedObject(remoteResource))
         }
         
         try? FileManager.default.clearDirectoryContents(at: workingSetRootFolder)

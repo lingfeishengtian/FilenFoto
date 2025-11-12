@@ -56,7 +56,8 @@ actor FFResourceCacheManager {
         }
     }
 
-    func delete(_ cachedResource: CachedResource) {
+    /// I allow this to be CachedResource since the only caller will be CachedResource itself
+    fileprivate func delete(_ cachedResource: CachedResource) async {
         guard let name = cachedResource.fileName else {
             logger.error("Tried to delete cached asset file but the CachedAsset had no fileName")
 
@@ -95,77 +96,67 @@ actor FFResourceCacheManager {
         
         do {
             try objectContext.save()
+            
+            Task {
+                await FFCoreDataManager.shared.saveContextIfNeeded()
+            }
         } catch {
             logger.error("Failed to save context: \(error.localizedDescription)")
         }
     }
 
     /// This will move the file from the given URL into the cache and create a corresponding CachedResource object
-    func insert(remoteResource: RemoteResource, fileUrl: URL) throws {
+    func insert(remoteResourceId: FFObjectID<RemoteResource>, fileUrl: URL) async throws {
         guard let fileSize = FileManager.default.sizeOfFile(at: fileUrl) else {
             throw FilenFotoError.invalidFile
         }
         
-        let objectContext = FFCoreDataManager.shared.newChildContext()
-        let remoteResourceInLocalContext = objectContext.object(with: remoteResource.objectID) as? RemoteResource
-        
-        guard let remoteResourceInLocalContext else {
-            throw FilenFotoError.coreDataContext
+        try await withTemporaryManagedObjectContext(remoteResourceId) { remoteResource, objectContext in
+            if let cachedResource = remoteResource.cachedResource {
+                cachedResource.lastAccessDate = .now
+                return
+            }
+            
+            let cachedResource = CachedResource(context: objectContext)
+            cachedResource.remoteResource = remoteResource
+            cachedResource.fileName = UUID()
+            cachedResource.fileSize = fileSize
+            cachedResource.lastAccessDate = Date()
+            
+            let destinationUrl = persistedPhotoCacheFolder.appendingPathComponent(cachedResource.fileName!.uuidString)
+            
+            do {
+                try FileManager.default.copyItem(at: fileUrl, to: destinationUrl)
+                currentSizeOfCache += UInt64(fileSize)
+                
+                ensureCacheSizeLimit()
+            } catch {
+                objectContext.delete(cachedResource)
+                
+                throw error
+            }
         }
-        
-        //TODO: Cleanup?
-        if let cachedResource = remoteResourceInLocalContext.cachedResource {
-            cachedResource.lastAccessDate = .now
-            try objectContext.save()
-            return
-        }
-
-        let cachedResource = CachedResource(context: objectContext)
-        cachedResource.remoteResource = remoteResourceInLocalContext
-        cachedResource.fileName = UUID()
-        cachedResource.fileSize = fileSize
-        cachedResource.lastAccessDate = Date()
-
-        let destinationUrl = persistedPhotoCacheFolder.appendingPathComponent(cachedResource.fileName!.uuidString)
-
-        do {
-            try FileManager.default.copyItem(at: fileUrl, to: destinationUrl)
-            currentSizeOfCache += UInt64(fileSize)
-
-            ensureCacheSizeLimit()
-        } catch {
-            objectContext.delete(cachedResource)
-
-            throw error
-        }
-        
-        try objectContext.save()
     }
     
     // TODO: Temp move all instances of getting the cache directory into an extension of the cache NSManagedObject
-    func copyCache(from cachedResource: CachedResource, to destinationURL: URL) -> Bool {
-        cachedResource.lastAccessDate = .now
-        
-        let cachedUrlLocation = persistedPhotoCacheFolder.appending(path: cachedResource.fileName!.uuidString)
+    func copyCache(from cachedResourceId: FFObjectID<CachedResource>, to destinationURL: URL) async -> Bool {
         do {
-            try FileManager.default.copyItem(at: cachedUrlLocation, to: destinationURL)
-            
-            return true
+            return try await withTemporaryManagedObjectContext(cachedResourceId) { cachedResource, objectContext in
+                cachedResource.lastAccessDate = .now
+                let cachedUrlLocation = persistedPhotoCacheFolder.appending(path: cachedResource.fileName!.uuidString)
+                
+                do {
+                    try FileManager.default.copyItem(at: cachedUrlLocation, to: destinationURL)
+                    return true
+                } catch {
+                    logger.warning("The cache file doesn't exist at \(cachedUrlLocation) or \(error), deleting the CacheResource")
+                }
+                
+                objectContext.delete(cachedResource)
+                return false
+            }
         } catch {
-            logger.warning("The cache file doesn't exist at \(cachedUrlLocation) or \(error), deleting the CacheResource")
-        }
-        
-        do {
-            let objectContext = FFCoreDataManager.shared.newChildContext()
-            
-            let cachedResourceInCurrentObjectContext = objectContext.object(with: cachedResource.objectID)
-            objectContext.delete(cachedResourceInCurrentObjectContext)
-            
-            try objectContext.save()
-            
-            return false
-        } catch {
-            logger.error("The cache file could not be deleted because of \(error)")
+            logger.error("Found context error: \(error)")
             
             return false
         }

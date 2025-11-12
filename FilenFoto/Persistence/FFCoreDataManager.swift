@@ -45,7 +45,7 @@ actor FFCoreDataManager {
         }
     }
     
-    func validateIsInBackgroundContext(object: NSManagedObject) -> Bool {
+    nonisolated func validateIsInBackgroundContext(object: NSManagedObject) -> Bool {
         object.managedObjectContext === backgroundContext
     }
     
@@ -58,9 +58,7 @@ actor FFCoreDataManager {
         set(filenFoto: newFotoAsset, for: phAsset)
         
         backgroundContext.insert(newFotoAsset)
-        if backgroundContext.insertedObjects.count > 100 {
-            saveContextIfNeeded()
-        }
+        saveContextIfNeeded()
         
         return newFotoAsset
     }
@@ -75,14 +73,15 @@ actor FFCoreDataManager {
     }
     
     func saveContextIfNeeded() {
-        backgroundContext.perform { [self] in
+        backgroundContext.performAndWait { [self] in
             if backgroundContext.hasChanges {
                 do {
                     logger.info("Saving background context with \(self.backgroundContext.insertedObjects.count) inserted objects, \(self.backgroundContext.updatedObjects.count) updated objects, and \(self.backgroundContext.deletedObjects.count) deleted objects.")
                     try backgroundContext.save()
                 } catch {
-                    logger.error("Error saving background context: \(error)")
                     // TODO: Handle error
+                    assert(true)
+                    logger.error("Error saving background context: \(error)")
                 }
             }
         }
@@ -93,5 +92,15 @@ actor FFCoreDataManager {
         childContext.parent = backgroundContext
         
         return childContext
+    }
+    
+    nonisolated func readOnly<T: NSManagedObject>(from objectId: FFObjectID<T>) -> ReadOnlyNSManagedObject<T>? {
+        let object = backgroundContext.object(with: objectId.raw) as? T
+        
+        guard let object else {
+            return nil
+        }
+        
+        return .init(object)
     }
 }
