@@ -20,9 +20,6 @@ actor FFResourceCacheManager {
     let logger = Logger(subsystem: "com.hunterhan.FilenFoto", category: "AssetManager")
     let persistedPhotoCacheFolder = FileManager.photoCacheDirectory
 
-    // TODO: Register onto FotoAsset for an onDelete trigger to remove from cache
-
-
     private init() {
         self.currentSizeOfCache = 0
 

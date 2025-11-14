@@ -80,24 +80,28 @@ class PhotoGalleryTemplateViewController: UIViewController {
         return photoDataSource.thumbnail(for: fotoAsset)
     }
 
-    func fotoAsset(for objectId: PhotoIdentifier) -> FotoAsset? {
-        fetchResultsController.managedObjectContext.object(with: objectId) as? FotoAsset
-    }
-    
-    func fotoAsset(at indexPath: IndexPath) -> FotoAsset {
-        fetchResultsController.object(at: indexPath)
-    }
-    
-    func fotoAsset(at index: Int) -> FotoAsset {
-        fetchResultsController.object(at: IndexPath(row: index, section: 0))
-    }
-    
-    func indexPath(for objectId: PhotoIdentifier) -> IndexPath? {
-        guard let object = fetchResultsController.managedObjectContext.object(with: objectId) as? FotoAsset else {
+    func fotoAsset(for objectId: PhotoIdentifier) -> ReadOnlyNSManagedObject<FotoAsset>? {
+        guard let fotoAsset = fetchResultsController.managedObjectContext.object(with: objectId.raw) as? FotoAsset else {
             return nil
         }
         
-        return fetchResultsController.indexPath(forObject: object)
+        return ReadOnlyNSManagedObject(fotoAsset)
+    }
+    
+    func fotoAsset(at indexPath: IndexPath) -> ReadOnlyNSManagedObject<FotoAsset> {
+        ReadOnlyNSManagedObject(fetchResultsController.object(at: indexPath))
+    }
+    
+    func fotoAsset(at index: Int) -> ReadOnlyNSManagedObject<FotoAsset> {
+        ReadOnlyNSManagedObject(fetchResultsController.object(at: IndexPath(row: index, section: 0)))
+    }
+    
+    func indexPath(for objectId: PhotoIdentifier) -> IndexPath? {
+        guard let object = fotoAsset(for: objectId) else {
+            return nil
+        }
+        
+        return fetchResultsController.indexPath(forObject: object.underlyingObject)
     }
     
     var selectedIndexPath: IndexPath? {
@@ -116,7 +120,7 @@ class PhotoGalleryTemplateViewController: UIViewController {
             return
         }
         
-        localSelectedPhotoId = fetchResultsController.object(at: IndexPath(row: index, section: 0)).objectID
+        localSelectedPhotoId = typedID(fetchResultsController.object(at: IndexPath(row: index, section: 0)))
     }
     
     /// Sets the local selected photo without committing it to the context.

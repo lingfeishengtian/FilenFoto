@@ -22,7 +22,7 @@ public struct ReadOnlyNSManagedObject<RawNSManagedObject: NSManagedObject> {
     
     public init(_ object: RawNSManagedObject) {
         assert(!object.objectID.isTemporaryID)
-        assert(FFCoreDataManager.shared.validateIsInBackgroundContext(object: object))
+        assert(FFCoreDataManager.shared.validateIsInBackgroundContext(object: object) || FFCoreDataManager.shared.validateIsInMainContext(object: object))
         self.object = object
     }
     

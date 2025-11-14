@@ -82,8 +82,8 @@ class PhotoSyncController: ObservableObject {
     }
 
     func startProviderActions(for asset: PHAsset) async {
-        let fotoAsset = await FFCoreDataManager.shared.insert(for: asset)
-        let workingAsset = await FFWorkingSet.default.requestWorkingSet(for: fotoAsset)
+        let fotoAsset = FFCoreDataManager.shared.insert(for: asset)
+        let workingAsset = FFWorkingSet.default.requestWorkingSet(for: fotoAsset)
 
         do {
             try await workingAsset.retrieveResources(withSupportingPHAsset: asset)

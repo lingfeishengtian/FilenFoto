@@ -115,7 +115,7 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
         collectionView.setContentOffset(CGPoint(x: Int(itemWidth()) * indexPath.row, y: 0), animated: animated)
     }
     
-    override func willUpdateSelectedPhotoId(_ newId: NSManagedObjectID?) {
+    override func willUpdateSelectedPhotoId(_ newId: PhotoIdentifier?) {
         super.willUpdateSelectedPhotoId(newId)
         
         if !collectionView.isDragging {

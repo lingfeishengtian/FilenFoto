@@ -120,6 +120,17 @@ class FFResourceManager {
             }
         }
     }
+    
+    private func filenCreateRootFolderIfNeeded(fotoAsset: FotoAsset) async throws {
+        let filenClient = try PhotoContext.shared.unwrappedFilenClient()
+        let rootPhotoDirectory = try PhotoContext.shared.unwrappedRootFolderDirectory()
+        
+        if fotoAsset.filenResourceFolderUuid == nil {
+            // The asset's uuid is used for local identification purposes. Generating a new UUID here protects against the scenario where someone kills the application between creation of a directory and saving CoreData
+            let directory = try await filenClient.createDirInDir(parentUuid: rootPhotoDirectory.uuidString, name: UUID().uuidString)
+            fotoAsset.filenResourceFolderUuid = UUID(uuidString: directory.uuid)
+        }
+    }
 
     // TODO: Validate sync status (filen folder and file contents exist?)
     // TODO: Vaildate file hashes (after they're downloaded into the working set)

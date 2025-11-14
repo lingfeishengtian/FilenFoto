@@ -1963,22 +1963,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "92E0DEEE-8E52-479F-A06F-E9CF7A5E1D11"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/Persistence/FFCoreDataManager.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "72"
-            endingLineNumber = "72"
-            landmarkName = "managedObjectModel"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "1574D741-E37F-4DDD-9D71-5226C0234C8B"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -2130,8 +2114,8 @@
             filePath = "FilenFoto/PhotoSync/WorkingSet/WorkingSetFotoAsset.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "117"
-            endingLineNumber = "117"
+            startingLineNumber = "113"
+            endingLineNumber = "113"
             landmarkName = "cache(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2146,8 +2130,8 @@
             filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceCacheManager.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "61"
-            endingLineNumber = "61"
+            startingLineNumber = "58"
+            endingLineNumber = "58"
             landmarkName = "delete(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2162,8 +2146,8 @@
             filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceCacheManager.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "116"
-            endingLineNumber = "116"
+            startingLineNumber = "113"
+            endingLineNumber = "113"
             landmarkName = "insert(remoteResourceId:fileUrl:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2178,25 +2162,9 @@
             filePath = "FilenFoto/PhotoSync/WorkingSet/WorkingSetFotoAsset.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "123"
-            endingLineNumber = "123"
+            startingLineNumber = "119"
+            endingLineNumber = "119"
             landmarkName = "deinit"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "7366142E-F324-4548-B098-7A706F0E404F"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/Persistence/FFCoreDataManager.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "86"
-            endingLineNumber = "86"
-            landmarkName = "saveContextIfNeeded()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

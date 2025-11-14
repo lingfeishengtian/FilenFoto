@@ -30,15 +30,16 @@ actor FFCoreDataManager {
         backgroundContext = persistentContainer.newBackgroundContext()
     }
     
-    // TODO: Make this phone specific and probably move this out of the actor, this operation takes too long
-    func findFotoAsset(for localUuid: String) -> FotoAsset? {
-        let fetchRequest = FotoAsset.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "localUuid == %@", localUuid)
-        fetchRequest.fetchLimit = 1
-        
+    nonisolated func findFotoAsset(for localUuid: String) -> FotoAsset? {
         do {
-            let results = try backgroundContext.fetch(fetchRequest)
-            return results.first
+            return try backgroundContext.performAndWait {
+                let fetchRequest = FotoAsset.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "localUuid == %@", localUuid)
+                fetchRequest.fetchLimit = 1
+                
+                let results = try backgroundContext.fetch(fetchRequest)
+                return results.first
+            }
         } catch {
             logger.error("Error checking for existing UUID: \(error)")
             return nil
@@ -49,19 +50,31 @@ actor FFCoreDataManager {
         object.managedObjectContext === backgroundContext
     }
     
-    func insert(for phAsset: PHAsset) -> FotoAsset {
+    nonisolated func validateIsInMainContext(object: NSManagedObject) -> Bool {
+        object.managedObjectContext === persistentContainer.viewContext
+    }
+    
+    // TODO: Is it even worth to make this FFObjectID?
+    nonisolated func insert(for phAsset: PHAsset) -> FotoAsset {
         if let existingFotoAsset = findFotoAsset(for: phAsset.localIdentifier) {
             return existingFotoAsset
         }
         
-        let newFotoAsset = FotoAsset(context: backgroundContext)
-        set(filenFoto: newFotoAsset, for: phAsset)
-        
-        backgroundContext.insert(newFotoAsset)
-        // TODO: This function needs to guarantee that a permanent ID exists for this object exists, if we make saveContextIfNeeded use perform, this function needs to handle saving this immediately
-        saveContextIfNeeded()
-        
-        return newFotoAsset
+        return backgroundContext.performAndWait { [self] in
+            let newFotoAsset = FotoAsset(context: backgroundContext)
+            set(filenFoto: newFotoAsset, for: phAsset)
+            
+            backgroundContext.insert(newFotoAsset)
+            
+            do {
+                try backgroundContext.save()
+            } catch {
+                assert(true)
+                logger.error("\(error)")
+            }
+            
+            return newFotoAsset
+        }
     }
     
     @MainActor
@@ -75,7 +88,7 @@ actor FFCoreDataManager {
     
     func saveContextIfNeeded() {
         // TODO: Test the use of perform to not block the main thread
-        backgroundContext.performAndWait { [self] in
+        backgroundContext.perform { [self] in
             if backgroundContext.hasChanges {
                 do {
                     logger.info("Saving background context with \(self.backgroundContext.insertedObjects.count) inserted objects, \(self.backgroundContext.updatedObjects.count) updated objects, and \(self.backgroundContext.deletedObjects.count) deleted objects.")

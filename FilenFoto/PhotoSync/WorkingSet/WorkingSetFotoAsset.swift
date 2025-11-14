@@ -99,10 +99,6 @@ actor WorkingSetFotoAsset {
         return fileUrl
     }
     
-    func asset(in temporaryContext: NSManagedObjectContext) -> FotoAsset? {
-        temporaryContext.object(with: self.asset.objectID) as? FotoAsset
-    }
-    
     func cache(_ remoteResource: RemoteResource) async {
         let fileURL = remoteResource.fileURL(in: workingSetRootFolder)!
         let doesFileExist = FileManager.default.fileExists(atPath: fileURL.path())

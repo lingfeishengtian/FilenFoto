@@ -22,8 +22,6 @@ final class FFWorkingSet {
     
     func requestWorkingSet(for asset: FotoAsset) -> WorkingSetFotoAsset {
         let assetObjectId = asset.objectID
-//        assert(asset.managedObjectContext == FFCoreDataManager.shared.getBackgroundContext())
-//        let workingAsset = WorkingSetFotoAsset(asset: FFCoreDataManager.shared.getBackground(fotoAsset: asset))
         let workingAsset = WorkingSetFotoAsset(asset: typedID(asset))
         
         return lock.withLock {
