@@ -88,13 +88,20 @@ actor WorkingSetFotoAsset {
             return fileUrl
         }
         
-        if let cachedResource = remoteResource.cachedResource,
-            await FFResourceCacheManager.shared.copyCache(from: typedID(cachedResource), to: fileUrl) {
+        if await FFResourceCacheManager.shared.cacheOut(from: typedID(remoteResource), to: fileUrl) {
             return fileUrl
         }
         
-        try await assetManager.filenDownload(resource: ReadOnlyNSManagedObject(remoteResource), toLocalFolder: workingSetRootFolder, cancellable: cancellable)
-        await cache(remoteResource)
+        do {
+            try await assetManager.filenDownload(resource: ReadOnlyNSManagedObject(remoteResource), toLocalFolder: workingSetRootFolder, cancellable: cancellable)
+            await cache(remoteResource)
+        } catch {
+            print(error)
+            let destinationFilePath = remoteResource.fileURL(in: workingSetRootFolder)
+            assert(!FileManager.default.fileExists(atPath: destinationFilePath?.path() ?? ""))
+
+            throw FilenFotoError.invalidFile
+        }
 
         return fileUrl
     }

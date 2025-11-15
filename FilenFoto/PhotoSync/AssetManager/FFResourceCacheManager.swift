@@ -71,7 +71,7 @@ actor FFResourceCacheManager {
         }
     }
 
-    func ensureCacheSizeLimit() {
+    func ensureCacheSizeLimit() async {
         if currentSizeOfCache <= photoCacheMaximumSize {
             return
         }
@@ -94,9 +94,7 @@ actor FFResourceCacheManager {
         do {
             try objectContext.save()
             
-            Task {
-                await FFCoreDataManager.shared.saveContextIfNeeded()
-            }
+            await FFCoreDataManager.shared.saveContextIfNeeded()
         } catch {
             logger.error("Failed to save context: \(error.localizedDescription)")
         }
@@ -122,11 +120,13 @@ actor FFResourceCacheManager {
             
             let destinationUrl = persistedPhotoCacheFolder.appendingPathComponent(cachedResource.fileName!.uuidString)
             
+            assert((FileManager.default.sizeOfFile(at: fileUrl) ?? 0) > 0)
+            
             do {
                 try FileManager.default.copyItem(at: fileUrl, to: destinationUrl)
                 currentSizeOfCache += UInt64(fileSize)
                 
-                ensureCacheSizeLimit()
+                await ensureCacheSizeLimit()
             } catch {
                 objectContext.delete(cachedResource)
                 
@@ -136,9 +136,13 @@ actor FFResourceCacheManager {
     }
     
     // TODO: Temp move all instances of getting the cache directory into an extension of the cache NSManagedObject
-    func copyCache(from cachedResourceId: FFObjectID<CachedResource>, to destinationURL: URL) async -> Bool {
+    func cacheOut(from remoteResourceId: FFObjectID<RemoteResource>, to destinationURL: URL) async -> Bool {
         do {
-            return try await withTemporaryManagedObjectContext(cachedResourceId) { cachedResource, objectContext in
+            return try await withTemporaryManagedObjectContext(remoteResourceId) { remoteResource, objectContext in
+                guard let cachedResource = remoteResource.cachedResource else {
+                    return false
+                }
+                
                 guard let fileName = cachedResource.fileName, cachedResource.remoteResource != nil else {
                     return false
                 }

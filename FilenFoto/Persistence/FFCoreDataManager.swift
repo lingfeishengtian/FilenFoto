@@ -54,7 +54,6 @@ actor FFCoreDataManager {
         object.managedObjectContext === persistentContainer.viewContext
     }
     
-    // TODO: Is it even worth to make this FFObjectID?
     nonisolated func insert(for phAsset: PHAsset) -> FotoAsset {
         if let existingFotoAsset = findFotoAsset(for: phAsset.localIdentifier) {
             return existingFotoAsset
@@ -69,7 +68,7 @@ actor FFCoreDataManager {
             do {
                 try backgroundContext.save()
             } catch {
-                assert(true)
+                assert(false)
                 logger.error("\(error)")
             }
             
@@ -87,7 +86,6 @@ actor FFCoreDataManager {
     }
     
     func saveContextIfNeeded() {
-        // TODO: Test the use of perform to not block the main thread
         backgroundContext.perform { [self] in
             if backgroundContext.hasChanges {
                 do {
@@ -95,7 +93,7 @@ actor FFCoreDataManager {
                     try backgroundContext.save()
                 } catch {
                     // TODO: Handle error
-                    assert(true)
+                    assert(false)
                     logger.error("Error saving background context: \(error)")
                 }
             }

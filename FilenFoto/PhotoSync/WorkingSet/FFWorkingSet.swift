@@ -22,15 +22,25 @@ final class FFWorkingSet {
     
     func requestWorkingSet(for asset: FotoAsset) -> WorkingSetFotoAsset {
         let assetObjectId = asset.objectID
-        let workingAsset = WorkingSetFotoAsset(asset: typedID(asset))
+        let typedObjectId = typedID(asset)
         
         return lock.withLock {
             if let workingAsset = workingSetMap.object(forKey: assetObjectId) {
                 return workingAsset
             }
             
+            let workingAsset = WorkingSetFotoAsset(asset: typedObjectId)
+
             workingSetMap.setObject(workingAsset, forKey: assetObjectId)
             return workingAsset
         }
     }
+    
+    #if DEBUG
+    func assertWorkingSetIsEmpty() {
+        lock.withLock {
+            assert(workingSetMap.count == 0)
+        }
+    }
+    #endif
 }
