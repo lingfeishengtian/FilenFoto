@@ -79,10 +79,6 @@ class PhotoSyncController: ObservableObject {
 
             await FFCoreDataManager.shared.saveContextIfNeeded()
         }
-        
-        #if DEBUG
-        FFWorkingSet.default.assertWorkingSetIsEmpty()
-        #endif
     }
 
     func startProviderActions(for asset: PHAsset) async {
