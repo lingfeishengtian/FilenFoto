@@ -92,16 +92,8 @@ actor WorkingSetFotoAsset {
             return fileUrl
         }
         
-        do {
-            try await assetManager.filenDownload(resource: ReadOnlyNSManagedObject(remoteResource), toLocalFolder: workingSetRootFolder, cancellable: cancellable)
-            await cache(remoteResource)
-        } catch {
-            print(error)
-            let destinationFilePath = remoteResource.fileURL(in: workingSetRootFolder)
-            assert(!FileManager.default.fileExists(atPath: destinationFilePath?.path() ?? ""))
-
-            throw FilenFotoError.invalidFile
-        }
+        try await assetManager.filenDownload(resource: ReadOnlyNSManagedObject(remoteResource), toLocalFolder: workingSetRootFolder, cancellable: cancellable)
+        await cache(remoteResource)
 
         return fileUrl
     }

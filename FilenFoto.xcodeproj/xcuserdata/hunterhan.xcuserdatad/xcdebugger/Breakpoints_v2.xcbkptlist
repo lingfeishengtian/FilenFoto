@@ -2114,8 +2114,8 @@
             filePath = "FilenFoto/PhotoSync/WorkingSet/WorkingSetFotoAsset.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "120"
-            endingLineNumber = "120"
+            startingLineNumber = "112"
+            endingLineNumber = "112"
             landmarkName = "cache(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2162,8 +2162,8 @@
             filePath = "FilenFoto/PhotoSync/WorkingSet/WorkingSetFotoAsset.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "126"
-            endingLineNumber = "126"
+            startingLineNumber = "118"
+            endingLineNumber = "118"
             landmarkName = "deinit"
             landmarkType = "7">
          </BreakpointContent>
