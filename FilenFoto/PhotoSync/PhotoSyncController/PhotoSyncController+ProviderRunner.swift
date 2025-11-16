@@ -11,7 +11,7 @@ import Foundation
 extension PhotoSyncController {
     func runProviders(for workingAsset: WorkingSetFotoAsset) async {
         let providerManagedContext = FFCoreDataManager.shared.newChildContext()
-        let fotoAsset = await workingAsset.asset(in: providerManagedContext)
+        let fotoAsset = providerManagedContext.object(with: await workingAsset.asset.underlyingObject.objectID) as? FotoAsset
 
         guard let fotoAsset else {
             logger.error("FotoAsset was nil")

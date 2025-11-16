@@ -22,7 +22,7 @@ extension PagedPhotoDetailViewController: UIPageViewControllerDataSource {
         }
         
         let prevIndexPath = IndexPath(row: indexBefore, section: currentIndexPath.section)
-        let prevIndexObjectId = fotoAsset(at: prevIndexPath).objectID
+        let prevIndexObjectId = typedID(fotoAsset(at: prevIndexPath))
         return getViewController(at: prevIndexObjectId)
     }
 
@@ -40,7 +40,7 @@ extension PagedPhotoDetailViewController: UIPageViewControllerDataSource {
         }
         
         let nextIndexPath = IndexPath(row: indexAfter, section: currentIndexPath.section)
-        let nextIndexObjectId = fotoAsset(at: nextIndexPath).objectID
+        let nextIndexObjectId = typedID(fotoAsset(at: nextIndexPath))
         return getViewController(at: nextIndexObjectId)
     }
 }

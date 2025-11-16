@@ -23,6 +23,9 @@ pub enum FilenClientError {
     #[error("Concurrency Error: {msg}")]
     ConcurrencyError { msg: String },
 
+    #[error("Download Cancelled: {msg}")]
+    DownloadCancelled { msg: String },
+
     #[error("Filen client error: {msg}")]
     FilenClientError { msg: String },
 
@@ -127,7 +130,7 @@ impl FilenClient {
                 _ = cancellation_token.cancelled() => {
                     drop(async_writer);
                     let _ = tokio::fs::remove_file(&path_for_removal).await;
-                    return Err(FilenClientError::ConcurrencyError { msg: "Download cancelled".to_string() });
+                    return Err(FilenClientError::DownloadCancelled { msg: "Download cancelled".to_string() });
                 }
                 res = client.download_file_to_writer(&file, &mut async_writer, None) => {
                     res?

@@ -22,12 +22,12 @@ struct PhotoDataSource: PhotoDataSourceProtocol {
         return controller
     }
 
-    func thumbnail(for photoId: FotoAsset) -> UIImage? {
+    func thumbnail(for photoId: ReadOnlyNSManagedObject<FotoAsset>) -> UIImage? {
         ThumbnailProvider.shared.thumbnail(for: photoId)
     }
 
-    func photo(for photoId: FotoAsset) -> FFDisplayableImage? {
-        let workingSetFotoAsset = FFWorkingSet.default.requestWorkingSet(for: photoId)
+    func photo(for photoId: ReadOnlyNSManagedObject<FotoAsset>) -> FFDisplayableImage? {
+        let workingSetFotoAsset = FFWorkingSet.default.requestWorkingSet(for: photoId.underlyingObject)
         let displayableImage = FFImage(workingAsset: workingSetFotoAsset, thumbnail: thumbnail(for: photoId))
         return displayableImage
     }

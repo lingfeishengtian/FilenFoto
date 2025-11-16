@@ -18,7 +18,7 @@ protocol PhotoDataSourceProtocol {
     ///
     /// - Parameter photoId: The `FotoAsset` for which the thumbnail is requested for
     /// - Returns a UIImage containing the thumbnail image
-    func thumbnail(for photoId: FotoAsset) -> UIImage?
+    func thumbnail(for photoId: ReadOnlyNSManagedObject<FotoAsset>) -> UIImage?
     
     /// A synchronous call that retrieves an `FFDisplayableImage` for the current `FotoAsset`
     ///
@@ -28,6 +28,6 @@ protocol PhotoDataSourceProtocol {
     ///
     /// - Parameter photoId: The `FotoAsset` for which the `FFDisplayableImage` is requested for
     /// - Returns a `FFDisplayableImage`
-    func photo(for photoId: FotoAsset) -> FFDisplayableImage?
+    func photo(for photoId: ReadOnlyNSManagedObject<FotoAsset>) -> FFDisplayableImage?
     func fetchRequestController() -> NSFetchedResultsController<FotoAsset>
 }

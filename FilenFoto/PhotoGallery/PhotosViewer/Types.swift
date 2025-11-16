@@ -38,4 +38,4 @@ enum Direction {
 }
 
 typealias DetailedPhotoViewBuilder = (UIImage) -> AnyView
-typealias PhotoIdentifier = NSManagedObjectID
+typealias PhotoIdentifier = FFObjectID<FotoAsset>

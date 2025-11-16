@@ -10,7 +10,7 @@ import CoreData
 import Photos.PHAsset
 
 extension FFCoreDataManager {
-    func set(filenFoto: FotoAsset, for asset: PHAsset) {
+    nonisolated func set(filenFoto: FotoAsset, for asset: PHAsset) {
 //        filenFoto.cloudUuid = asset. TODO: Figure out
         filenFoto.uuid = UUID() // Although an extremely small chance, assume this is *mostly* unique and use it for operations that need a relatively stable identifier, however, don't set constraints on it
         filenFoto.localUuid = asset.localIdentifier

@@ -59,7 +59,7 @@ struct FFAssetManagerTester {
     }
     
     @Test func testWorkingSet() async throws {
-        let insertedFotoAsset = await FFCoreDataManager.shared.insert(for: testAsset)
+        let insertedFotoAsset = FFCoreDataManager.shared.insert(for: testAsset)
         await FFCoreDataManager.shared.saveContextIfNeeded()
 
         let task = Task {
@@ -122,7 +122,7 @@ struct FFAssetManagerTester {
     func fetchAssetsFromLibrary(testAsset: PHAsset) async throws -> FotoAsset {
         let assetsManager = FFResourceManager()
 
-        let insertedFotoAsset = await FFCoreDataManager.shared.insert(for: testAsset)
+        let insertedFotoAsset = FFCoreDataManager.shared.insert(for: testAsset)
         let workingDirectory = workingDirectory(for: insertedFotoAsset)
 
         // Create working directory if it doesn't exist

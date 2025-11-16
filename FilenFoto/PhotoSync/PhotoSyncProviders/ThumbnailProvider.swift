@@ -18,9 +18,13 @@ actor ThumbnailProvider: PhotoActionProviderDelegate {
     static let audioThumbnail = UIImage()  // TODO: Load the default audio image from assets (maybe later generate thumbnail from soundwave???)
 
     func initiateProtocol(for workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset) async throws -> ProviderCompletion? {
+        guard let readOnlyFotoAsset = typedID(fotoAsset).getReadOnlyObject() else {
+            return nil
+        }
+        
         let image = try await imageResource(for: workingSetAsset, mediaType: fotoAsset.mediaType)
         try image.exportToRawThumbnail(
-            at: destinationUrl(for: fotoAsset),
+            at: destinationUrl(for: readOnlyFotoAsset),
             targetSize: compressedPixelSize(
                 pixelHeight: fotoAsset.pixelHeight,
                 pixelWidth: fotoAsset.pixelWidth

@@ -11,7 +11,7 @@ import UIKit
 
 extension ThumbnailProvider {
     /// Assumes fotoAsset already has a UUID
-    nonisolated func destinationUrl(for fotoAsset: FotoAsset) -> URL {
+    nonisolated func destinationUrl(for fotoAsset: ReadOnlyNSManagedObject<FotoAsset>) -> URL {
         let thumbnailIndex = fotoAsset.thumbnailIndex
         let directory = thumbnailIndex.directory(rootDirectory: FileManager.photoThumbnailDirectory)
 
@@ -23,11 +23,17 @@ extension ThumbnailProvider {
 //    func storeThumbnail(_ data: Data, for fotoAsset: FotoAsset) throws {
 //        try data.write(to: destinationUrl(for: fotoAsset))
 //    }
-
-    nonisolated func thumbnail(for fotoAsset: FotoAsset) -> UIImage? {
+    
+    nonisolated func thumbnail(for fotoAsset: ReadOnlyNSManagedObject<FotoAsset>) -> UIImage? {
         let fileUrl = destinationUrl(for: fotoAsset)
 
         return UIImage.fromRawThumbnail(locatedAt: fileUrl, targetSize: compressedPixelSize(pixelHeight: fotoAsset.pixelHeight, pixelWidth: fotoAsset.pixelWidth))
+    }
+    
+    @available(*, deprecated, renamed: "thumbnail(for:)", message: "Use either a ReadOnly or an FFObjectID")
+    nonisolated func thumbnail(for fotoAsset: FotoAsset) -> UIImage? {
+        let objectId = typedID(fotoAsset)
+        return thumbnail(for: objectId.getReadOnlyObject()!)
     }
 
     func imageResource(for workingSetAsset: WorkingSetFotoAsset, mediaType: PHAssetMediaType) async throws -> UIImage {

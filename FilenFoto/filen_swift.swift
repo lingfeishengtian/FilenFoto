@@ -1136,6 +1136,8 @@ public enum FilenClientError: Swift.Error {
     
     case ConcurrencyError(msg: String
     )
+    case DownloadCancelled(msg: String
+    )
     case FilenClientError(msg: String
     )
     case TypeConversionError(msg: String
@@ -1161,13 +1163,16 @@ public struct FfiConverterTypeFilenClientError: FfiConverterRustBuffer {
         case 1: return .ConcurrencyError(
             msg: try FfiConverterString.read(from: &buf)
             )
-        case 2: return .FilenClientError(
+        case 2: return .DownloadCancelled(
             msg: try FfiConverterString.read(from: &buf)
             )
-        case 3: return .TypeConversionError(
+        case 3: return .FilenClientError(
             msg: try FfiConverterString.read(from: &buf)
             )
-        case 4: return .IoError(
+        case 4: return .TypeConversionError(
+            msg: try FfiConverterString.read(from: &buf)
+            )
+        case 5: return .IoError(
             msg: try FfiConverterString.read(from: &buf)
             )
 
@@ -1187,18 +1192,23 @@ public struct FfiConverterTypeFilenClientError: FfiConverterRustBuffer {
             FfiConverterString.write(msg, into: &buf)
             
         
-        case let .FilenClientError(msg):
+        case let .DownloadCancelled(msg):
             writeInt(&buf, Int32(2))
             FfiConverterString.write(msg, into: &buf)
             
         
-        case let .TypeConversionError(msg):
+        case let .FilenClientError(msg):
             writeInt(&buf, Int32(3))
             FfiConverterString.write(msg, into: &buf)
             
         
-        case let .IoError(msg):
+        case let .TypeConversionError(msg):
             writeInt(&buf, Int32(4))
+            FfiConverterString.write(msg, into: &buf)
+            
+        
+        case let .IoError(msg):
+            writeInt(&buf, Int32(5))
             FfiConverterString.write(msg, into: &buf)
             
         }

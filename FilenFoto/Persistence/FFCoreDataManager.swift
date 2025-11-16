@@ -30,39 +30,50 @@ actor FFCoreDataManager {
         backgroundContext = persistentContainer.newBackgroundContext()
     }
     
-    // TODO: Make this phone specific and probably move this out of the actor, this operation takes too long
-    func findFotoAsset(for localUuid: String) -> FotoAsset? {
-        let fetchRequest = FotoAsset.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "localUuid == %@", localUuid)
-        fetchRequest.fetchLimit = 1
-        
+    nonisolated func findFotoAsset(for localUuid: String) -> FotoAsset? {
         do {
-            let results = try backgroundContext.fetch(fetchRequest)
-            return results.first
+            return try backgroundContext.performAndWait {
+                let fetchRequest = FotoAsset.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "localUuid == %@", localUuid)
+                fetchRequest.fetchLimit = 1
+                
+                let results = try backgroundContext.fetch(fetchRequest)
+                return results.first
+            }
         } catch {
             logger.error("Error checking for existing UUID: \(error)")
             return nil
         }
     }
     
-    func validateIsInBackgroundContext(object: NSManagedObject) -> Bool {
+    nonisolated func validateIsInBackgroundContext(object: NSManagedObject) -> Bool {
         object.managedObjectContext === backgroundContext
     }
     
-    func insert(for phAsset: PHAsset) -> FotoAsset {
+    nonisolated func validateIsInMainContext(object: NSManagedObject) -> Bool {
+        object.managedObjectContext === persistentContainer.viewContext
+    }
+    
+    nonisolated func insert(for phAsset: PHAsset) -> FotoAsset {
         if let existingFotoAsset = findFotoAsset(for: phAsset.localIdentifier) {
             return existingFotoAsset
         }
         
-        let newFotoAsset = FotoAsset(context: backgroundContext)
-        set(filenFoto: newFotoAsset, for: phAsset)
-        
-        backgroundContext.insert(newFotoAsset)
-        if backgroundContext.insertedObjects.count > 100 {
-            saveContextIfNeeded()
+        return backgroundContext.performAndWait { [self] in
+            let newFotoAsset = FotoAsset(context: backgroundContext)
+            set(filenFoto: newFotoAsset, for: phAsset)
+            
+            backgroundContext.insert(newFotoAsset)
+            
+            do {
+                try backgroundContext.save()
+            } catch {
+                assert(false)
+                logger.error("\(error)")
+            }
+            
+            return newFotoAsset
         }
-        
-        return newFotoAsset
     }
     
     @MainActor
@@ -81,8 +92,9 @@ actor FFCoreDataManager {
                     logger.info("Saving background context with \(self.backgroundContext.insertedObjects.count) inserted objects, \(self.backgroundContext.updatedObjects.count) updated objects, and \(self.backgroundContext.deletedObjects.count) deleted objects.")
                     try backgroundContext.save()
                 } catch {
-                    logger.error("Error saving background context: \(error)")
                     // TODO: Handle error
+                    assert(false)
+                    logger.error("Error saving background context: \(error)")
                 }
             }
         }
@@ -93,5 +105,15 @@ actor FFCoreDataManager {
         childContext.parent = backgroundContext
         
         return childContext
+    }
+    
+    nonisolated func readOnly<T: NSManagedObject>(from objectId: FFObjectID<T>) -> ReadOnlyNSManagedObject<T>? {
+        let object = backgroundContext.object(with: objectId.raw) as? T
+        
+        guard let object else {
+            return nil
+        }
+        
+        return .init(object)
     }
 }

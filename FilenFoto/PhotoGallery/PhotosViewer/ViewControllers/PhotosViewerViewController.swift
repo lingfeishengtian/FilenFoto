@@ -72,7 +72,7 @@ class PhotosViewerViewController: PhotoGalleryTemplateViewController {
         try? fetchResultsController.performFetch()
     }
     
-    override func willUpdateSelectedPhotoId(_ newId: NSManagedObjectID?) {
+    override func willUpdateSelectedPhotoId(_ newId: PhotoIdentifier?) {
         guard let newId, let indexPath = indexPath(for: newId) else {
             return
         }

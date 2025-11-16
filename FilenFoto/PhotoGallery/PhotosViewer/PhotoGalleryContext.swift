@@ -10,7 +10,7 @@ import SwiftUI
 import CoreData
 
 class PhotoGalleryContext: ObservableObject {
-    @Published var selectedPhotoId: NSManagedObjectID?
+    @Published var selectedPhotoId: PhotoIdentifier?
     
     // TODO: This might not be doable anymore
     let photoDataSource: any PhotoDataSourceProtocol
