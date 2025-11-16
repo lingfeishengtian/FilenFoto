@@ -43,7 +43,7 @@ class PhotosViewerViewController: PhotoGalleryTemplateViewController {
         collectionView.register(PhotoViewCell.self, forCellWithReuseIdentifier: "PhotoCell")
         collectionView.contentInset.top = 70
         
-        noImagesHostingController = UIHostingController(rootView: AnyView(swiftUIProvider.noImagesAvailableView()))
+        noImagesHostingController = UIHostingController(rootView: AnyView(swiftUIProvider.noImagesAvailableView))
         noImagesHostingController.view.translatesAutoresizingMaskIntoConstraints = false
 
         self.view.addSubview(collectionView)

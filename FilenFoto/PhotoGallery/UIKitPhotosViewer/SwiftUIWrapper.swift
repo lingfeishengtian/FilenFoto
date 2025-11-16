@@ -13,7 +13,7 @@ struct PhotosViewer: UIViewControllerRepresentable {
     /// Furthermore, utilize caching where possible to speed up photo retrieval since the view may request the same photo multiple times
     let photoDataSource: PhotoDataSourceProtocol
     // TODO: Write docs
-    let swiftUIProvider: SwiftUIProviderProtocol
+    let swiftUIProvider: SwiftUIViewFactoryProtocol
 
     func makeUIViewController(context: Context) -> PhotosViewerViewController {
         let rootPhotosViewer = PhotosViewerViewController(

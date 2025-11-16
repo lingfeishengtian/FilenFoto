@@ -21,8 +21,14 @@ public struct ReadOnlyNSManagedObject<RawNSManagedObject: NSManagedObject> {
     private let object: RawNSManagedObject
     
     public init(_ object: RawNSManagedObject) {
-        assert(!object.objectID.isTemporaryID)
-        assert(FFCoreDataManager.shared.validateIsInBackgroundContext(object: object) || FFCoreDataManager.shared.validateIsInMainContext(object: object))
+        #if DEBUG
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+
+        if !isPreview {
+            assert(!object.objectID.isTemporaryID)
+            assert(FFCoreDataManager.shared.validateIsInBackgroundContext(object: object) || FFCoreDataManager.shared.validateIsInMainContext(object: object))
+        }
+        #endif
         self.object = object
     }
     

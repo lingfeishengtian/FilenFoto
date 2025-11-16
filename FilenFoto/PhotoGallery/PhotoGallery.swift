@@ -33,37 +33,6 @@ struct PhotoDataSource: PhotoDataSourceProtocol {
     }
 }
 
-struct PhotoViewProvider: SwiftUIProviderProtocol {
-    func topBar(with image: WorkingSetFotoAsset) -> any View {
-        Text(image.asset.debugDescription)
-    }
-
-    func bottomBar(with image: WorkingSetFotoAsset) -> any View {
-        Button("Test Filen") {
-        }
-    }
-
-    func detailedView(for image: WorkingSetFotoAsset) -> any View {
-        VStack {
-            Text("Photo Detail View")
-                .font(.headline)
-                .padding()
-        }
-    }
-
-    func noImagesAvailableView() -> any View {
-        VStack {
-            Image(systemName: "photo.trianglebadge.exclamationmark")
-                .font(.title)
-                .padding()
-                .symbolRenderingMode(.multicolor)
-                .symbolEffect(.breathe)
-            Text("Your library is empty")
-                .bold()
-        }
-    }
-}
-
 let testPath = FileManager.default.documentsDirectory.appendingPathComponent("Test")
 
 struct PhotoGallery: View {

@@ -20,6 +20,16 @@ actor FFCoreDataManager {
     
     private init() {
         persistentContainer = NSPersistentContainer(name: "FilenFotoModel")
+        
+#if DEBUG
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        if isPreview {
+            if let description = persistentContainer.persistentStoreDescriptions.first {
+                description.url = URL(fileURLWithPath: "/dev/null")
+            }
+        }
+#endif
+        
         persistentContainer.loadPersistentStores { description, error in
             if let error = error {
                 fatalError("Failed to load Core Data stack: \(error)")
@@ -61,7 +71,7 @@ actor FFCoreDataManager {
         
         return backgroundContext.performAndWait { [self] in
             let newFotoAsset = FotoAsset(context: backgroundContext)
-            set(filenFoto: newFotoAsset, for: phAsset)
+            FFCoreDataManager.set(filenFoto: newFotoAsset, for: phAsset)
             
             backgroundContext.insert(newFotoAsset)
             
