@@ -17,8 +17,8 @@ actor PlacemarkProvider: PhotoActionProviderDelegate {
     
     func initiateProtocol(for workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset, supportingPHAsset: PHAsset) async throws -> ProviderCompletion? {
         if let location = supportingPHAsset.location, let reverseGeocodingRequest = MKReverseGeocodingRequest(location: location) {
-            let mapItems = try? await reverseGeocodingRequest.mapItems
-            if let mapItem = mapItems?.first {
+            let mapItems = try await reverseGeocodingRequest.mapItems
+            if let mapItem = mapItems.first {
                 try await withTemporaryManagedObjectContext(typedID(fotoAsset)) { fotoAsset, objectContext in
                     if let existingPlacemark = fotoAsset.placemark {
                         objectContext.delete(existingPlacemark)
