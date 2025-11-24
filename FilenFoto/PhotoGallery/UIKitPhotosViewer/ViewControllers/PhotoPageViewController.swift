@@ -37,9 +37,7 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.register(TinyPhotoViewCell.self, forCellWithReuseIdentifier: "TinyPhotoCell")
 
-        swiftUITopBar = UIHostingController(rootView: AnyView(EmptyView()))
-        swiftUIBottomBar = UIHostingController(rootView: AnyView(EmptyView()))
-        resetSwiftUIViews()
+        initSwiftUIViews()
 
         self.view.backgroundColor = self.traitCollection.userInterfaceStyle == .dark ? .black : .white
         self.addChild(swiftUITopBar)
@@ -100,13 +98,26 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
         let inset = (collectionView.bounds.width - layout.itemSize.width) / 2
         layout.sectionInset = UIEdgeInsets(top: 0, left: inset, bottom: 0, right: inset)
     }
+    
+    var swiftUIValueBridge: ValueBridge<WorkingSetFotoAsset>?
 
     func resetSwiftUIViews() {
         guard let currentView = pagedController.viewControllers?.first as? ChildPageTemplateViewController else { return }
         let image = currentView.image.workingAsset
 
-        swiftUITopBar.rootView = AnyView(swiftUIProvider.topBar(with: image))
-        swiftUIBottomBar.rootView = AnyView(swiftUIProvider.bottomBar(with: image))
+        withAnimation {
+            swiftUIValueBridge?.value = image
+        }
+    }
+    
+    func initSwiftUIViews() {
+        guard let currentView = pagedController.viewControllers?.first as? ChildPageTemplateViewController else { return }
+        let image = currentView.image.workingAsset
+
+        swiftUIValueBridge = ValueBridge<WorkingSetFotoAsset>(image)
+        
+        swiftUITopBar = UIHostingController(rootView: AnyView(swiftUIProvider.topBar(assetValueBridge: swiftUIValueBridge!)))
+        swiftUIBottomBar = UIHostingController(rootView: AnyView(swiftUIProvider.bottomBar(assetValueBridge: swiftUIValueBridge!)))
     }
 
     func scrollScrubberToSelectedPhoto(animated: Bool, to newId: PhotoIdentifier? = nil) {

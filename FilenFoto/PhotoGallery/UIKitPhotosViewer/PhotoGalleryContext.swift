@@ -14,9 +14,9 @@ class PhotoGalleryContext: ObservableObject {
     
     // TODO: This might not be doable anymore
     let photoDataSource: any PhotoDataSourceProtocol
-    let swiftUIProvider: any SwiftUIProviderProtocol
+    let swiftUIProvider: any SwiftUIViewFactoryProtocol
     
-    init(photoDataSource: any PhotoDataSourceProtocol, swiftUIProvider: any SwiftUIProviderProtocol) {
+    init(photoDataSource: any PhotoDataSourceProtocol, swiftUIProvider: any SwiftUIViewFactoryProtocol) {
         self.photoDataSource = photoDataSource
         self.swiftUIProvider = swiftUIProvider
     }

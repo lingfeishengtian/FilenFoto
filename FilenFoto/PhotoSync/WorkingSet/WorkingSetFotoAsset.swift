@@ -19,7 +19,7 @@ enum WorkingAssetState {
 }
 
 actor WorkingSetFotoAsset {
-    let asset: ReadOnlyNSManagedObject<FotoAsset>
+    nonisolated let asset: ReadOnlyNSManagedObject<FotoAsset>
     let workingSetRootFolder: URL
     let assetManager: FFResourceManager = .init()
     let logger: Logger

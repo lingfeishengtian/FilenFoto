@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24299" systemVersion="25A354" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24299" systemVersion="25B78" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="CachedResource" representedClassName=".CachedResource" syncable="YES" codeGenerationType="category">
         <attribute name="fileName" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="fileSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
@@ -7,16 +7,20 @@
         <relationship name="remoteResource" maxCount="1" deletionRule="Nullify" destinationEntity="RemoteResource" inverseName="cachedResource" inverseEntity="RemoteResource"/>
     </entity>
     <entity name="FotoAsset" representedClassName=".FotoAsset" syncable="YES" codeGenerationType="category">
+        <attribute name="altitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="cloudUuid" optional="YES" attributeType="String"/>
         <attribute name="dateCreated" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="dateModified" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="filenResourceFolderUuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="latitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="localUuid" optional="YES" attributeType="String"/>
+        <attribute name="longitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="mediaSubtypesRaw" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="mediaTypeRaw" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pixelHeight" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pixelWidth" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="uuid" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="placemark" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FotoPlacemark" inverseName="parentAsset" inverseEntity="FotoPlacemark"/>
         <relationship name="providerStatuses" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ProviderStatus" inverseName="parentAsset" inverseEntity="ProviderStatus"/>
         <relationship name="remoteResources" optional="YES" toMany="YES" deletionRule="Deny" destinationEntity="RemoteResource" inverseName="parentAsset" inverseEntity="RemoteResource"/>
         <fetchIndex name="byCreatedDate">
@@ -28,6 +32,14 @@
         <fetchIndex name="byCloudUuid">
             <fetchIndexElement property="cloudUuid" type="Binary" order="ascending"/>
         </fetchIndex>
+    </entity>
+    <entity name="FotoPlacemark" representedClassName="FotoPlacemark" syncable="YES" codeGenerationType="class">
+        <attribute name="cityName" optional="YES" attributeType="String"/>
+        <attribute name="cityWithContext" optional="YES" attributeType="String"/>
+        <attribute name="fullAddress" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="regionRaw" optional="YES" attributeType="String"/>
+        <relationship name="parentAsset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FotoAsset" inverseName="placemark" inverseEntity="FotoAsset"/>
     </entity>
     <entity name="ProviderStatus" representedClassName="ProviderStatus" syncable="YES" codeGenerationType="category">
         <attribute name="failureMessage" optional="YES" attributeType="String"/>

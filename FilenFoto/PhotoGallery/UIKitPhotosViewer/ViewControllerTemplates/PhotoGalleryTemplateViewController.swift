@@ -52,7 +52,7 @@ class PhotoGalleryTemplateViewController: UIViewController {
         photoGalleryContext.photoDataSource
     }
     
-    var swiftUIProvider: SwiftUIProviderProtocol {
+    var swiftUIProvider: SwiftUIViewFactoryProtocol {
         photoGalleryContext.swiftUIProvider
     }
     

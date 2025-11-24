@@ -9,11 +9,14 @@ import Foundation
 
 enum AvailableProvider: Int16, CaseIterable, RawRepresentable {
     case thumbnailProvider = 1
+    case placemarkProvider = 2
 
     var provider: PhotoActionProviderDelegate {
         switch self {
         case .thumbnailProvider:
             return ThumbnailProvider.shared
+        case .placemarkProvider:
+            return PlacemarkProvider.shared
         }
     }
     
@@ -21,12 +24,16 @@ enum AvailableProvider: Int16, CaseIterable, RawRepresentable {
         switch self {
         case .thumbnailProvider:
             return "Thumbnail Provider"
+        case .placemarkProvider:
+            return "Placemark Provider"
         }
     }
     
     var progressWeight: Int64 {
         switch self {
         case .thumbnailProvider:
+            return 10
+        case .placemarkProvider:
             return 10
         }
     }

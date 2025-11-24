@@ -8,6 +8,7 @@
 import CoreData
 import Foundation
 import UIKit
+import Photos
 
 actor ThumbnailProvider: PhotoActionProviderDelegate {
     let version: Int16 = 2
@@ -17,7 +18,7 @@ actor ThumbnailProvider: PhotoActionProviderDelegate {
 
     static let audioThumbnail = UIImage()  // TODO: Load the default audio image from assets (maybe later generate thumbnail from soundwave???)
 
-    func initiateProtocol(for workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset) async throws -> ProviderCompletion? {
+    func initiateProtocol(for workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset, supportingPHAsset: PHAsset) async throws -> ProviderCompletion? {
         guard let readOnlyFotoAsset = typedID(fotoAsset).getReadOnlyObject() else {
             return nil
         }
@@ -34,18 +35,18 @@ actor ThumbnailProvider: PhotoActionProviderDelegate {
         return nil
     }
     
-    func incrementlyMigrate(_ workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset, from currentVersion: Int16) async throws
+    func incrementlyMigrate(_ workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset, supportingPHAsset: PHAsset, from currentVersion: Int16) async throws
         -> ProviderCompletion?
     {
         switch currentVersion {
         case 1:
-            return try await initiateProtocol(for: workingSetAsset, with: fotoAsset)
+            return try await initiateProtocol(for: workingSetAsset, with: fotoAsset, supportingPHAsset: supportingPHAsset)
         default:
             return nil
         }
     }
 
-    func retryFailedActions(for workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset) async throws -> ProviderCompletion? {
-        try await initiateProtocol(for: workingSetAsset, with: fotoAsset)
+    func retryFailedActions(for workingSetAsset: WorkingSetFotoAsset, with fotoAsset: FotoAsset, supportingPHAsset: PHAsset) async throws -> ProviderCompletion? {
+        try await initiateProtocol(for: workingSetAsset, with: fotoAsset, supportingPHAsset: supportingPHAsset)
     }
 }

@@ -36,7 +36,7 @@ class DetailedPhotoViewController: ChildPageTemplateViewController, PagedPhotoHe
         image.contentMode = .scaleAspectFill
         image.clipsToBounds = true
 
-        swiftUIView = UIHostingController(rootView: AnyView(swiftUIProvider.detailedView(for: image.workingAsset)))
+        swiftUIView = UIHostingController(rootView: AnyView(swiftUIProvider.detailedView(assetValueBridge: ValueBridge(image.workingAsset))))
 
         swiftUIView.view.frame = calculateSwiftUIFrame()
         swiftUIView.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]

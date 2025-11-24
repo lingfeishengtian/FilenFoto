@@ -97,7 +97,7 @@ class PhotoSyncController: ObservableObject {
         // TODO: Make working set asset actually report progress
         completeWorkingSetAssetRetrieval()
 
-        await runProviders(for: workingAsset)
+        await runProviders(for: workingAsset, supportingPHAsset: asset)
     }
 }
 

@@ -7,9 +7,10 @@
 
 import CoreData
 import Foundation
+import Photos
 
 extension PhotoSyncController {
-    func runProviders(for workingAsset: WorkingSetFotoAsset) async {
+    func runProviders(for workingAsset: WorkingSetFotoAsset, supportingPHAsset: PHAsset) async {
         let providerManagedContext = FFCoreDataManager.shared.newChildContext()
         let fotoAsset = providerManagedContext.object(with: await workingAsset.asset.underlyingObject.objectID) as? FotoAsset
 
@@ -63,16 +64,16 @@ extension PhotoSyncController {
                 switch currentProviderStatus.state {
                 case .notStarted:
                     try await execute {
-                        try await providerDelegate.initiateProtocol(for: workingAsset, with: fotoAsset)
+                        try await providerDelegate.initiateProtocol(for: workingAsset, with: fotoAsset, supportingPHAsset: supportingPHAsset)
                     }
                 case .failed:
                     try await execute {
-                        try await providerDelegate.retryFailedActions(for: workingAsset, with: fotoAsset)
+                        try await providerDelegate.retryFailedActions(for: workingAsset, with: fotoAsset, supportingPHAsset: supportingPHAsset)
                     }
                 case .succeded:
                     for versionUpgrade in currentProviderStatus.version..<providerDelegate.version {
                         try await execute {
-                            try await providerDelegate.incrementlyMigrate(workingAsset, with: fotoAsset, from: versionUpgrade)
+                            try await providerDelegate.incrementlyMigrate(workingAsset, with: fotoAsset, supportingPHAsset: supportingPHAsset, from: versionUpgrade)
                         }
                     }
 
