@@ -15,12 +15,4 @@ extension RemoteResource {
         
         return directory.appending(path: fileName)
     }
-    
-    override public func validateForDelete() throws {
-        try super.validateForDelete()
-        
-        if filenUuid != nil {
-            throw FilenFotoError.remoteResourceStillExistsInFilen
-        }
-    }
 }

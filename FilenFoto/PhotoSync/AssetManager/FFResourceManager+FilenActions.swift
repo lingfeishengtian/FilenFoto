@@ -25,15 +25,8 @@ extension FFResourceManager {
     }
     
     func filenDelete(resource: FFObjectID<RemoteResource>, inLocalFolder workingDirectory: URL) async throws {
-        try await withTemporaryManagedObjectContext(resource) { resource in
+        try await withTemporaryManagedObjectContext(resource) { resourceToDelete, temporaryContext in
             let filenClient = try PhotoContext.shared.unwrappedFilenClient()
-            
-            let temporaryContext = FFCoreDataManager.shared.newChildContext()
-            let resourceToDelete = temporaryContext.object(with: resource.objectID) as? RemoteResource
-            
-            guard let resourceToDelete else {
-                throw FilenFotoError.coreDataContext
-            }
             
             let pathToFile = resourceToDelete.fileURL(in: workingDirectory)
             
@@ -47,6 +40,8 @@ extension FFResourceManager {
             if let pathToFile {
                 try? FileManager.default.removeItem(at: pathToFile)
             }
+            
+            temporaryContext.delete(resourceToDelete)
         }
     }
     
