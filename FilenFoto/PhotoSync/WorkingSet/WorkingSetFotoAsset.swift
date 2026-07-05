@@ -92,7 +92,7 @@ actor WorkingSetFotoAsset {
             return fileUrl
         }
         
-        try await assetManager.filenDownload(resource: ReadOnlyNSManagedObject(remoteResource), toLocalFolder: workingSetRootFolder, cancellable: cancellable)
+        try await assetManager.filenDownload(resource: makeReadOnly(remoteResource), toLocalFolder: workingSetRootFolder, cancellable: cancellable)
         await cache(remoteResource)
 
         return fileUrl
@@ -116,7 +116,7 @@ actor WorkingSetFotoAsset {
     deinit {
         // Clean working directory just in case a session before exited abnormally
         for remoteResource in asset.remoteResourcesArray {
-            try? assetManager.cancelDownload(resource: ReadOnlyNSManagedObject(remoteResource))
+            try? assetManager.cancelDownload(resource: makeReadOnly(remoteResource))
         }
         
         try? FileManager.default.clearDirectoryContents(at: workingSetRootFolder)

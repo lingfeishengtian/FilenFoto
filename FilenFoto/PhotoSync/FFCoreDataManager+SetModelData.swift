@@ -13,7 +13,10 @@ import MapKit.MKMapItem
 extension FFCoreDataManager {
     nonisolated static func set(filenFoto: FotoAsset, for asset: PHAsset) {
         //        filenFoto.cloudUuid = asset. TODO: Figure out
-        filenFoto.uuid = UUID() // Although an extremely small chance, assume this is *mostly* unique and use it for operations that need a relatively stable identifier, however, don't set constraints on it
+        if filenFoto.uuid == nil {
+            filenFoto.uuid = UUID() // Although an extremely small chance, assume this is *mostly* unique and use it for operations that need a relatively stable identifier, however, don't set constraints on it
+        }
+        
         filenFoto.localUuid = asset.localIdentifier
         filenFoto.dateCreated = asset.creationDate
         filenFoto.dateModified = asset.modificationDate

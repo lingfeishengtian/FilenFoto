@@ -16,3 +16,11 @@ extension RemoteResource {
         return directory.appending(path: fileName)
     }
 }
+
+#if DEBUG
+extension ReadOnlyNSManagedObject where RawNSManagedObject == RemoteResource {
+    func fileURL(in directory: URL) -> URL? {
+        return underlyingObject.fileURL(in: directory)
+    }
+}
+#endif

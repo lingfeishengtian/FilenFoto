@@ -39,7 +39,7 @@ libname=$(echo "$rust_crate_name" | tr '-' '_')
 cargo build -p $rust_crate_name --lib --release --target aarch64-apple-ios-sim --target aarch64-apple-ios
 
 # Make uniffi bindings
-cargo run --bin uniffi-bindgen -- target/aarch64-apple-ios/release/lib${libname}.a target/uniffi-xcframework-staging --swift-sources --headers --modulemap --module-name ${libname}FFI --modulemap-filename module.modulemap
+cargo run --bin uniffi-bindgen -- target/aarch64-apple-ios/release/lib${libname}.a target/uniffi-xcframework-staging/filen-swift --swift-sources --headers --modulemap --module-name ${libname}FFI --modulemap-filename module.modulemap
 
 # Make XCFramework
 rm -rf target/ios

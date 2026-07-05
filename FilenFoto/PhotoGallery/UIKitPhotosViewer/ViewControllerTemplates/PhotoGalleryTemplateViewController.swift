@@ -85,15 +85,15 @@ class PhotoGalleryTemplateViewController: UIViewController {
             return nil
         }
         
-        return ReadOnlyNSManagedObject(fotoAsset)
+        return makeReadOnly(fotoAsset)
     }
     
     func fotoAsset(at indexPath: IndexPath) -> ReadOnlyNSManagedObject<FotoAsset> {
-        ReadOnlyNSManagedObject(fetchResultsController.object(at: indexPath))
+        makeReadOnly(fetchResultsController.object(at: indexPath))
     }
     
     func fotoAsset(at index: Int) -> ReadOnlyNSManagedObject<FotoAsset> {
-        ReadOnlyNSManagedObject(fetchResultsController.object(at: IndexPath(row: index, section: 0)))
+        makeReadOnly(fetchResultsController.object(at: IndexPath(row: index, section: 0)))
     }
     
     func indexPath(for objectId: PhotoIdentifier) -> IndexPath? {

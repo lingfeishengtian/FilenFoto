@@ -73,6 +73,8 @@ class FFResourceManager {
             let assetRequestOptions = PHAssetResourceRequestOptions()
             assetRequestOptions.isNetworkAccessAllowed = true
             
+            FFCoreDataManager.set(filenFoto: fotoAsset, for: iosPhotoAsset)
+            
             for assetResource in assetResources {
                 let remoteResource = RemoteResource(context: objectContext)
                 remoteResource.uuid = UUID()

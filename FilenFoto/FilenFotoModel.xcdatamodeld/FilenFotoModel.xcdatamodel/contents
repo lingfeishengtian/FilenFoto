@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24299" systemVersion="25B78" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
-    <entity name="CachedResource" representedClassName=".CachedResource" syncable="YES" codeGenerationType="category">
-        <attribute name="fileName" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="fileSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="lastAccessDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="remoteResource" maxCount="1" deletionRule="Nullify" destinationEntity="RemoteResource" inverseName="cachedResource" inverseEntity="RemoteResource"/>
-    </entity>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25E253" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="FotoAsset" representedClassName=".FotoAsset" syncable="YES" codeGenerationType="category">
         <attribute name="altitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="cloudUuid" optional="YES" attributeType="String"/>
         <attribute name="dateCreated" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="dateModified" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="filenResourceFolderUuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isFavorited" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="latitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="localUuid" optional="YES" attributeType="String"/>
         <attribute name="longitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
@@ -54,8 +49,7 @@
         <attribute name="filenUuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isMarkedForDeletion" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="originalFilename" optional="YES" attributeType="String"/>
-        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <relationship name="cachedResource" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="CachedResource" inverseName="remoteResource" inverseEntity="CachedResource"/>
+        <attribute name="uuid" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="parentAsset" maxCount="1" deletionRule="Nullify" destinationEntity="FotoAsset" inverseName="remoteResources" inverseEntity="FotoAsset"/>
     </entity>
 </model>

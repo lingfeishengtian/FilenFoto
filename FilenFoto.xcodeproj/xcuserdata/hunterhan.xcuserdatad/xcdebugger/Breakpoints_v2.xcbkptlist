@@ -2050,8 +2050,8 @@
             filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceManager.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "85"
-            endingLineNumber = "85"
+            startingLineNumber = "87"
+            endingLineNumber = "87"
             landmarkName = "fetchAssets(for:from:writeTo:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2066,8 +2066,8 @@
             filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceManager.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "86"
-            endingLineNumber = "86"
+            startingLineNumber = "88"
+            endingLineNumber = "88"
             landmarkName = "fetchAssets(for:from:writeTo:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2123,38 +2123,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "7E90415A-A750-4705-95A9-01D504DFED46"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceCacheManager.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "58"
-            endingLineNumber = "58"
-            landmarkName = "delete(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "5072BE3A-EE7B-4069-A4BB-2D22C72424D2"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceCacheManager.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "111"
-            endingLineNumber = "111"
-            landmarkName = "insert(remoteResourceId:fileUrl:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "D5AB16C4-4EC8-4878-B9C1-3A5C2FFEE10A"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -2178,8 +2146,8 @@
             filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceManager.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "95"
-            endingLineNumber = "95"
+            startingLineNumber = "97"
+            endingLineNumber = "97"
             landmarkName = "fetchAssets(for:from:writeTo:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2194,8 +2162,8 @@
             filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceManager.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "94"
-            endingLineNumber = "94"
+            startingLineNumber = "96"
+            endingLineNumber = "96"
             landmarkName = "fetchAssets(for:from:writeTo:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2210,25 +2178,9 @@
             filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceCacheManager.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "154"
-            endingLineNumber = "154"
-            landmarkName = "cacheOut(from:to:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "862FB966-8701-4950-8836-C8D4A6E27F28"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceCacheManager.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "155"
-            endingLineNumber = "155"
-            landmarkName = "cacheOut(from:to:)"
+            startingLineNumber = "168"
+            endingLineNumber = "168"
+            landmarkName = "insert(remoteResource:fileUrl:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -2245,22 +2197,6 @@
             startingLineNumber = "92"
             endingLineNumber = "92"
             landmarkName = "resource(for:cancellable:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "FEE89372-D488-4321-9E57-C42419405200"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceCacheManager.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "156"
-            endingLineNumber = "156"
-            landmarkName = "cacheOut(from:to:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -2395,22 +2331,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "182DC7BD-4C2E-47C2-9C74-882B1DD39412"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceCacheManager.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "151"
-            endingLineNumber = "151"
-            landmarkName = "cacheOut(from:to:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "6754E7A0-3A6D-43E0-ACE2-B4A22BF4F684"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -2483,9 +2403,26 @@
             filePath = "FilenFoto/PhotoSync/AssetManager/FFResourceManager.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "101"
-            endingLineNumber = "101"
+            startingLineNumber = "103"
+            endingLineNumber = "103"
             landmarkName = "syncResources(in:for:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "CBEE0593-8653-47C5-A3EC-8D7381484C14"
+            shouldBeEnabled = "No"
+            condition = "backgroundContext.hasChanges"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FilenFoto/Persistence/FFCoreDataManager.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "115"
+            endingLineNumber = "115"
+            landmarkName = "newChildContext()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
