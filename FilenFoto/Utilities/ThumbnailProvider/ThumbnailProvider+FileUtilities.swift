@@ -29,12 +29,6 @@ extension ThumbnailProvider {
 
         return UIImage.fromRawThumbnail(locatedAt: fileUrl, targetSize: compressedPixelSize(pixelHeight: fotoAsset.pixelHeight, pixelWidth: fotoAsset.pixelWidth))
     }
-    
-    @available(*, deprecated, renamed: "thumbnail(for:)", message: "Use either a ReadOnly or an FFObjectID")
-    nonisolated func thumbnail(for fotoAsset: FotoAsset) -> UIImage? {
-        let objectId = typedID(fotoAsset)
-        return thumbnail(for: objectId.getReadOnlyObject()!)
-    }
 
     func imageResource(for workingSetAsset: WorkingSetFotoAsset, mediaType: PHAssetMediaType) async throws -> UIImage {
         switch mediaType {

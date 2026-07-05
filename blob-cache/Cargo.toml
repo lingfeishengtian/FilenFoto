@@ -1,0 +1,15 @@
+[package]
+name = "blob-cache"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[dependencies]
+boltffi = "0.27.0"
+rusqlite = { version = "=0.37.0", features = ["bundled"] }
+uuid = { version = "1.23.1", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = "3"

@@ -18,11 +18,24 @@ struct PhotoDetailsTopBarView: View {
         Button {
             
         } label: {
-            Text(asset.placemark?.name ?? "")
-                .fontWeight(.bold)
+            VStack {
+                if let placename = asset.placemark?.name {
+                    Text(placename)
+                        .fontWeight(.bold)
+                        .font(.subheadline)
+                }
+                
+                if let dateCreated = asset.dateCreated {
+                    Text(dateCreated.formatted(date: .abbreviated, time: .shortened))
+                        .fontWeight(.medium)
+                        .font(.caption)
+                }
+            }
+            .padding(4)
         }
-        .padding()
         .buttonStyle(.glass)
+        .tint(.primary.opacity(0.9))
+        .padding(.top, 4)
     }
 }
 

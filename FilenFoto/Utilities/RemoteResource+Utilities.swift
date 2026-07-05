@@ -15,12 +15,12 @@ extension RemoteResource {
         
         return directory.appending(path: fileName)
     }
-    
-    override public func validateForDelete() throws {
-        try super.validateForDelete()
-        
-        if filenUuid != nil {
-            throw FilenFotoError.remoteResourceStillExistsInFilen
-        }
+}
+
+#if DEBUG
+extension ReadOnlyNSManagedObject where RawNSManagedObject == RemoteResource {
+    func fileURL(in directory: URL) -> URL? {
+        return underlyingObject.fileURL(in: directory)
     }
 }
+#endif

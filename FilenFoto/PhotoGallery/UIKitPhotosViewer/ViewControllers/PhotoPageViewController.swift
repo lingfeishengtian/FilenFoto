@@ -36,6 +36,7 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
         collectionView.decelerationRate = .fast
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.register(TinyPhotoViewCell.self, forCellWithReuseIdentifier: "TinyPhotoCell")
+        collectionView.backgroundColor = .clear
 
         initSwiftUIViews()
 
@@ -118,6 +119,9 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
         
         swiftUITopBar = UIHostingController(rootView: AnyView(swiftUIProvider.topBar(assetValueBridge: swiftUIValueBridge!)))
         swiftUIBottomBar = UIHostingController(rootView: AnyView(swiftUIProvider.bottomBar(assetValueBridge: swiftUIValueBridge!)))
+        
+        swiftUITopBar.view.backgroundColor = .clear
+        swiftUIBottomBar.view.backgroundColor = .clear
     }
 
     func scrollScrubberToSelectedPhoto(animated: Bool, to newId: PhotoIdentifier? = nil) {
@@ -138,5 +142,11 @@ class PhotoPageViewController: PagedPhotoDetailViewController {
 
     override func onPageChanged(to id: PhotoIdentifier) {
         scrollScrubberToSelectedPhoto(animated: true, to: id)
+    }
+    
+    override func setSelectedPhotoId(_ id: PhotoIdentifier) {
+        super.setSelectedPhotoId(id)
+        
+        resetSwiftUIViews()
     }
 }

@@ -7,6 +7,7 @@
 
 import CoreData
 import SwiftUI
+import BlobCache
 
 struct PhotoDataSource: PhotoDataSourceProtocol {
     let managedObjectContext: NSManagedObjectContext
@@ -34,6 +35,8 @@ struct PhotoDataSource: PhotoDataSourceProtocol {
 }
 
 let testPath = FileManager.default.documentsDirectory.appendingPathComponent("Test")
+
+let blobCache = BlobCache(rootPath: ":test", maxCacheSize: 123)
 
 struct PhotoGallery: View {
     @Environment(\.managedObjectContext) var viewContext

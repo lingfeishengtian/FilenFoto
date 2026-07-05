@@ -8,11 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		963D31672E78A8AA00C602C9 /* FotoAsset+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 963D31632E78A8AA00C602C9 /* FotoAsset+CoreDataClass.swift */; };
-		963D316A2E78A8AA00C602C9 /* CachedResource+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 963D31612E78A8AA00C602C9 /* CachedResource+CoreDataClass.swift */; };
 		963D316B2E78A8AA00C602C9 /* RemoteResource+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 963D31652E78A8AA00C602C9 /* RemoteResource+CoreDataClass.swift */; };
 		967A5F002E7FC7CD008ED1FC /* ProviderStatus+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 967A5EFE2E7FC7CD008ED1FC /* ProviderStatus+CoreDataClass.swift */; };
-		96BEF75E2E64C325003B1BA8 /* libfilen_swift.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96BEF75D2E64C325003B1BA8 /* libfilen_swift.xcframework */; };
-		96BEF75F2E64C325003B1BA8 /* libfilen_swift.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 96BEF75D2E64C325003B1BA8 /* libfilen_swift.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		96CF8EDE2FF9DA7E00C81A67 /* BlobCache in Frameworks */ = {isa = PBXBuildFile; productRef = 96CF8EDD2FF9DA7E00C81A67 /* BlobCache */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,13 +31,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		96BEF7602E64C325003B1BA8 /* Embed Frameworks */ = {
+		96CF8ECD2FF9D66700C81A67 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				96BEF75F2E64C325003B1BA8 /* libfilen_swift.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -50,12 +47,9 @@
 		9600526F2E5A1AB8005176EE /* FilenFoto.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FilenFoto.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9600527C2E5A1ABA005176EE /* FilenFotoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FilenFotoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		960052862E5A1ABA005176EE /* FilenFotoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FilenFotoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		963D31612E78A8AA00C602C9 /* CachedResource+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CachedResource+CoreDataClass.swift"; path = "FilenFoto/Persistence/Models/CachedResource+CoreDataClass.swift"; sourceTree = "<group>"; };
 		963D31632E78A8AA00C602C9 /* FotoAsset+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FotoAsset+CoreDataClass.swift"; path = "FilenFoto/Persistence/Models/FotoAsset+CoreDataClass.swift"; sourceTree = "<group>"; };
 		963D31652E78A8AA00C602C9 /* RemoteResource+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RemoteResource+CoreDataClass.swift"; path = "FilenFoto/Persistence/Models/RemoteResource+CoreDataClass.swift"; sourceTree = "<group>"; };
 		967A5EFE2E7FC7CD008ED1FC /* ProviderStatus+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ProviderStatus+CoreDataClass.swift"; path = "FilenFoto/Persistence/Models/ProviderStatus+CoreDataClass.swift"; sourceTree = "<group>"; };
-		96A3EA092E7686CD005F235B /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
-		96BEF75D2E64C325003B1BA8 /* libfilen_swift.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libfilen_swift.xcframework; path = "filen-swift/target/ios/libfilen_swift.xcframework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -68,11 +62,25 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		96CF8ED22FF9D6E100C81A67 /* Exceptions for "FilenFoto" folder in "Embed Frameworks" phase from "FilenFoto" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			attributesByRelativePath = {
+				libfilen_swift.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
+			};
+			buildPhase = 96CF8ECD2FF9D66700C81A67 /* Embed Frameworks */;
+			membershipExceptions = (
+				libfilen_swift.xcframework,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		960052712E5A1AB8005176EE /* FilenFoto */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				96B320672E6D2C6600490FEA /* Exceptions for "FilenFoto" folder in "FilenFoto" target */,
+				96CF8ED22FF9D6E100C81A67 /* Exceptions for "FilenFoto" folder in "Embed Frameworks" phase from "FilenFoto" target */,
 			);
 			path = FilenFoto;
 			sourceTree = "<group>";
@@ -94,7 +102,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				96BEF75E2E64C325003B1BA8 /* libfilen_swift.xcframework in Frameworks */,
+				96CF8EDE2FF9DA7E00C81A67 /* BlobCache in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,7 +127,6 @@
 			isa = PBXGroup;
 			children = (
 				967A5EFE2E7FC7CD008ED1FC /* ProviderStatus+CoreDataClass.swift */,
-				963D31612E78A8AA00C602C9 /* CachedResource+CoreDataClass.swift */,
 				963D31632E78A8AA00C602C9 /* FotoAsset+CoreDataClass.swift */,
 				963D31652E78A8AA00C602C9 /* RemoteResource+CoreDataClass.swift */,
 				960052712E5A1AB8005176EE /* FilenFoto */,
@@ -143,8 +150,6 @@
 		96BEF75C2E64C325003B1BA8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				96A3EA092E7686CD005F235B /* CoreData.framework */,
-				96BEF75D2E64C325003B1BA8 /* libfilen_swift.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -159,7 +164,7 @@
 				9600526B2E5A1AB8005176EE /* Sources */,
 				9600526C2E5A1AB8005176EE /* Frameworks */,
 				9600526D2E5A1AB8005176EE /* Resources */,
-				96BEF7602E64C325003B1BA8 /* Embed Frameworks */,
+				96CF8ECD2FF9D66700C81A67 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -170,6 +175,7 @@
 			);
 			name = FilenFoto;
 			packageProductDependencies = (
+				96CF8EDD2FF9DA7E00C81A67 /* BlobCache */,
 			);
 			productName = FilenFoto;
 			productReference = 9600526F2E5A1AB8005176EE /* FilenFoto.app */;
@@ -233,6 +239,7 @@
 				TargetAttributes = {
 					9600526E2E5A1AB8005176EE = {
 						CreatedOnToolsVersion = 16.3;
+						LastSwiftMigration = 2660;
 					};
 					9600527B2E5A1ABA005176EE = {
 						CreatedOnToolsVersion = 16.3;
@@ -253,6 +260,9 @@
 			);
 			mainGroup = 960052662E5A1AB8005176EE;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				96CF8EDC2FF9DA7E00C81A67 /* XCLocalSwiftPackageReference "blob-cache/dist/apple" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 960052702E5A1AB8005176EE /* Products */;
 			projectDirPath = "";
@@ -296,7 +306,6 @@
 			files = (
 				963D31672E78A8AA00C602C9 /* FotoAsset+CoreDataClass.swift in Sources */,
 				967A5F002E7FC7CD008ED1FC /* ProviderStatus+CoreDataClass.swift in Sources */,
-				963D316A2E78A8AA00C602C9 /* CachedResource+CoreDataClass.swift in Sources */,
 				963D316B2E78A8AA00C602C9 /* RemoteResource+CoreDataClass.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -459,6 +468,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = N74E93PMQ8;
@@ -479,6 +489,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.hunterhan.FilenFoto;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "FilenFoto/FilenFoto-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -489,6 +501,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = N74E93PMQ8;
@@ -509,6 +522,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.hunterhan.FilenFoto;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "FilenFoto/FilenFoto-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -626,6 +640,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		96CF8EDC2FF9DA7E00C81A67 /* XCLocalSwiftPackageReference "blob-cache/dist/apple" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "blob-cache/dist/apple";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		96CF8EDD2FF9DA7E00C81A67 /* BlobCache */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BlobCache;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 960052672E5A1AB8005176EE /* Project object */;
 }

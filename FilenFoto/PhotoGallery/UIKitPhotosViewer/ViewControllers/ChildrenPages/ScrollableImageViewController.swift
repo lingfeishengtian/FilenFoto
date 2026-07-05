@@ -32,6 +32,7 @@ class ScrollableImageViewController: ChildPageTemplateViewController, PagedPhoto
         scrollView.contentInsetAdjustmentBehavior = .never
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
+        scrollView.backgroundColor = .clear
         
         contentView = UIImageView(frame: self.parent!.view.frame)
         contentView.translatesAutoresizingMaskIntoConstraints = false
